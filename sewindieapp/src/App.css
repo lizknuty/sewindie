@@ -1,0 +1,133 @@
+/* App.css *//* General Layout */.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.nav {
+  margin-bottom: 20px;
+}
+
+.nav-link {
+  color: #007bff;
+  cursor: pointer;
+}
+
+.nav-link.active {
+  font-weight: bold;
+  color: #0056b3;
+}
+
+.nav-link:hover {
+  text-decoration: underline;
+}
+
+/* Page Header */h1 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+}
+
+/* Forms */.form-label {
+  font-weight: bold;
+}
+
+.form-control {
+  margin-bottom: 15px;
+  padding: 10px;
+}
+
+.btn {
+  padding: 10px20px;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+/* Layout */.row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.col-md-3 {
+  flex: 0025%;
+  max-width: 25%;
+}
+
+.col-md-9 {
+  flex: 0075%;
+  max-width: 75%;
+}
+
+/* Filter Section */.filter-section {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.filter-section.col-md-4 {
+  flex: 0032%;
+  max-width: 32%;
+  margin-bottom: 15px;
+}
+
+.filter-section.form-label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.filter-section.form-select {
+  padding: 10px;
+  font-size: 16px;
+}
+
+/* Other Styles */.mt-5 {
+  margin-top: 3rem;
+}
+
+.mt-4 {
+  margin-top: 2rem;
+}
+
+.mb-3 {
+  margin-bottom: 1rem;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.justify-content-between {
+  justify-content: space-between;
+}
+
+/* Carousel */.carousel-caption {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  backdrop-filter: blur(10px); /* Apply blur effect */color: #fff; /* White text for better readability */text-shadow: 2px2px4pxrgba(0, 0, 0, 0.7); /* Add text shadow */
+}
+
+.carousel-captionh3 {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.carousel-captionp {
+  font-size: 1.2rem;
+}

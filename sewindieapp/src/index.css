@@ -1,0 +1,70 @@
+/* index.css *//* Reset some basic styles */body, html, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background-color: #f8f9fa;
+  color: #343a40;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Typography */h1, h2, h3, h4, h5, h6 {
+  font-weight: 400;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Utility Classes */.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.mb-4 {
+  margin-bottom: 1.5rem;
+}
+
+.pt-4 {
+  padding-top: 1.5rem;
+}
+
+.pb-4 {
+  padding-bottom: 1.5rem;
+}
+
+/* Additional CSS for responsiveness */@media (max-width: 768px) {
+  .col-md-3, .col-md-9 {
+      flex: 00100%;
+      max-width: 100%;
+  }
+
+  .d-flex {
+      flex-direction: column;
+  }
+
+  .justify-content-between {
+      justify-content: center;
+  }
+}
