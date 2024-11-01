@@ -24,7 +24,7 @@ export default function RootLayout({
         </main>
         <footer className="bg-muted text-muted-foreground p-4 mt-8">
           <div className="container mx-auto text-center">
-            © 2024 Sewing Patterns App
+            © 2024 SewIndie App
           </div>
         </footer>
       </body>
