@@ -2,7 +2,32 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Designer, Category, Format, SuggestedFabric, Attribute } from '@/app/lib/db'
+
+// Define types for the form data and API responses
+type Designer = {
+  id: number;
+  name: string;
+}
+
+type Category = {
+  id: number;
+  name: string;
+}
+
+type Format = {
+  id: number;
+  name: string;
+}
+
+type SuggestedFabric = {
+  id: number;
+  name: string;
+}
+
+type Attribute = {
+  id: number;
+  name: string;
+}
 
 interface FormData {
   name: string;
@@ -20,7 +45,7 @@ interface FormData {
   attributes: string[];
 }
 
-export default function ContributeForm() {
+export default function ContributePage() {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     designer_id: '',
@@ -41,40 +66,41 @@ export default function ContributeForm() {
   const [formats, setFormats] = useState<Format[]>([])
   const [suggestedFabrics, setSuggestedFabrics] = useState<SuggestedFabric[]>([])
   const [attributes, setAttributes] = useState<Attribute[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
     async function fetchData() {
-      const designersResponse = await fetch('/api/designers')
-      const categoriesResponse = await fetch('/api/categories')
-      const formatsResponse = await fetch('/api/formats')
-      const suggestedFabricsResponse = await fetch('/api/suggested-fabrics')
-      const attributesResponse = await fetch('/api/attributes')
+      try {
+        const [designersRes, categoriesRes, formatsRes, suggestedFabricsRes, attributesRes] = await Promise.all([
+          fetch('/api/designers'),
+          fetch('/api/categories'),
+          fetch('/api/formats'),
+          fetch('/api/suggested-fabrics'),
+          fetch('/api/attributes')
+        ])
 
-      if (designersResponse.ok) setDesigners(await designersResponse.json())
-      if (categoriesResponse.ok) setCategories(await categoriesResponse.json())
-      if (formatsResponse.ok) setFormats(await formatsResponse.json())
-      if (suggestedFabricsResponse.ok) setSuggestedFabrics(await suggestedFabricsResponse.json())
-      if (attributesResponse.ok) setAttributes(await attributesResponse.json())
+        const [designersData, categoriesData, formatsData, suggestedFabricsData, attributesData] = await Promise.all([
+          designersRes.json(),
+          categoriesRes.json(),
+          formatsRes.json(),
+          suggestedFabricsRes.json(),
+          attributesRes.json()
+        ])
+
+        setDesigners(designersData)
+        setCategories(categoriesData)
+        setFormats(formatsData)
+        setSuggestedFabrics(suggestedFabricsData)
+        setAttributes(attributesData)
+      } catch (error) {
+        console.error('Error fetching form data:', error)
+        setError('Failed to load form data. Please try again later.')
+      }
     }
     fetchData()
   }, [])
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const response = await fetch('/api/patterns', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    })
-    if (response.ok) {
-      router.push('/patterns')
-    } else {
-      alert('Error submitting pattern')
-    }
-  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -89,189 +115,234 @@ export default function ContributeForm() {
     setFormData(prev => ({ ...prev, [name]: selectedValues }))
   }
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/patterns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to submit pattern')
+      }
+
+      const result = await response.json()
+      router.push(`/patterns/${result.id}`)
+    } catch (error) {
+      console.error('Error submitting pattern:', error)
+      setError('Failed to submit pattern. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-4xl font-bold mb-8">Error</h1>
+        <p className="text-red-500">{error}</p>
+      </div>
+    )
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4">Contribute a Pattern</h1>
-      <div>
-        <label htmlFor="name" className="block mb-2">Pattern Name</label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          required
-          className="w-full p-2 border rounded"
-        />
-      </div>
-      <div>
-        <label htmlFor="designer_id" className="block mb-2">Designer</label>
-        <select
-          id="designer_id"
-          name="designer_id"
-          value={formData.designer_id}
-          onChange={handleChange}
-          required
-          className="w-full p-2 border rounded"
-        >
-          <option value="">Select a designer</option>
-          {designers.map((designer) => (
-            <option key={designer.id} value={designer.id.toString()}>
-              {designer.name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label htmlFor="url" className="block mb-2">Pattern URL</label>
-        <input
-          type="url"
-          id="url"
-          name="url"
-          value={formData.url}
-          onChange={handleChange}
-          required
-          className="w-full p-2 border rounded"
-        />
-      </div>
-      <div>
-        <label htmlFor="thumbnail_url" className="block mb-2">Thumbnail URL</label>
-        <input
-          type="url"
-          id="thumbnail_url"
-          name="thumbnail_url"
-          value={formData.thumbnail_url}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-        />
-      </div>
-      <div>
-        <label htmlFor="yardage" className="block mb-2">Yardage</label>
-        <input
-          type="text"
-          id="yardage"
-          name="yardage"
-          value={formData.yardage}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-        />
-      </div>
-      <div>
-        <label htmlFor="sizes" className="block mb-2">Sizes</label>
-        <input
-          type="text"
-          id="sizes"
-          name="sizes"
-          value={formData.sizes}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-        />
-      </div>
-      <div>
-        <label htmlFor="language" className="block mb-2">Language</label>
-        <input
-          type="text"
-          id="language"
-          name="language"
-          value={formData.language}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-        />
-      </div>
-      <div>
-        <label htmlFor="audience" className="block mb-2">Audience</label>
-        <input
-          type="text"
-          id="audience"
-          name="audience"
-          value={formData.audience}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-        />
-      </div>
-      <div>
-        <label htmlFor="fabric_type" className="block mb-2">Fabric Type</label>
-        <input
-          type="text"
-          id="fabric_type"
-          name="fabric_type"
-          value={formData.fabric_type}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-        />
-      </div>
-      <div>
-        <label htmlFor="categories" className="block mb-2">Categories</label>
-        <select
-          id="categories"
-          name="categories"
-          multiple
-          value={formData.categories}
-          onChange={handleMultiSelect}
-          className="w-full p-2 border rounded"
-        >
-          {categories.map((category) => (
-            <option key={category.id} value={category.id.toString()}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label htmlFor="formats" className="block mb-2">Formats</label>
-        <select
-          id="formats"
-          name="formats"
-          multiple
-          value={formData.formats}
-          onChange={handleMultiSelect}
-          className="w-full p-2 border rounded"
-        >
-          {formats.map((format) => (
-            <option key={format.id} value={format.id.toString()}>
-              {format.name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label htmlFor="suggestedFabrics" className="block mb-2">Suggested Fabrics</label>
-        <select
-          id="suggestedFabrics"
-          name="suggestedFabrics"
-          multiple
-          value={formData.suggestedFabrics}
-          onChange={handleMultiSelect}
-          className="w-full p-2 border rounded"
-        >
-          {suggestedFabrics.map((fabric) => (
-            <option key={fabric.id} value={fabric.id.toString()}>
-              {fabric.name}
-            </option>
-          ))}
-        </select>
-      
-      </div>
-      <div>
-        <label htmlFor="attributes" className="block mb-2">Attributes</label>
-        <select
-          id="attributes"
-          name="attributes"
-          multiple
-          value={formData.attributes}
-          onChange={handleMultiSelect}
-          className="w-full p-2 border rounded"
-        >
-          {attributes.map((attribute) => (
-            <option key={attribute.id} value={attribute.id.toString()}>
-              {attribute.name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-        Submit Pattern
-      </button>
-    </form>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-4xl font-bold mb-8">Contribute a Pattern</h1>
+      <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-6">
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700">Pattern Name</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="designer_id" className="block text-sm font-medium text-gray-700">Designer</label>
+          <select
+            id="designer_id"
+            name="designer_id"
+            value={formData.designer_id}
+            onChange={handleChange}
+            required
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          >
+            <option value="">Select a designer</option>
+            {designers.map(designer => (
+              <option key={designer.id} value={designer.id.toString()}>{designer.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="url" className="block text-sm font-medium text-gray-700">Pattern URL</label>
+          <input
+            type="url"
+            id="url"
+            name="url"
+            value={formData.url}
+            onChange={handleChange}
+            required
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="thumbnail_url" className="block text-sm font-medium text-gray-700">Thumbnail URL</label>
+          <input
+            type="url"
+            id="thumbnail_url"
+            name="thumbnail_url"
+            value={formData.thumbnail_url}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="yardage" className="block text-sm font-medium text-gray-700">Yardage</label>
+          <input
+            type="text"
+            id="yardage"
+            name="yardage"
+            value={formData.yardage}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="sizes" className="block text-sm font-medium text-gray-700">Sizes</label>
+          <input
+            type="text"
+            id="sizes"
+            name="sizes"
+            value={formData.sizes}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="language" className="block text-sm font-medium text-gray-700">Language</label>
+          <input
+            type="text"
+            id="language"
+            name="language"
+            value={formData.language}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="audience" className="block text-sm font-medium text-gray-700">Audience</label>
+          <input
+            type="text"
+            id="audience"
+            name="audience"
+            value={formData.audience}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="fabric_type" className="block text-sm font-medium text-gray-700">Fabric Type</label>
+          <input
+            type="text"
+            id="fabric_type"
+            name="fabric_type"
+            value={formData.fabric_type}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="categories" className="block text-sm font-medium text-gray-700">Categories</label>
+          <select
+            id="categories"
+            name="categories"
+            multiple
+            value={formData.categories}
+            onChange={handleMultiSelect}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          >
+            {categories.map(category => (
+              <option key={category.id} value={category.id.toString()}>{category.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="formats" className="block text-sm font-medium text-gray-700">Formats</label>
+          <select
+            id="formats"
+            name="formats"
+            multiple
+            value={formData.formats}
+            onChange={handleMultiSelect}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          >
+            {formats.map(format => (
+              <option key={format.id} value={format.id.toString()}>{format.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="suggestedFabrics" className="block text-sm font-medium text-gray-700">Suggested Fabrics</label>
+          <select
+            id="suggestedFabrics"
+            name="suggestedFabrics"
+            multiple
+            value={formData.suggestedFabrics}
+            onChange={handleMultiSelect}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          >
+            {suggestedFabrics.map(fabric => (
+              <option key={fabric.id} value={fabric.id.toString()}>{fabric.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="attributes" className="block text-sm font-medium text-gray-700">Attributes</label>
+          <select
+            id="attributes"
+            name="attributes"
+            multiple
+            value={formData.attributes}
+            onChange={handleMultiSelect}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          >
+            {attributes.map(attribute => (
+              <option key={attribute.id} value={attribute.id.toString()}>{attribute.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+          >
+            {isSubmitting ? 'Submitting...' : 'Submit Pattern'}
+          </button>
+        </div>
+      </form>
+    </div>
   )
 }

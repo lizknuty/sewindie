@@ -1,0 +1,138 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+}
+
+// Define the 'attribute' table
+model Attribute {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(255)
+  
+  // Relationships
+  patternAttributes PatternAttribute[]
+}
+
+// Define the 'category' table
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(255)
+  
+  // Relationships
+  patternCategories PatternCategory[]
+}
+
+// Define the 'designer' table
+model Designer {
+  id        Int     @id @default(autoincrement())
+  name      String  @db.VarChar(255)
+  url       String  @db.Text
+  logo_url  String? @db.Text
+  email     String? @db.VarChar(255)
+  address   String? @db.VarChar(255)
+  facebook  String? @db.Text
+  instagram String? @db.Text
+  pinterest String? @db.Text
+  youtube   String? @db.Text
+
+  // Relationships
+  patterns Pattern[]
+}
+
+// Define the 'format' table
+model Format {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(255)
+
+  // Relationships
+  patternFormats PatternFormat[]
+}
+
+// Define the 'pattern' table
+model Pattern {
+  id            Int     @id @default(autoincrement())
+  name          String  @db.VarChar(255)
+  designer_id   Int
+  url           String  @db.Text
+  thumbnail_url String? @db.Text
+  yardage       String? @db.VarChar(255)
+  sizes         String? @db.VarChar(255)
+  language      String? @db.VarChar(255)
+  audience      String? @db.VarChar(255)
+  fabric_type   String? @db.VarChar(255)
+
+  // Relationships
+  designer               Designer                @relation(fields: [designer_id], references: [id])
+  patternAttributes      PatternAttribute[]
+  patternCategories      PatternCategory[]
+  patternFormats         PatternFormat[]
+  patternSuggestedFabrics PatternSuggestedFabric[]
+}
+
+// Define the 'suggestedfabric' table
+model SuggestedFabric {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(255)
+
+  // Relationships
+  patternSuggestedFabrics PatternSuggestedFabric[]
+}
+
+// Define the 'pattern_attribute' join table
+model PatternAttribute {
+  id           Int     @id @default(autoincrement())
+  pattern_id   Int
+  attribute_id Int
+
+  // Relationships
+  pattern   Pattern   @relation(fields: [pattern_id], references: [id])
+  attribute Attribute @relation(fields: [attribute_id], references: [id])
+
+  @@unique([pattern_id, attribute_id])
+}
+
+// Define the 'pattern_category' join table
+model PatternCategory {
+  id          Int     @id @default(autoincrement())
+  pattern_id  Int
+  category_id Int
+
+  // Relationships
+  pattern  Pattern  @relation(fields: [pattern_id], references: [id])
+  category Category @relation(fields: [category_id], references: [id])
+
+  @@unique([pattern_id, category_id])
+}
+
+// Define the 'pattern_format' join table
+model PatternFormat {
+  id         Int     @id @default(autoincrement())
+  pattern_id Int
+  format_id  Int
+
+  // Relationships
+  pattern Pattern @relation(fields: [pattern_id], references: [id])
+  format  Format  @relation(fields: [format_id], references: [id])
+
+  @@unique([pattern_id, format_id])
+}
+
+// Define the 'pattern_suggested_fabric' join table
+model PatternSuggestedFabric {
+  id                  Int     @id @default(autoincrement())
+  pattern_id          Int
+  suggested_fabric_id Int
+
+  // Relationships
+  pattern         Pattern         @relation(fields: [pattern_id], references: [id])
+  suggestedFabric SuggestedFabric @relation(fields: [suggested_fabric_id], references: [id])
+
+  @@unique([pattern_id, suggested_fabric_id])
+}

@@ -1,81 +1,113 @@
-import prisma from '@/app/lib/db'
 import Link from 'next/link'
+import prisma from '@/lib/prisma'
+
+type Designer = {
+  id: number;
+  name: string;
+}
+
+type Category = {
+  id: number;
+  name: string;
+}
+
+type Format = {
+  id: number;
+  name: string;
+}
+
+type SuggestedFabric = {
+  id: number;
+  name: string;
+}
+
+type Attribute = {
+  id: number;
+  name: string;
+}
+
+type Pattern = {
+  id: number;
+  name: string;
+  thumbnail_url: string | null;
+  url: string;
+  yardage: string | null;
+  sizes: string | null;
+  language: string | null;
+  audience: string | null;
+  fabric_type: string | null;
+  designer: Designer;
+  patternCategories: { category: Category }[];
+  patternFormats: { format: Format }[];
+  patternSuggestedFabrics: { suggestedFabric: SuggestedFabric }[];
+  patternAttributes: { attribute: Attribute }[];
+}
 
 export default async function PatternPage({ params }: { params: { id: string } }) {
-  try {
-    const pattern = await prisma.pattern.findUnique({
-      where: { id: parseInt(params.id) },
-      include: {
-        designer: true,
-        patternCategories: {
-          include: { category: true }
-        },
-        patternFormats: {
-          include: { format: true }
-        },
-        patternSuggestedFabrics: {
-          include: { suggestedFabric: true }
-        },
-        patternAttributes: {
-          include: { attribute: true }
-        }
-      }
-    })
-
-    if (!pattern) {
-      return <div>Pattern not found</div>
+  const pattern: Pattern | null = await prisma.pattern.findUnique({
+    where: { id: parseInt(params.id) },
+    include: {
+      designer: true,
+      patternCategories: { include: { category: true } },
+      patternFormats: { include: { format: true } },
+      patternSuggestedFabrics: { include: { suggestedFabric: true } },
+      patternAttributes: { include: { attribute: true } }
     }
+  })
 
-    return (
-      <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-4">{pattern.name}</h1>
-        <div className="mb-4">
-          <p>By <Link href={`/designers/${pattern.designer_id}`} className="text-blue-600 hover:underline">{pattern.designer.name}</Link></p>
+  if (!pattern) {
+    return <div className="container mx-auto px-4 py-8">Pattern not found</div>
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-4xl font-bold mb-4">{pattern.name}</h1>
+      <p className="text-xl mb-6">By <Link href={`/designers/${pattern.designer.id}`} className="text-blue-500 hover:underline">{pattern.designer.name}</Link></p>
+      
+      {pattern.thumbnail_url && (
+        <img src={pattern.thumbnail_url} alt={pattern.name} className="w-full max-w-2xl h-auto mb-6 rounded" />
+      )}
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div>
+          <h2 className="text-2xl font-semibold mb-2">Details</h2>
+          <p>URL: <a href={pattern.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{pattern.url}</a></p>
+          {pattern.yardage && <p>Yardage: {pattern.yardage}</p>}
+          {pattern.sizes && <p>Sizes: {pattern.sizes}</p>}
+          {pattern.language && <p>Language: {pattern.language}</p>}
+          {pattern.audience && <p>Audience: {pattern.audience}</p>}
+          {pattern.fabric_type && <p>Fabric Type: {pattern.fabric_type}</p>}
         </div>
-        <div className="mb-4">
-          <h2 className="text-xl font-bold mb-2">Categories</h2>
-          <ul>
-            {pattern.patternCategories.map((pc) => (
-              <li key={pc.category.id}>{pc.category.name}</li>
+        <div>
+          <h2 className="text-2xl font-semibold mb-2">Categories</h2>
+          <div className="flex flex-wrap gap-2">
+            {pattern.patternCategories.map(({ category }) => (
+              <span key={category.id} className="px-3 py-1 bg-blue-100 text-blue-800 rounded">{category.name}</span>
             ))}
-          </ul>
-        </div>
-        <div className="mb-4">
-          <h2 className="text-xl font-bold mb-2">Formats</h2>
-          <ul>
-            {pattern.patternFormats.map((pf) => (
-              <li key={pf.format.id}>{pf.format.name}</li>
+          </div>
+          
+          <h2 className="text-2xl font-semibold mt-4 mb-2">Formats</h2>
+          <div className="flex flex-wrap gap-2">
+            {pattern.patternFormats.map(({ format }) => (
+              <span key={format.id} className="px-3 py-1 bg-green-100 text-green-800 rounded">{format.name}</span>
             ))}
-          </ul>
-        </div>
-        <div className="mb-4">
-          <h2 className="text-xl font-bold mb-2">Suggested Fabrics</h2>
-          <ul>
-            {pattern.patternSuggestedFabrics.map((psf) => (
-              <li key={psf.suggestedFabric.id}>{psf.suggestedFabric.name}</li>
+          </div>
+          
+          <h2 className="text-2xl font-semibold mt-4 mb-2">Suggested Fabrics</h2>
+          <div className="flex flex-wrap gap-2">
+            {pattern.patternSuggestedFabrics.map(({ suggestedFabric }) => (
+              <span key={suggestedFabric.id} className="px-3 py-1 bg-purple-100 text-purple-800 rounded">{suggestedFabric.name}</span>
             ))}
-          </ul>
-        </div>
-        <div className="mb-4">
-          <h2 className="text-xl font-bold mb-2">Attributes</h2>
-          <ul>
-            {pattern.patternAttributes.map((pa) => (
-              <li key={pa.attribute.id}>{pa.attribute.name}</li>
+          </div>
+          
+          <h2 className="text-2xl font-semibold mt-4 mb-2">Attributes</h2>
+          <div className="flex flex-wrap gap-2">
+            {pattern.patternAttributes.map(({ attribute }) => (
+              <span key={attribute.id} className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded">{attribute.name}</span>
             ))}
-          </ul>
-        </div>
-        <div className="mb-4">
-          <h2 className="text-xl font-bold mb-2">Additional Information</h2>
-          <p>Yardage: {pattern.yardage}</p>
-          <p>Sizes: {pattern.sizes}</p>
-          <p>Language: {pattern.language}</p>
-          <p>Audience: {pattern.audience}</p>
-          <p>Fabric Type: {pattern.fabric_type}</p>
+          </div>
         </div>
       </div>
-    )
-  } catch (error) {
-    console.error('Database query error:', error)
-    return <div>Error loading pattern information. Please try again later.</div>
-  }
+    </div>
+  )
 }
