@@ -44,15 +44,20 @@ type Pattern = {
   patternAttributes: { attribute: Attribute }[];
 }
 
-export default async function PatternPage({ params }: { params: { id: string } }) {
-  const id = parseInt(params.id);
-  
-  if (isNaN(id)) {
-    notFound();
+type PageProps = {
+  params: Promise<{ id: string }>
+}
+
+export default async function PatternPage({ params }: PageProps) {
+  const { id } = await params
+  const patternId = parseInt(id)
+
+  if (isNaN(patternId)) {
+    notFound()
   }
 
   const pattern: Pattern | null = await prisma.pattern.findUnique({
-    where: { id },
+    where: { id: patternId },
     include: {
       designer: true,
       patternCategories: { include: { category: true } },
@@ -60,10 +65,10 @@ export default async function PatternPage({ params }: { params: { id: string } }
       patternSuggestedFabrics: { include: { suggestedFabric: true } },
       patternAttributes: { include: { attribute: true } }
     }
-  });
+  })
 
   if (!pattern) {
-    notFound();
+    notFound()
   }
 
   return (
