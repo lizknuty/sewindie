@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import prisma from '@/lib/prisma'
+import { notFound } from 'next/navigation'
 
 type Designer = {
   id: number;
@@ -44,8 +45,14 @@ type Pattern = {
 }
 
 export default async function PatternPage({ params }: { params: { id: string } }) {
+  const id = parseInt(params.id);
+  
+  if (isNaN(id)) {
+    notFound();
+  }
+
   const pattern: Pattern | null = await prisma.pattern.findUnique({
-    where: { id: parseInt(params.id) },
+    where: { id },
     include: {
       designer: true,
       patternCategories: { include: { category: true } },
@@ -53,10 +60,10 @@ export default async function PatternPage({ params }: { params: { id: string } }
       patternSuggestedFabrics: { include: { suggestedFabric: true } },
       patternAttributes: { include: { attribute: true } }
     }
-  })
+  });
 
   if (!pattern) {
-    return <div className="container mx-auto px-4 py-8">Pattern not found</div>
+    notFound();
   }
 
   return (
