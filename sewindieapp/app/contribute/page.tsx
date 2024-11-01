@@ -2,35 +2,18 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-
-interface Designer {
-  id: number;
-  name: string;
-}
-
-interface Category {
-  id: number;
-  name: string;
-}
-
-interface Format {
-  id: number;
-  name: string;
-}
-
-interface SuggestedFabric {
-  id: number;
-  name: string;
-}
-
-interface Attribute {
-  id: number;
-  name: string;
-}
+import { Designer, Category, Format, SuggestedFabric, Attribute } from '@/app/lib/db'
 
 interface FormData {
   name: string;
   designer_id: string;
+  url: string;
+  thumbnail_url: string;
+  yardage: string;
+  sizes: string;
+  language: string;
+  audience: string;
+  fabric_type: string;
   categories: string[];
   formats: string[];
   suggestedFabrics: string[];
@@ -41,6 +24,13 @@ export default function ContributeForm() {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     designer_id: '',
+    url: '',
+    thumbnail_url: '',
+    yardage: '',
+    sizes: '',
+    language: '',
+    audience: '',
+    fabric_type: '',
     categories: [],
     formats: [],
     suggestedFabrics: [],
@@ -86,7 +76,7 @@ export default function ContributeForm() {
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
@@ -131,6 +121,84 @@ export default function ContributeForm() {
             </option>
           ))}
         </select>
+      </div>
+      <div>
+        <label htmlFor="url" className="block mb-2">Pattern URL</label>
+        <input
+          type="url"
+          id="url"
+          name="url"
+          value={formData.url}
+          onChange={handleChange}
+          required
+          className="w-full p-2 border rounded"
+        />
+      </div>
+      <div>
+        <label htmlFor="thumbnail_url" className="block mb-2">Thumbnail URL</label>
+        <input
+          type="url"
+          id="thumbnail_url"
+          name="thumbnail_url"
+          value={formData.thumbnail_url}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+        />
+      </div>
+      <div>
+        <label htmlFor="yardage" className="block mb-2">Yardage</label>
+        <input
+          type="text"
+          id="yardage"
+          name="yardage"
+          value={formData.yardage}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+        />
+      </div>
+      <div>
+        <label htmlFor="sizes" className="block mb-2">Sizes</label>
+        <input
+          type="text"
+          id="sizes"
+          name="sizes"
+          value={formData.sizes}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+        />
+      </div>
+      <div>
+        <label htmlFor="language" className="block mb-2">Language</label>
+        <input
+          type="text"
+          id="language"
+          name="language"
+          value={formData.language}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+        />
+      </div>
+      <div>
+        <label htmlFor="audience" className="block mb-2">Audience</label>
+        <input
+          type="text"
+          id="audience"
+          name="audience"
+          value={formData.audience}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+        />
+      </div>
+      <div>
+        <label htmlFor="fabric_type" className="block mb-2">Fabric Type</label>
+        <input
+          type="text"
+          id="fabric_type"
+          name="fabric_type"
+          value={formData.fabric_type}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+        />
       </div>
       <div>
         <label htmlFor="categories" className="block mb-2">Categories</label>
@@ -182,6 +250,7 @@ export default function ContributeForm() {
             </option>
           ))}
         </select>
+      
       </div>
       <div>
         <label htmlFor="attributes" className="block mb-2">Attributes</label>
