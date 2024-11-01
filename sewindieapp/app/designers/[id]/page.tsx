@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import prisma from '@/lib/prisma'
+import { notFound } from 'next/navigation'
 
 type Pattern = {
   id: number;
@@ -21,9 +22,20 @@ type Designer = {
   patterns: Pattern[];
 }
 
-export default async function DesignerPage({ params }: { params: { id: string } }) {
+type PageProps = {
+  params: Promise<{ id: string }>
+}
+
+export default async function DesignerPage({ params }: PageProps) {
+  const { id } = await params
+  const designerId = parseInt(id)
+
+  if (isNaN(designerId)) {
+    notFound()
+  }
+
   const designer: Designer | null = await prisma.designer.findUnique({
-    where: { id: parseInt(params.id) },
+    where: { id: designerId },
     include: {
       patterns: {
         select: { id: true, name: true, thumbnail_url: true }
@@ -32,7 +44,7 @@ export default async function DesignerPage({ params }: { params: { id: string } 
   })
 
   if (!designer) {
-    return <div className="container mx-auto px-4 py-8">Designer not found</div>
+    notFound()
   }
 
   return (
