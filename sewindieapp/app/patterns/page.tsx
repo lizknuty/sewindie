@@ -37,6 +37,7 @@ export default async function PatternsPage(props: PageProps) {
     const formatIds = Array.isArray(searchParams.format) ? searchParams.format : searchParams.format ? [searchParams.format] : []
     const audienceFilters = Array.isArray(searchParams.audience) ? searchParams.audience : searchParams.audience ? [searchParams.audience] : []
     const fabricTypeFilters = Array.isArray(searchParams.fabricType) ? searchParams.fabricType : searchParams.fabricType ? [searchParams.fabricType] : []
+    const designerIds = Array.isArray(searchParams.designer) ? searchParams.designer : searchParams.designer ? [searchParams.designer] : []
 
     let orderBy: { [key: string]: 'asc' | 'desc' } | { designer: { name: 'asc' | 'desc' } } = { name: 'asc' }
 
@@ -88,7 +89,13 @@ export default async function PatternsPage(props: PageProps) {
       where.fabric_type = { in: fabricTypeFilters }
     }
 
-    const [patterns, categories, attributes, formats, uniqueAudiences, uniqueFabricTypes] = await Promise.all([
+    if (designerIds.length > 0) {
+      where.designer = {
+        id: { in: designerIds.map(Number) }
+      }
+    }
+
+    const [patterns, categories, attributes, formats, uniqueAudiences, uniqueFabricTypes, designers] = await Promise.all([
       prisma.pattern.findMany({
         where,
         orderBy,
@@ -110,7 +117,8 @@ export default async function PatternsPage(props: PageProps) {
         select: { fabric_type: true },
         distinct: ['fabric_type'],
         where: { fabric_type: { not: null } }
-      })
+      }),
+      prisma.designer.findMany({ select: { id: true, name: true } })
     ]);
 
     const audiences = uniqueAudiences.map(a => a.audience).filter((a): a is string => a !== null)
@@ -127,6 +135,7 @@ export default async function PatternsPage(props: PageProps) {
               formats={formats}
               audiences={audiences}
               fabricTypes={fabricTypes}
+              designers={designers}
             />
           </div>
           <div className="col-md-9">
