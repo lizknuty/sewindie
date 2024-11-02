@@ -6,22 +6,30 @@ export default async function Home() {
   const patternCount = await prisma.pattern.count()
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8">Welcome to Sewing Patterns App</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <Link href="/designers" className="p-6 bg-blue-100 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-          <h2 className="text-2xl font-semibold mb-2">Designers</h2>
-          <p>Explore {designerCount} talented designers</p>
-        </Link>
-        <Link href="/patterns" className="p-6 bg-green-100 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-          <h2 className="text-2xl font-semibold mb-2">Patterns</h2>
-          <p>Browse {patternCount} unique sewing patterns</p>
-        </Link>
+    <div className="row">
+      <div className="col-12">
+        <h1 className="text-center mb-5">Welcome to SewIndie</h1>
       </div>
-      <div className="mt-8">
-        <Link href="/contribute" className="inline-block px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors">
-          Contribute a Pattern
-        </Link>
+      <div className="col-md-6 mb-4">
+        <div className="card h-100">
+          <div className="card-body">
+            <h2 className="card-title">Designers</h2>
+            <p className="card-text">Explore {designerCount} talented designers</p>
+            <Link href="/designers" className="btn btn-primary">View Designers</Link>
+          </div>
+        </div>
+      </div>
+      <div className="col-md-6 mb-4">
+        <div className="card h-100">
+          <div className="card-body">
+            <h2 className="card-title">Patterns</h2>
+            <p className="card-text">Browse {patternCount} unique sewing patterns</p>
+            <Link href="/patterns" className="btn btn-primary">View Patterns</Link>
+          </div>
+        </div>
+      </div>
+      <div className="col-12 text-center mt-4">
+        <Link href="/contribute" className="btn btn-lg btn-primary">Contribute a Pattern</Link>
       </div>
     </div>
   )
