@@ -24,10 +24,11 @@ type FilterOption = {
 type SortOption = 'name_asc' | 'name_desc' | 'designer_asc' | 'designer_desc'
 
 type PageProps = {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default async function PatternsPage({ searchParams }: PageProps) {
+export default async function PatternsPage(props: PageProps) {
+  const searchParams = await props.searchParams;
   const sort = searchParams.sort as SortOption | undefined
   const categoryIds = searchParams.category as string[] | undefined
   const attributeIds = searchParams.attribute as string[] | undefined
@@ -36,7 +37,7 @@ export default async function PatternsPage({ searchParams }: PageProps) {
   const fabricTypeFilters = searchParams.fabricType as string[] | undefined
 
   let orderBy: any = { name: 'asc' }
-  
+
   switch (sort) {
     case 'name_desc':
       orderBy = { name: 'desc' }
@@ -95,10 +96,10 @@ export default async function PatternsPage({ searchParams }: PageProps) {
     }
   })
 
-  const categories: FilterOption[] = await prisma.category.findMany({ select: { id: true, name: true } }) || []
-  const attributes: FilterOption[] = await prisma.attribute.findMany({ select: { id: true, name: true } }) || []
-  const formats: FilterOption[] = await prisma.format.findMany({ select: { id: true, name: true } }) || []
-  
+  const categories: FilterOption[] = (await prisma.category.findMany({ select: { id: true, name: true } })) || []
+  const attributes: FilterOption[] = (await prisma.attribute.findMany({ select: { id: true, name: true } })) || []
+  const formats: FilterOption[] = (await prisma.format.findMany({ select: { id: true, name: true } })) || []
+
   const uniqueAudiences = await prisma.pattern.findMany({
     select: { audience: true },
     distinct: ['audience'],
