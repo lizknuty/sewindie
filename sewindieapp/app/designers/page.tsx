@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import prisma from '@/lib/prisma'
 
 type Designer = {
@@ -15,15 +16,31 @@ export default async function DesignersPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8">Designers</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <h1 className="text-4xl font-bold mb-8 text-center">Designers</h1>
+      <div className="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
         {designers.map((designer) => (
-          <Link key={designer.id} href={`/designers/${designer.id}`} className="block p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
-            {designer.logo_url && (
-              <img src={designer.logo_url} alt={`${designer.name} logo`} className="w-32 h-32 object-contain mb-4 mx-auto" />
-            )}
-            <h2 className="text-xl font-semibold text-center">{designer.name}</h2>
-          </Link>
+          <div key={designer.id} className="col">
+            <Link href={`/designers/${designer.id}`} className="card h-100 text-center text-decoration-none">
+              <div className="card-body d-flex flex-column justify-content-center align-items-center">
+                <div className="mb-3" style={{ width: '100px', height: '100px', position: 'relative' }}>
+                  {designer.logo_url ? (
+                    <Image
+                      src={designer.logo_url}
+                      alt={`${designer.name} logo`}
+                      fill
+                      sizes="100px"
+                      style={{ objectFit: 'contain' }}
+                    />
+                  ) : (
+                    <div className="w-100 h-100 bg-light d-flex justify-content-center align-items-center">
+                      <span className="text-muted fs-1">{designer.name[0]}</span>
+                    </div>
+                  )}
+                </div>
+                <h2 className="card-title h5">{designer.name}</h2>
+              </div>
+            </Link>
+          </div>
         ))}
       </div>
     </div>
