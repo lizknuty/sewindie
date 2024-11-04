@@ -1,36 +1,88 @@
 import Link from 'next/link'
 import prisma from '@/lib/prisma'
+import FeaturedCarousel from './components/FeaturedCarousel'
+
+import 'swiper/css'
+import 'swiper/css/navigation'
+import 'swiper/css/pagination'
 
 export default async function Home() {
-  const designerCount = await prisma.designer.count()
-  const patternCount = await prisma.pattern.count()
+  const featuredDesigners = await prisma.designer.findMany({
+    take: 8,
+    select: {
+      id: true,
+      name: true,
+      logo_url: true,
+    },
+    orderBy: {
+      patterns: {
+        _count: 'desc',
+      },
+    },
+  })
+
+  const featuredPatterns = await prisma.pattern.findMany({
+    take: 8,
+    select: {
+      id: true,
+      name: true,
+      thumbnail_url: true,
+    },
+    orderBy: {
+      id: 'desc',
+    },
+  })
 
   return (
-    <div className="row">
-      <div className="col-12">
-        <h1 className="text-center mb-5">Welcome to SewIndie</h1>
+    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
+        <h1 className="text-4xl font-bold mb-8">Welcome to SewIndie</h1>
       </div>
-      <div className="col-md-6 mb-4">
-        <div className="card h-100">
-          <div className="card-body">
-            <h2 className="card-title">Designers</h2>
-            <p className="card-text">Explore {designerCount} talented designers</p>
-            <Link href="/designers" className="btn btn-primary">View Designers</Link>
-          </div>
-        </div>
+
+      <FeaturedCarousel
+        designers={featuredDesigners.map(d => ({
+          id: d.id,
+          name: d.name,
+          imageUrl: d.logo_url || '/placeholder.svg',
+        }))}
+        patterns={featuredPatterns.map(p => ({
+          id: p.id,
+          name: p.name,
+          imageUrl: p.thumbnail_url || '/placeholder.svg',
+        }))}
+      />
+
+      <div className="mb-32 grid text-center lg:mb-0 lg:grid-cols-2 lg:text-left">
+        <Link
+          href="/patterns"
+          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
+        >
+          <h2 className={`mb-3 text-2xl font-semibold`}>
+            Patterns{' '}
+            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
+              -&gt;
+            </span>
+          </h2>
+          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
+            Explore our collection of sewing patterns.
+          </p>
+        </Link>
+
+        <Link
+          href="/designers"
+          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
+        >
+          <h2 className={`mb-3 text-2xl font-semibold`}>
+            Designers{' '}
+            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
+              -&gt;
+            </span>
+          </h2>
+          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
+            Discover talented independent pattern designers.
+          </p>
+        </Link>
       </div>
-      <div className="col-md-6 mb-4">
-        <div className="card h-100">
-          <div className="card-body">
-            <h2 className="card-title">Patterns</h2>
-            <p className="card-text">Browse {patternCount} unique sewing patterns</p>
-            <Link href="/patterns" className="btn btn-primary">View Patterns</Link>
-          </div>
-        </div>
-      </div>
-      <div className="col-12 text-center mt-4">
-        <Link href="/contribute" className="btn btn-lg btn-primary">Contribute a Pattern</Link>
-      </div>
-    </div>
+    </main>
   )
 }

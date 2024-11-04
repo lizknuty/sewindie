@@ -13,7 +13,7 @@ body {
 }
 
 .navbar {
-  background-color: var(--color-dark);
+  background-color: var(--color-muted);
 }
 
 .navbar-brand {
