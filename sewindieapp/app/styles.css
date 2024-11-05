@@ -1,3 +1,5 @@
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
 :root {
   --color-dark: #070607;
   --color-light: #ebdee0;
@@ -40,14 +42,42 @@ body {
   color: var(--color-secondary) !important;
 }
 
-.btn-primary {
+.btn-primary,
+a.btn-primary {
   background-color: var(--color-primary);
   border-color: var(--color-primary);
+  color: var(--color-light);
+  font-size: 1.25rem;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.3s ease;
 }
 
-.btn-primary:hover {
-  background-color: var(--color-secondary);
-  border-color: var(--color-secondary);
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+a.btn-primary:hover,
+a.btn-primary:focus,
+a.btn-primary:active {
+  background-color: var(--color-secondary) !important;
+  border-color: var(--color-secondary) !important;
+  color: var(--color-light) !important;
+}
+
+.btn-lg,
+a.btn-lg {
+  border-radius: 50rem;
+}
+
+a:not(.btn):not(.nav-link) {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:not(.btn):not(.nav-link):hover,
+a:not(.btn):not(.nav-link):focus {
+  color: var(--color-secondary);
+  text-decoration: underline;
 }
 
 .card {
@@ -65,4 +95,11 @@ body {
   color: var(--color-light);
   padding: 20px 0;
   margin-top: 40px;
+}
+
+@media (max-width: 575.98px) {
+  .btn-lg {
+    display: block;
+    width: 100%;
+  }
 }
