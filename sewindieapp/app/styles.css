@@ -97,9 +97,53 @@ a:not(.btn):not(.nav-link):focus {
   margin-top: 40px;
 }
 
+/* Hero banner styles */
+.hero-banner {
+  position: relative;
+  width: 100%;
+  height: 33vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-banner .hero-btn {
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-light);
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 40;
+  width: 150px;
+  text-align: center;
+}
+
+.hero-banner .hero-btn:hover,
+.hero-banner .hero-btn:focus,
+.hero-banner .hero-btn:active {
+  background-color: var(--color-secondary);
+  border-color: var(--color-secondary);
+  color: var(--color-light);
+}
+
 @media (max-width: 575.98px) {
-  .btn-lg {
+  .hero-banner .hero-btn {
     display: block;
-    width: 100%;
+    width: 150px;
+    margin-bottom: 1rem;
+  }
+
+  .hero-banner .hero-btn:last-child {
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-banner .hero-btn {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
   }
 }

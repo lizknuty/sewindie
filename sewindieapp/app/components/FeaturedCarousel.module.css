@@ -79,7 +79,8 @@
 }
 
 /* Styles for Swiper pagination */
-.carouselWrapper :global(.swiper-pagination) {
+.carouselWrapper :global(.swiper-pagination-designers),
+.carouselWrapper :global(.swiper-pagination-patterns) {
   position: static;
   margin-top: 20px;
 }

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import prisma from '@/lib/prisma'
 import FeaturedCarousel from './components/FeaturedCarousel'
 
@@ -34,32 +35,43 @@ export default async function Home() {
   })
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-6 md:p-24">
-      <div className="w-full max-w-5xl">
-        <h1 className="text-4xl font-bold mb-8 text-center">Welcome to SewIndie</h1>
-
-        <FeaturedCarousel
-          designers={featuredDesigners.map(d => ({
-            id: d.id,
-            name: d.name,
-            imageUrl: d.logo_url || '/placeholder.svg',
-          }))}
-          patterns={featuredPatterns.map(p => ({
-            id: p.id,
-            name: p.name,
-            imageUrl: p.thumbnail_url || '/placeholder.svg',
-          }))}
+    <div className="d-flex flex-column min-vh-100">
+      <div className="hero-banner position-relative w-100">
+        <Image
+          src="/hero.jpg"
+          alt="Hero image"
+          fill
+          style={{ objectFit: 'cover' }}
+          className="z-1"
         />
-
-        <div className="mt-12 flex flex-col sm:flex-row justify-center items-stretch gap-6">
-          <Link href="/patterns" className="btn btn-primary btn-lg">
-            Patterns
-          </Link>
-          <Link href="/designers" className="btn btn-primary btn-lg">
-            Designers
-          </Link>
+        <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center z-2">
+          <div className="d-flex flex-column flex-sm-row align-items-center justify-content-center">
+            <Link href="/designers" className="btn btn-primary btn-lg hero-btn mb-3 mb-sm-0 me-sm-4">
+              Designers
+            </Link>
+            <Link href="/patterns" className="btn btn-primary btn-lg hero-btn">
+              Patterns
+            </Link>
+          </div>
         </div>
       </div>
-    </main>
+
+      <main className="flex-grow-1">
+        <div className="container px-4 py-5">
+          <FeaturedCarousel
+            designers={featuredDesigners.map(d => ({
+              id: d.id,
+              name: d.name,
+              imageUrl: d.logo_url || '/placeholder.svg',
+            }))}
+            patterns={featuredPatterns.map(p => ({
+              id: p.id,
+              name: p.name,
+              imageUrl: p.thumbnail_url || '/placeholder.svg',
+            }))}
+          />
+        </div>
+      </main>
+    </div>
   )
 }
