@@ -82,15 +82,18 @@
 .carouselWrapper :global(.swiper-pagination-designers),
 .carouselWrapper :global(.swiper-pagination-patterns) {
   position: static;
+  text-align: center;
   margin-top: 20px;
 }
 
 .carouselWrapper :global(.swiper-pagination-bullet) {
+  display: inline-block;
   background-color: var(--color-primary);
   opacity: 0.5;
   width: 10px;
   height: 10px;
   margin: 0 5px;
+  border-radius: 50%;
 }
 
 .carouselWrapper :global(.swiper-pagination-bullet-active) {
