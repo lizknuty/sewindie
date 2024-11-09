@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 
@@ -22,6 +22,35 @@ export default function PatternFilters({ categories, attributes, formats, audien
   const router = useRouter()
   const searchParams = useSearchParams()
   const [expandedSections, setExpandedSections] = useState<string[]>([])
+
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = `
+      .scrollable-filter {
+        max-height: 200px;
+        overflow-y: auto;
+        padding-right: 10px;
+        background-color: white;
+      }
+      .scrollable-filter::-webkit-scrollbar {
+        width: 6px;
+      }
+      .scrollable-filter::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      .scrollable-filter::-webkit-scrollbar-thumb {
+        background: var(--color-muted);
+        border-radius: 3px;
+      }
+      .scrollable-filter::-webkit-scrollbar-thumb:hover {
+        background: var(--color-primary);
+      }
+    `
+    document.head.appendChild(style)
+    return () => {
+      document.head.removeChild(style)
+    }
+  }, [])
 
   const handleFilterChange = (filterType: string, value: string) => {
     const currentParams = new URLSearchParams(searchParams.toString())
@@ -45,44 +74,51 @@ export default function PatternFilters({ categories, attributes, formats, audien
   }
 
   const renderFilterSection = (title: string, options: FilterOption[] | string[], filterType: string) => (
-    <div className="mb-4">
-      <button
-        className="flex items-center justify-between w-full text-left font-semibold mb-2"
-        onClick={() => toggleSection(title.toLowerCase())}
-      >
-        <span>{title}</span>
-        {expandedSections.includes(title.toLowerCase()) ? (
-          <ChevronDown className="h-4 w-4" />
-        ) : (
-          <ChevronRight className="h-4 w-4" />
-        )}
-      </button>
+    <div className="card mb-3 border-0">
+      <div className="card-header bg-white border-0 p-0">
+        <button
+          className="btn btn-link w-100 text-left d-flex justify-content-between align-items-center text-muted"
+          onClick={() => toggleSection(title.toLowerCase())}
+        >
+          <span>{title}</span>
+          {expandedSections.includes(title.toLowerCase()) ? (
+            <ChevronDown className="h-5 w-5" />
+          ) : (
+            <ChevronRight className="h-5 w-5" />
+          )}
+        </button>
+      </div>
       {expandedSections.includes(title.toLowerCase()) && (
-        <div className="pl-4">
-          {options.map((option) => (
-            <div key={typeof option === 'string' ? option : option.id} className="flex items-center space-x-2 mb-2">
-              <input
-                type="checkbox"
-                id={`${filterType}-${typeof option === 'string' ? option : option.id}`}
-                checked={searchParams.getAll(filterType).includes(typeof option === 'string' ? option : option.id.toString())}
-                onChange={() => handleFilterChange(filterType, typeof option === 'string' ? option : option.id.toString())}
-              />
-              <label
-                htmlFor={`${filterType}-${typeof option === 'string' ? option : option.id}`}
-                className="text-sm"
-              >
-                {typeof option === 'string' ? option : option.name}
-              </label>
-            </div>
-          ))}
+        <div className="card-body p-0">
+          <div className={`pl-4 space-y-2 ${(filterType === 'category' || filterType === 'designer') ? 'scrollable-filter' : ''}`}>
+            {options.map((option) => (
+              <div key={typeof option === 'string' ? option : option.id} className="form-check">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id={`${filterType}-${typeof option === 'string' ? option : option.id}`}
+                  checked={searchParams.getAll(filterType).includes(typeof option === 'string' ? option : option.id.toString())}
+                  onChange={() => handleFilterChange(filterType, typeof option === 'string' ? option : option.id.toString())}
+                  style={{ borderColor: '#d1d5db', backgroundColor: '#fff' }}
+                />
+                <label
+                  className="form-check-label"
+                  htmlFor={`${filterType}-${typeof option === 'string' ? option : option.id}`}
+                  style={{ color: 'var(--color-dark)' }}
+                >
+                  {typeof option === 'string' ? option : option.name}
+                </label>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
   )
 
   return (
-    <div className="bg-gray-100 p-4 rounded-lg">
-      <h2 className="text-xl font-bold mb-4">Filters</h2>
+    <div className="p-4 rounded border border-gray-200" style={{ backgroundColor: '#8f7a7c' }}>
+      <h2 className="h4 mb-4" style={{ color: 'var(--color-dark)' }}>Filters</h2>
       {renderFilterSection('Category', categories, 'category')}
       {renderFilterSection('Attribute', attributes, 'attribute')}
       {renderFilterSection('Format', formats, 'format')}

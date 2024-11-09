@@ -1,9 +1,12 @@
+import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import prisma from '@/lib/prisma'
 import PatternSorter from '../components/PatternSorter'
 import PatternFilters from '../components/PatternFilters'
+import PatternSearch from '../components/PatternSearch'
 import { Metadata } from 'next'
+import { ReadonlyURLSearchParams } from 'next/navigation'
 
 type Pattern = {
   id: number;
@@ -24,77 +27,92 @@ type FilterOption = {
 
 type SortOption = 'name_asc' | 'name_desc' | 'designer_asc' | 'designer_desc'
 
-type PageProps = {
+interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default async function PatternsPage(props: PageProps) {
+export default async function PatternsPage({ searchParams: rawSearchParams }: PageProps) {
+  const searchParams = await rawSearchParams;
+  const search = searchParams?.search ?? '';
+  const sort = (searchParams?.sort as SortOption) ?? 'name_asc';
+
+  const ensureArray = (value: string | string[] | undefined): string[] => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string') return [value];
+    return [];
+  };
+
+  const categoryIds = ensureArray(searchParams?.category);
+  const attributeIds = ensureArray(searchParams?.attribute);
+  const formatIds = ensureArray(searchParams?.format);
+  const audienceFilters = ensureArray(searchParams?.audience);
+  const fabricTypeFilters = ensureArray(searchParams?.fabricType);
+  const designerIds = ensureArray(searchParams?.designer);
+
+  let orderBy: { [key: string]: 'asc' | 'desc' } | { designer: { name: 'asc' | 'desc' } } = { name: 'asc' }
+
+  switch (sort) {
+    case 'name_desc':
+      orderBy = { name: 'desc' }
+      break
+    case 'designer_asc':
+      orderBy = { designer: { name: 'asc' } }
+      break
+    case 'designer_desc':
+      orderBy = { designer: { name: 'desc' } }
+      break
+    default:
+      orderBy = { name: 'asc' }
+  }
+
+  const where: any = {}
+
+  if (categoryIds.length > 0) {
+    where.categories = {
+      some: {
+        id: { in: categoryIds.map(Number) }
+      }
+    }
+  }
+
+  if (attributeIds.length > 0) {
+    where.attributes = {
+      some: {
+        id: { in: attributeIds.map(Number) }
+      }
+    }
+  }
+
+  if (formatIds.length > 0) {
+    where.formats = {
+      some: {
+        id: { in: formatIds.map(Number) }
+      }
+    }
+  }
+
+  if (audienceFilters.length > 0) {
+    where.audience = { in: audienceFilters }
+  }
+
+  if (fabricTypeFilters.length > 0) {
+    where.fabric_type = { in: fabricTypeFilters }
+  }
+
+  if (designerIds.length > 0) {
+    where.designer = {
+      id: { in: designerIds.map(Number) }
+    }
+  }
+
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: 'insensitive' } },
+      { designer: { name: { contains: search, mode: 'insensitive' } } },
+    ]
+  }
+
   try {
-    const searchParams = await props.searchParams;
-    const sort = searchParams.sort as SortOption | undefined
-    const categoryIds = Array.isArray(searchParams.category) ? searchParams.category : searchParams.category ? [searchParams.category] : []
-    const attributeIds = Array.isArray(searchParams.attribute) ? searchParams.attribute : searchParams.attribute ? [searchParams.attribute] : []
-    const formatIds = Array.isArray(searchParams.format) ? searchParams.format : searchParams.format ? [searchParams.format] : []
-    const audienceFilters = Array.isArray(searchParams.audience) ? searchParams.audience : searchParams.audience ? [searchParams.audience] : []
-    const fabricTypeFilters = Array.isArray(searchParams.fabricType) ? searchParams.fabricType : searchParams.fabricType ? [searchParams.fabricType] : []
-    const designerIds = Array.isArray(searchParams.designer) ? searchParams.designer : searchParams.designer ? [searchParams.designer] : []
-
-    let orderBy: { [key: string]: 'asc' | 'desc' } | { designer: { name: 'asc' | 'desc' } } = { name: 'asc' }
-
-    switch (sort) {
-      case 'name_desc':
-        orderBy = { name: 'desc' }
-        break
-      case 'designer_asc':
-        orderBy = { designer: { name: 'asc' } }
-        break
-      case 'designer_desc':
-        orderBy = { designer: { name: 'desc' } }
-        break
-      default:
-        orderBy = { name: 'asc' }
-    }
-
-    const where: any = {}
-
-    if (categoryIds.length > 0) {
-      where.categories = {
-        some: {
-          id: { in: categoryIds.map(Number) }
-        }
-      }
-    }
-
-    if (attributeIds.length > 0) {
-      where.attributes = {
-        some: {
-          id: { in: attributeIds.map(Number) }
-        }
-      }
-    }
-
-    if (formatIds.length > 0) {
-      where.formats = {
-        some: {
-          id: { in: formatIds.map(Number) }
-        }
-      }
-    }
-
-    if (audienceFilters.length > 0) {
-      where.audience = { in: audienceFilters }
-    }
-
-    if (fabricTypeFilters.length > 0) {
-      where.fabric_type = { in: fabricTypeFilters }
-    }
-
-    if (designerIds.length > 0) {
-      where.designer = {
-        id: { in: designerIds.map(Number) }
-      }
-    }
-
     const [patterns, categories, attributes, formats, uniqueAudiences, uniqueFabricTypes, designers] = await Promise.all([
       prisma.pattern.findMany({
         where,
@@ -127,6 +145,7 @@ export default async function PatternsPage(props: PageProps) {
     return (
       <div className="container-fluid mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold mb-8 text-center">Patterns</h1>
+        <PatternSearch initialSearch={Array.isArray(search) ? search[0] || '' : search} />
         <div className="row">
           <div className="col-md-3">
             <PatternFilters
@@ -143,7 +162,7 @@ export default async function PatternsPage(props: PageProps) {
             <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
               {patterns.map((pattern) => (
                 <div key={pattern.id} className="col">
-                  <div className="card h-100">
+                  <div className="card h-100 bg-white">
                     <div className="card-body d-flex flex-column">
                       <div className="mb-3" style={{ width: '150px', height: '150px', position: 'relative', margin: '0 auto' }}>
                         {pattern.thumbnail_url ? (
