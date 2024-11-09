@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 
@@ -52,7 +52,7 @@ export default function PatternFilters({ categories, attributes, formats, audien
     }
   }, [])
 
-  const handleFilterChange = (filterType: string, value: string) => {
+  const handleFilterChange = useCallback((filterType: string, value: string) => {
     const currentParams = new URLSearchParams(searchParams.toString())
     const currentValues = currentParams.getAll(filterType)
 
@@ -63,17 +63,20 @@ export default function PatternFilters({ categories, attributes, formats, audien
     }
 
     router.push(`/patterns?${currentParams.toString()}`)
-  }
+  }, [router, searchParams])
 
-  const toggleSection = (section: string) => {
+  const toggleSection = useCallback((section: string) => {
     setExpandedSections(prev =>
       prev.includes(section)
         ? prev.filter(s => s !== section)
         : [...prev, section]
     )
-  }
+  }, [])
 
-  const renderFilterSection = (title: string, options: FilterOption[] | string[], filterType: string) => (
+  const MemoizedChevronDown = useMemo(() => <ChevronDown className="h-5 w-5" />, [])
+  const MemoizedChevronRight = useMemo(() => <ChevronRight className="h-5 w-5" />, [])
+
+  const renderFilterSection = useCallback((title: string, options: FilterOption[] | string[], filterType: string) => (
     <div className="card mb-3 border-0">
       <div className="card-header bg-white border-0 p-0">
         <button
@@ -81,11 +84,7 @@ export default function PatternFilters({ categories, attributes, formats, audien
           onClick={() => toggleSection(title.toLowerCase())}
         >
           <span>{title}</span>
-          {expandedSections.includes(title.toLowerCase()) ? (
-            <ChevronDown className="h-5 w-5" />
-          ) : (
-            <ChevronRight className="h-5 w-5" />
-          )}
+          {expandedSections.includes(title.toLowerCase()) ? MemoizedChevronDown : MemoizedChevronRight}
         </button>
       </div>
       {expandedSections.includes(title.toLowerCase()) && (
@@ -114,11 +113,11 @@ export default function PatternFilters({ categories, attributes, formats, audien
         </div>
       )}
     </div>
-  )
+  ), [expandedSections, handleFilterChange, searchParams, MemoizedChevronDown, MemoizedChevronRight, toggleSection])
 
   return (
     <div className="p-4 rounded border border-gray-200" style={{ backgroundColor: '#8f7a7c' }}>
-      <h2 className="h4 mb-4" style={{ color: 'var(--color-dark)' }}>Filters</h2>
+      <h2 className="h4 mb-4" style={{ color: 'var(--color-light)' }}>Filters</h2>
       {renderFilterSection('Category', categories, 'category')}
       {renderFilterSection('Attribute', attributes, 'attribute')}
       {renderFilterSection('Format', formats, 'format')}
