@@ -84,6 +84,17 @@ export default function PatternFilters({ categories, attributes, formats, audien
     router.push(`/patterns?${currentParams.toString()}`)
   }, [router, searchParams])
 
+  const handleClearAll = useCallback(() => {
+    const currentParams = new URLSearchParams(searchParams.toString())
+    const filterTypes = ['category', 'attribute', 'format', 'audience', 'fabricType', 'designer']
+    
+    filterTypes.forEach(type => {
+      currentParams.delete(type)
+    })
+
+    router.push(`/patterns?${currentParams.toString()}`)
+  }, [router, searchParams])
+
   const toggleSection = useCallback((section: string) => {
     setExpandedSections(prev =>
       prev.includes(section)
@@ -136,9 +147,24 @@ export default function PatternFilters({ categories, attributes, formats, audien
     </div>
   ), [expandedSections, handleFilterChange, searchParams, MemoizedChevronDown, MemoizedChevronRight, toggleSection])
 
+  const isAnyFilterApplied = useMemo(() => {
+    const filterTypes = ['category', 'attribute', 'format', 'audience', 'fabricType', 'designer']
+    return filterTypes.some(type => searchParams.has(type))
+  }, [searchParams])
+
   return (
     <div className="p-4 rounded border border-gray-200" style={{ backgroundColor: '#8f7a7c' }}>
-      <h2 className="h4 mb-4" style={{ color: 'var(--color-light)' }}>Filters</h2>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="h4 mb-0" style={{ color: 'var(--color-light)' }}>Filters</h2>
+        {isAnyFilterApplied && (
+          <button
+            className="btn btn-sm btn-outline-light"
+            onClick={handleClearAll}
+          >
+            Clear All
+          </button>
+        )}
+      </div>
       {renderFilterSection('Category', categories, 'category')}
       {renderFilterSection('Attribute', attributes, 'attribute')}
       {renderFilterSection('Format', formats, 'format')}
