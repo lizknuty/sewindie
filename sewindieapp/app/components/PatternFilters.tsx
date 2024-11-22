@@ -45,6 +45,25 @@ export default function PatternFilters({ categories, attributes, formats, audien
       .scrollable-filter::-webkit-scrollbar-thumb:hover {
         background: var(--color-primary);
       }
+      .custom-checkbox .form-check-input {
+        border-color: #adb5bd;
+      }
+      .custom-checkbox .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+      }
+      .custom-checkbox .form-check-input:checked::after {
+        content: '';
+        display: block;
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+        position: absolute;
+        top: 2px;
+        left: 5px;
+      }
     `
     document.head.appendChild(style)
     return () => {
@@ -90,25 +109,27 @@ export default function PatternFilters({ categories, attributes, formats, audien
       {expandedSections.includes(title.toLowerCase()) && (
         <div className="card-body p-0">
           <div className={`pl-4 space-y-2 ${(filterType === 'category' || filterType === 'designer') ? 'scrollable-filter' : ''}`}>
-            {options.map((option) => (
-              <div key={option.id} className="form-check">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  id={`${filterType}-${option.id}`}
-                  checked={searchParams.getAll(filterType).includes(option.id.toString())}
-                  onChange={() => handleFilterChange(filterType, option.id.toString())}
-                  style={{ borderColor: '#d1d5db', backgroundColor: '#fff' }}
-                />
-                <label
-                  className="form-check-label"
-                  htmlFor={`${filterType}-${option.id}`}
-                  style={{ color: 'var(--color-dark)' }}
-                >
-                  {option.name}
-                </label>
-              </div>
-            ))}
+            {options.map((option) => {
+              const isChecked = searchParams.getAll(filterType).includes(option.id.toString())
+              return (
+                <div key={option.id} className="form-check custom-checkbox">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id={`${filterType}-${option.id}`}
+                    checked={isChecked}
+                    onChange={() => handleFilterChange(filterType, option.id.toString())}
+                  />
+                  <label
+                    className="form-check-label"
+                    htmlFor={`${filterType}-${option.id}`}
+                    style={{ color: 'var(--color-dark)' }}
+                  >
+                    {option.name}
+                  </label>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
