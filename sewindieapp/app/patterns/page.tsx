@@ -6,6 +6,7 @@ import PatternSorter from '../components/PatternSorter'
 import PatternFilters from '../components/PatternFilters'
 import PatternSearch from '../components/PatternSearch'
 import PatternCard from '../components/PatternCard'
+import PaginationControls from '../components/PaginationControls'
 import { Metadata } from 'next'
 
 type Pattern = {
@@ -32,11 +33,14 @@ type FilterOption = {
 type SortOption = 'name_asc' | 'name_desc' | 'designer_asc' | 'designer_desc'
 
 interface PageProps {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams: { [key: string]: string | string[] | undefined };
 }
 
 export default async function PatternsPage({ searchParams }: PageProps) {
-  const resolvedSearchParams = await searchParams;
+  const search = searchParams.search as string ?? '';
+  const sort = (searchParams.sort as SortOption) ?? 'name_asc';
+  const page = parseInt(searchParams.page as string ?? '1', 10);
+  const perPage = parseInt(searchParams.perPage as string ?? '40', 10);
 
   const ensureArray = (value: string | string[] | undefined): string[] => {
     if (Array.isArray(value)) return value;
@@ -44,14 +48,12 @@ export default async function PatternsPage({ searchParams }: PageProps) {
     return [];
   };
 
-  const search = (resolvedSearchParams.search as string) ?? '';
-  const sort = (resolvedSearchParams.sort as SortOption) ?? 'name_asc';
-  const categoryIds = ensureArray(resolvedSearchParams.category);
-  const attributeIds = ensureArray(resolvedSearchParams.attribute);
-  const formatIds = ensureArray(resolvedSearchParams.format);
-  const audienceIds = ensureArray(resolvedSearchParams.audience);
-  const fabricTypeIds = ensureArray(resolvedSearchParams.fabricType);
-  const designerIds = ensureArray(resolvedSearchParams.designer);
+  const categoryIds = ensureArray(searchParams.category);
+  const attributeIds = ensureArray(searchParams.attribute);
+  const formatIds = ensureArray(searchParams.format);
+  const audienceIds = ensureArray(searchParams.audience);
+  const fabricTypeIds = ensureArray(searchParams.fabricType);
+  const designerIds = ensureArray(searchParams.designer);
 
   let orderBy: { [key: string]: 'asc' | 'desc' } | { designer: { name: 'asc' | 'desc' } } = { name: 'asc' }
 
@@ -116,7 +118,7 @@ export default async function PatternsPage({ searchParams }: PageProps) {
 
   try {
     console.log('Fetching data from database...');
-    const [patterns, categories, attributes, formats, audiences, fabricTypes, designers] = await Promise.all([
+    const [patterns, categories, attributes, formats, audiences, fabricTypes, designers, totalPatterns] = await Promise.all([
       prisma.pattern.findMany({
         where,
         orderBy,
@@ -144,22 +146,23 @@ export default async function PatternsPage({ searchParams }: PageProps) {
               fabricType: true
             }
           }
-        }
+        },
+        skip: (page - 1) * perPage,
+        take: perPage === -1 ? undefined : perPage,
       }),
       prisma.category.findMany({ select: { id: true, name: true } }),
       prisma.attribute.findMany({ select: { id: true, name: true } }),
       prisma.format.findMany({ select: { id: true, name: true } }),
       prisma.audience.findMany({ select: { id: true, name: true } }),
       prisma.fabricType.findMany({ select: { id: true, name: true } }),
-      prisma.designer.findMany({ select: { id: true, name: true } })
+      prisma.designer.findMany({ select: { id: true, name: true } }),
+      prisma.pattern.count({ where })
     ]);
 
     console.log(`Fetched ${patterns.length} patterns`);
-    console.log(`Fetched ${designers.length} designers`);
+    console.log(`Total patterns: ${totalPatterns}`);
 
-    if (patterns.length === 0) {
-      console.log('No patterns found. Database query result:', patterns);
-    }
+    const totalPages = perPage === -1 ? 1 : Math.ceil(totalPatterns / perPage);
 
     return (
       <div className="container-fluid mx-auto px-4 py-8">
@@ -177,7 +180,15 @@ export default async function PatternsPage({ searchParams }: PageProps) {
             />
           </div>
           <div className="col-md-9">
-            <PatternSorter />
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <PatternSorter />
+              <PaginationControls
+                currentPage={page}
+                totalPages={totalPages}
+                perPage={perPage}
+                totalItems={totalPatterns}
+              />
+            </div>
             <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
               {patterns.map((pattern: Pattern) => (
                 <div key={pattern.id} className="col">
@@ -190,6 +201,14 @@ export default async function PatternsPage({ searchParams }: PageProps) {
                   />
                 </div>
               ))}
+            </div>
+            <div className="mt-4">
+              <PaginationControls
+                currentPage={page}
+                totalPages={totalPages}
+                perPage={perPage}
+                totalItems={totalPatterns}
+              />
             </div>
           </div>
         </div>
