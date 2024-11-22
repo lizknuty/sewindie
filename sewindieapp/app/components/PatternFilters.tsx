@@ -1,19 +1,8 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-
-const ChevronDown = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="6 9 12 15 18 9"></polyline>
-  </svg>
-)
-
-const ChevronRight = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="9 18 15 12 9 6"></polyline>
-  </svg>
-)
+import { ChevronDown, ChevronRight } from 'lucide-react'
 
 type FilterOption = {
   id: number;
@@ -24,8 +13,8 @@ type PatternFiltersProps = {
   categories: FilterOption[];
   attributes: FilterOption[];
   formats: FilterOption[];
-  audiences: string[];
-  fabricTypes: string[];
+  audiences: FilterOption[];
+  fabricTypes: FilterOption[];
   designers: FilterOption[];
 }
 
@@ -77,60 +66,54 @@ export default function PatternFilters({ categories, attributes, formats, audien
   }, [router, searchParams])
 
   const toggleSection = useCallback((section: string) => {
-    setExpandedSections(prev => {
-      const isExpanded = prev.includes(section)
-      return isExpanded ? prev.filter(s => s !== section) : [...prev, section]
-    })
+    setExpandedSections(prev =>
+      prev.includes(section)
+        ? prev.filter(s => s !== section)
+        : [...prev, section]
+    )
   }, [])
 
-  const MemoizedChevronDown = useMemo(() => <ChevronDown />, [])
-  const MemoizedChevronRight = useMemo(() => <ChevronRight />, [])
+  const MemoizedChevronDown = useMemo(() => <ChevronDown className="h-5 w-5" />, [])
+  const MemoizedChevronRight = useMemo(() => <ChevronRight className="h-5 w-5" />, [])
 
-  const renderFilterSection = useCallback((title: string, options: FilterOption[] | string[], filterType: string) => {
-    const isExpanded = expandedSections.includes(title.toLowerCase())
-    return (
-      <div className="card mb-3 border-0">
-        <div className="card-header bg-white border-0 p-0">
-          <button
-            className="btn btn-link w-100 text-left d-flex justify-content-between align-items-center text-muted"
-            onClick={() => toggleSection(title.toLowerCase())}
-          >
-            <span>{title}</span>
-            {isExpanded ? <ChevronDown /> : <ChevronRight />}
-          </button>
-        </div>
-        {isExpanded && (
-          <div className="card-body p-0">
-            <div className={`pl-4 space-y-2 ${(filterType === 'category' || filterType === 'designer') ? 'scrollable-filter' : ''}`}>
-              {options.map((option) => {
-                const optionId = typeof option === 'string' ? option : option.id.toString()
-                const optionName = typeof option === 'string' ? option : option.name
-                return (
-                  <div key={optionId} className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id={`${filterType}-${optionId}`}
-                      checked={searchParams.getAll(filterType).includes(optionId)}
-                      onChange={() => handleFilterChange(filterType, optionId)}
-                      style={{ borderColor: '#d1d5db', backgroundColor: '#fff' }}
-                    />
-                    <label
-                      className="form-check-label"
-                      htmlFor={`${filterType}-${optionId}`}
-                      style={{ color: 'var(--color-dark)' }}
-                    >
-                      {optionName}
-                    </label>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
+  const renderFilterSection = useCallback((title: string, options: FilterOption[], filterType: string) => (
+    <div className="card mb-3 border-0">
+      <div className="card-header bg-white border-0 p-0">
+        <button
+          className="btn btn-link w-100 text-left d-flex justify-content-between align-items-center text-muted"
+          onClick={() => toggleSection(title.toLowerCase())}
+        >
+          <span>{title}</span>
+          {expandedSections.includes(title.toLowerCase()) ? MemoizedChevronDown : MemoizedChevronRight}
+        </button>
       </div>
-    )
-  }, [expandedSections, handleFilterChange, searchParams, toggleSection])
+      {expandedSections.includes(title.toLowerCase()) && (
+        <div className="card-body p-0">
+          <div className={`pl-4 space-y-2 ${(filterType === 'category' || filterType === 'designer') ? 'scrollable-filter' : ''}`}>
+            {options.map((option) => (
+              <div key={option.id} className="form-check">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id={`${filterType}-${option.id}`}
+                  checked={searchParams.getAll(filterType).includes(option.id.toString())}
+                  onChange={() => handleFilterChange(filterType, option.id.toString())}
+                  style={{ borderColor: '#d1d5db', backgroundColor: '#fff' }}
+                />
+                <label
+                  className="form-check-label"
+                  htmlFor={`${filterType}-${option.id}`}
+                  style={{ color: 'var(--color-dark)' }}
+                >
+                  {option.name}
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  ), [expandedSections, handleFilterChange, searchParams, MemoizedChevronDown, MemoizedChevronRight, toggleSection])
 
   return (
     <div className="p-4 rounded border border-gray-200" style={{ backgroundColor: '#8f7a7c' }}>
