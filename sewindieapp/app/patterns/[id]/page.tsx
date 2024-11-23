@@ -22,8 +22,13 @@ type Pattern = {
   PatternAttribute: { attribute: { id: number; name: string } }[];
 }
 
-export default async function PatternPage({ params }: { params: { id: string } }) {
-  const patternId = parseInt(params.id, 10)
+type PageProps = {
+  params: Promise<{ id: string }>;
+}
+
+export default async function PatternPage({ params }: PageProps) {
+  const { id } = await params
+  const patternId = parseInt(id, 10)
 
   if (isNaN(patternId)) {
     notFound()
