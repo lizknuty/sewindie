@@ -59,7 +59,7 @@ export default async function PatternPage({ params }: PageProps) {
     notFound()
   }
 
-  const pattern: Pattern | null = await prisma.pattern.findUnique({
+  const pattern = await prisma.pattern.findUnique({
     where: { id: patternId },
     include: {
       designer: true,
@@ -69,7 +69,7 @@ export default async function PatternPage({ params }: PageProps) {
       PatternSuggestedFabric: { include: { suggestedFabric: true } },
       PatternAttribute: { include: { attribute: true } }
     }
-  })
+  }) as Pattern | null
 
   if (!pattern) {
     notFound()
