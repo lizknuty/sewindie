@@ -32,15 +32,17 @@ type FilterOption = {
 
 type SortOption = 'name_asc' | 'name_desc' | 'designer_asc' | 'designer_desc'
 
-interface PageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
+type PageProps = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 export default async function PatternsPage({ searchParams }: PageProps) {
-  const search = searchParams.search as string ?? '';
-  const sort = (searchParams.sort as SortOption) ?? 'name_asc';
-  const page = parseInt(searchParams.page as string ?? '1', 10);
-  const perPage = parseInt(searchParams.perPage as string ?? '40', 10);
+  const resolvedSearchParams = await searchParams;
+
+  const search = typeof resolvedSearchParams.search === 'string' ? resolvedSearchParams.search : '';
+  const sort = (resolvedSearchParams.sort as SortOption) || 'name_asc';
+  const page = parseInt(typeof resolvedSearchParams.page === 'string' ? resolvedSearchParams.page : '1', 10);
+  const perPage = parseInt(typeof resolvedSearchParams.perPage === 'string' ? resolvedSearchParams.perPage : '40', 10);
 
   const ensureArray = (value: string | string[] | undefined): string[] => {
     if (Array.isArray(value)) return value;
@@ -48,12 +50,12 @@ export default async function PatternsPage({ searchParams }: PageProps) {
     return [];
   };
 
-  const categoryIds = ensureArray(searchParams.category);
-  const attributeIds = ensureArray(searchParams.attribute);
-  const formatIds = ensureArray(searchParams.format);
-  const audienceIds = ensureArray(searchParams.audience);
-  const fabricTypeIds = ensureArray(searchParams.fabricType);
-  const designerIds = ensureArray(searchParams.designer);
+  const categoryIds = ensureArray(resolvedSearchParams.category);
+  const attributeIds = ensureArray(resolvedSearchParams.attribute);
+  const formatIds = ensureArray(resolvedSearchParams.format);
+  const audienceIds = ensureArray(resolvedSearchParams.audience);
+  const fabricTypeIds = ensureArray(resolvedSearchParams.fabricType);
+  const designerIds = ensureArray(resolvedSearchParams.designer);
 
   let orderBy: { [key: string]: 'asc' | 'desc' } | { designer: { name: 'asc' | 'desc' } } = { name: 'asc' }
 
