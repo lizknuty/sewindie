@@ -3,36 +3,6 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import prisma from '@/lib/prisma'
 
-type Designer = {
-  id: number;
-  name: string;
-}
-
-type Category = {
-  id: number;
-  name: string;
-}
-
-type Audience = {
-  id: number;
-  name: string;
-}
-
-type FabricType = {
-  id: number;
-  name: string;
-}
-
-type SuggestedFabric = {
-  id: number;
-  name: string;
-}
-
-type Attribute = {
-  id: number;
-  name: string;
-}
-
 type Pattern = {
   id: number;
   name: string;
@@ -41,20 +11,18 @@ type Pattern = {
   yardage: string | null;
   sizes: string | null;
   language: string | null;
-  designer: Designer;
-  PatternCategory: { category: Category }[];
-  PatternAudience: { audience: Audience }[];
-  PatternFabricType: { fabricType: FabricType }[];
-  PatternSuggestedFabric: { suggestedFabric: SuggestedFabric }[];
-  PatternAttribute: { attribute: Attribute }[];
+  designer: {
+    id: number;
+    name: string;
+  };
+  PatternCategory: { category: { id: number; name: string } }[];
+  PatternAudience: { audience: { id: number; name: string } }[];
+  PatternFabricType: { fabricType: { id: number; name: string } }[];
+  PatternSuggestedFabric: { suggestedFabric: { id: number; name: string } }[];
+  PatternAttribute: { attribute: { id: number; name: string } }[];
 }
 
-type Props = {
-  params: { id: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-}
-
-export default async function PatternPage({ params, searchParams }: Props) {
+export default async function PatternPage({ params }: { params: { id: string } }) {
   const patternId = parseInt(params.id, 10)
 
   if (isNaN(patternId)) {
