@@ -25,7 +25,7 @@ export default function PatternCard({ id, name, thumbnail_url, designer, pattern
   }
 
   return (
-    <div className="card h-100">
+    <div className="card h-100" style={{ backgroundColor: 'white' }}>
       <div className="card-body d-flex flex-column">
         <div className="mb-3" style={{ height: '200px', position: 'relative' }}>
           {thumbnail_url ? (

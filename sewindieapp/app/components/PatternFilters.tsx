@@ -47,22 +47,27 @@ export default function PatternFilters({ categories, attributes, formats, audien
       }
       .custom-checkbox .form-check-input {
         border-color: #adb5bd;
+        width: 1.25rem;
+        height: 1.25rem;
       }
       .custom-checkbox .form-check-input:checked {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
+        background-color: #8f7a7c;
+        border-color: #8f7a7c;
       }
       .custom-checkbox .form-check-input:checked::after {
         content: '';
         display: block;
-        width: 5px;
-        height: 10px;
+        width: 6px;
+        height: 12px;
         border: solid white;
         border-width: 0 2px 2px 0;
         transform: rotate(45deg);
         position: absolute;
         top: 2px;
-        left: 5px;
+        left: 6px;
+      }
+      .custom-checkbox .form-check-label {
+        padding-left: 0.5rem;
       }
     `
     document.head.appendChild(style)
