@@ -6,8 +6,32 @@ export async function GET() {
     const patterns = await prisma.pattern.findMany({
       orderBy: { name: 'asc' },
       include: {
-        designer: { select: { name: true } },
-        patternCategories: { include: { category: true } }
+        designer: { select: { id: true, name: true } },
+        PatternCategory: {
+          include: {
+            category: true
+          }
+        },
+        PatternAttribute: {
+          include: {
+            attribute: true
+          }
+        },
+        PatternAudience: {
+          include: {
+            audience: true
+          }
+        },
+        PatternFabricType: {
+          include: {
+            fabricType: true
+          }
+        },
+        PatternSuggestedFabric: {
+          include: {
+            suggestedFabric: true
+          }
+        }
       }
     })
     return NextResponse.json(patterns)
@@ -29,19 +53,30 @@ export async function POST(request: Request) {
         yardage: body.yardage,
         sizes: body.sizes,
         language: body.language,
-        audience: body.audience,
-        fabric_type: body.fabric_type,
-        patternCategories: {
-          create: body.categories.map((id: string) => ({ category: { connect: { id: parseInt(id) } } }))
+        PatternCategory: {
+          create: body.categories.map((categoryId: string) => ({
+            category: { connect: { id: parseInt(categoryId) } }
+          }))
         },
-        patternFormats: {
-          create: body.formats.map((id: string) => ({ format: { connect: { id: parseInt(id) } } }))
+        PatternAttribute: {
+          create: body.attributes.map((attributeId: string) => ({
+            attribute: { connect: { id: parseInt(attributeId) } }
+          }))
         },
-        patternSuggestedFabrics: {
-          create: body.suggestedFabrics.map((id: string) => ({ suggestedFabric: { connect: { id: parseInt(id) } } }))
+        PatternAudience: {
+          create: body.audiences.map((audienceId: string) => ({
+            audience: { connect: { id: parseInt(audienceId) } }
+          }))
         },
-        patternAttributes: {
-          create: body.attributes.map((id: string) => ({ attribute: { connect: { id: parseInt(id) } } }))
+        PatternFabricType: {
+          create: body.fabricTypes.map((fabricTypeId: string) => ({
+            fabricType: { connect: { id: parseInt(fabricTypeId) } }
+          }))
+        },
+        PatternSuggestedFabric: {
+          create: body.suggestedFabrics.map((suggestedFabricId: string) => ({
+            suggestedFabric: { connect: { id: parseInt(suggestedFabricId) } }
+          }))
         }
       }
     })
