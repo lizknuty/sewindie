@@ -12,7 +12,12 @@ type Category = {
   name: string;
 }
 
-type Format = {
+type Audience = {
+  id: number;
+  name: string;
+}
+
+type FabricType = {
   id: number;
   name: string;
 }
@@ -35,22 +40,20 @@ type Pattern = {
   yardage: string | null;
   sizes: string | null;
   language: string | null;
-  audience: string | null;
-  fabric_type: string | null;
   designer: Designer;
-  patternCategories: { category: Category }[];
-  patternFormats: { format: Format }[];
-  patternSuggestedFabrics: { suggestedFabric: SuggestedFabric }[];
-  patternAttributes: { attribute: Attribute }[];
+  PatternCategory: { category: Category }[];
+  PatternAudience: { audience: Audience }[];
+  PatternFabricType: { fabricType: FabricType }[];
+  PatternSuggestedFabric: { suggestedFabric: SuggestedFabric }[];
+  PatternAttribute: { attribute: Attribute }[];
 }
 
 type PageProps = {
-  params: Promise<{ id: string }>
+  params: { id: string }
 }
 
 export default async function PatternPage({ params }: PageProps) {
-  const { id } = await params
-  const patternId = parseInt(id)
+  const patternId = parseInt(params.id)
 
   if (isNaN(patternId)) {
     notFound()
@@ -60,10 +63,11 @@ export default async function PatternPage({ params }: PageProps) {
     where: { id: patternId },
     include: {
       designer: true,
-      patternCategories: { include: { category: true } },
-      patternFormats: { include: { format: true } },
-      patternSuggestedFabrics: { include: { suggestedFabric: true } },
-      patternAttributes: { include: { attribute: true } }
+      PatternCategory: { include: { category: true } },
+      PatternAudience: { include: { audience: true } },
+      PatternFabricType: { include: { fabricType: true } },
+      PatternSuggestedFabric: { include: { suggestedFabric: true } },
+      PatternAttribute: { include: { attribute: true } }
     }
   })
 
@@ -87,35 +91,40 @@ export default async function PatternPage({ params }: PageProps) {
           {pattern.yardage && <p>Yardage: {pattern.yardage}</p>}
           {pattern.sizes && <p>Sizes: {pattern.sizes}</p>}
           {pattern.language && <p>Language: {pattern.language}</p>}
-          {pattern.audience && <p>Audience: {pattern.audience}</p>}
-          {pattern.fabric_type && <p>Fabric Type: {pattern.fabric_type}</p>}
         </div>
         <div>
           <h2 className="text-2xl font-semibold mb-2">Categories</h2>
           <div className="flex flex-wrap gap-2">
-            {pattern.patternCategories.map(({ category }) => (
+            {pattern.PatternCategory.map(({ category }) => (
               <span key={category.id} className="px-3 py-1 bg-blue-100 text-blue-800 rounded">{category.name}</span>
             ))}
           </div>
           
-          <h2 className="text-2xl font-semibold mt-4 mb-2">Formats</h2>
+          <h2 className="text-2xl font-semibold mt-4 mb-2">Audience</h2>
           <div className="flex flex-wrap gap-2">
-            {pattern.patternFormats.map(({ format }) => (
-              <span key={format.id} className="px-3 py-1 bg-green-100 text-green-800 rounded">{format.name}</span>
+            {pattern.PatternAudience.map(({ audience }) => (
+              <span key={audience.id} className="px-3 py-1 bg-green-100 text-green-800 rounded">{audience.name}</span>
+            ))}
+          </div>
+          
+          <h2 className="text-2xl font-semibold mt-4 mb-2">Fabric Types</h2>
+          <div className="flex flex-wrap gap-2">
+            {pattern.PatternFabricType.map(({ fabricType }) => (
+              <span key={fabricType.id} className="px-3 py-1 bg-purple-100 text-purple-800 rounded">{fabricType.name}</span>
             ))}
           </div>
           
           <h2 className="text-2xl font-semibold mt-4 mb-2">Suggested Fabrics</h2>
           <div className="flex flex-wrap gap-2">
-            {pattern.patternSuggestedFabrics.map(({ suggestedFabric }) => (
-              <span key={suggestedFabric.id} className="px-3 py-1 bg-purple-100 text-purple-800 rounded">{suggestedFabric.name}</span>
+            {pattern.PatternSuggestedFabric.map(({ suggestedFabric }) => (
+              <span key={suggestedFabric.id} className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded">{suggestedFabric.name}</span>
             ))}
           </div>
           
           <h2 className="text-2xl font-semibold mt-4 mb-2">Attributes</h2>
           <div className="flex flex-wrap gap-2">
-            {pattern.patternAttributes.map(({ attribute }) => (
-              <span key={attribute.id} className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded">{attribute.name}</span>
+            {pattern.PatternAttribute.map(({ attribute }) => (
+              <span key={attribute.id} className="px-3 py-1 bg-red-100 text-red-800 rounded">{attribute.name}</span>
             ))}
           </div>
         </div>
