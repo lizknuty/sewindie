@@ -49,11 +49,12 @@ type Pattern = {
   PatternAttribute: { attribute: Attribute }[];
 }
 
-type PageProps = {
+type Props = {
   params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
 }
 
-export default async function PatternPage({ params }: PageProps) {
+export default async function PatternPage({ params, searchParams }: Props) {
   const patternId = parseInt(params.id, 10)
 
   if (isNaN(patternId)) {
