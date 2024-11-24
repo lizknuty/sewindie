@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import prisma from '@/lib/prisma'
 
 type Pattern = {
@@ -52,56 +53,99 @@ export default async function PatternPage({ params }: PageProps) {
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold mb-4">{pattern.name}</h1>
-        <p className="text-xl mb-6">By <Link href={`/designers/${pattern.designer.id}`} className="text-blue-500 hover:underline">{pattern.designer.name}</Link></p>
-        
-        {pattern.thumbnail_url && (
-          <img src={pattern.thumbnail_url} alt={pattern.name} className="w-full max-w-2xl h-auto mb-6 rounded" />
-        )}
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          <div>
-            <h2 className="text-2xl font-semibold mb-2">Details</h2>
-            <p>URL: <a href={pattern.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{pattern.url}</a></p>
-            {pattern.yardage && <p>Yardage: {pattern.yardage}</p>}
-            {pattern.sizes && <p>Sizes: {pattern.sizes}</p>}
-            {pattern.language && <p>Language: {pattern.language}</p>}
+      <div className="container py-5">
+        <div className="row">
+          <div className="col-md-4">
+            <div className="card mb-4">
+              {pattern.thumbnail_url && (
+                <>
+                  <Image
+                    src={pattern.thumbnail_url}
+                    alt={pattern.name}
+                    width={500}
+                    height={500}
+                    className="card-img-top"
+                  />
+                  <p className="text-center mt-2">© {pattern.designer.name}</p>
+                </>
+              )}
+              <div className="card-body">
+                <a href={pattern.url} target="_blank" rel="noopener noreferrer" className="btn btn-primary w-100">
+                  View on Designer's Website
+                </a>
+              </div>
+            </div>
           </div>
-          <div>
-            <h2 className="text-2xl font-semibold mb-2">Categories</h2>
-            <div className="flex flex-wrap gap-2">
-              {pattern.PatternCategory.map(({ category }) => (
-                <span key={category.id} className="px-3 py-1 bg-blue-100 text-blue-800 rounded">{category.name}</span>
-              ))}
+          <div className="col-md-8">
+            <h1 className="font-heading mb-4">{pattern.name}</h1>
+            <h2 className="h4 font-heading mb-3">by {pattern.designer.name}</h2>
+
+            <div className="row mb-4">
+              <div className="col-md-6">
+                <h3 className="h5 font-heading">Details</h3>
+                <ul className="list-unstyled">
+                  <li><strong>Yardage:</strong> {pattern.yardage || 'Not specified'}</li>
+                  <li><strong>Sizes:</strong> {pattern.sizes || 'Not specified'}</li>
+                  <li><strong>Language:</strong> {pattern.language || 'Not specified'}</li>
+                  <li>
+                    <strong>Audience:</strong>{' '}
+                    {pattern.PatternAudience.map(({ audience }, index) => (
+                      <span key={audience.id}>
+                        {index > 0 && ', '}
+                        {audience.name}
+                      </span>
+                    ))}
+                  </li>
+                  <li>
+                    <strong>Fabric Types:</strong>{' '}
+                    {pattern.PatternFabricType.map(({ fabricType }, index) => (
+                      <span key={fabricType.id}>
+                        {index > 0 && ', '}
+                        {fabricType.name}
+                      </span>
+                    ))}
+                  </li>
+                  <li>
+                    <strong>Suggested Fabrics:</strong>{' '}
+                    {pattern.PatternSuggestedFabric.map(({ suggestedFabric }, index) => (
+                      <span key={suggestedFabric.id}>
+                        {index > 0 && ', '}
+                        {suggestedFabric.name}
+                      </span>
+                    ))}
+                  </li>
+                </ul>
+              </div>
+              <div className="col-md-6">
+                <h3 className="h5 font-heading">Categories</h3>
+                <div>
+                  {pattern.PatternCategory.map(({ category }) => (
+                    <span key={category.id} className="badge bg-primary me-2 mb-2">
+                      {category.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
-            
-            <h2 className="text-2xl font-semibold mt-4 mb-2">Audience</h2>
-            <div className="flex flex-wrap gap-2">
-              {pattern.PatternAudience.map(({ audience }) => (
-                <span key={audience.id} className="px-3 py-1 bg-green-100 text-green-800 rounded">{audience.name}</span>
-              ))}
+
+
+            <div className="mb-4">
+              <h3 className="h5 font-heading">Attributes</h3>
+              <ul className="list-inline">
+                {pattern.PatternAttribute.map(({ attribute }) => (
+                  <li key={attribute.id} className="list-inline-item">
+                    <span className="badge bg-secondary">{attribute.name}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            
-            <h2 className="text-2xl font-semibold mt-4 mb-2">Fabric Types</h2>
-            <div className="flex flex-wrap gap-2">
-              {pattern.PatternFabricType.map(({ fabricType }) => (
-                <span key={fabricType.id} className="px-3 py-1 bg-purple-100 text-purple-800 rounded">{fabricType.name}</span>
-              ))}
-            </div>
-            
-            <h2 className="text-2xl font-semibold mt-4 mb-2">Suggested Fabrics</h2>
-            <div className="flex flex-wrap gap-2">
-              {pattern.PatternSuggestedFabric.map(({ suggestedFabric }) => (
-                <span key={suggestedFabric.id} className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded">{suggestedFabric.name}</span>
-              ))}
-            </div>
-            
-            <h2 className="text-2xl font-semibold mt-4 mb-2">Attributes</h2>
-            <div className="flex flex-wrap gap-2">
-              {pattern.PatternAttribute.map(({ attribute }) => (
-                <span key={attribute.id} className="px-3 py-1 bg-red-100 text-red-800 rounded">{attribute.name}</span>
-              ))}
+
+            <div className="mb-4">
+              <h3 className="h5 font-heading">About the Designer</h3>
+              <p>No designer description available.</p>
+              <Link href={`/designers/${pattern.designer.id}`} className="btn btn-primary">
+                View All Patterns by {pattern.designer.name}
+              </Link>
             </div>
           </div>
         </div>

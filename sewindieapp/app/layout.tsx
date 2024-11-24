@@ -2,7 +2,27 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Metadata } from 'next'
+import { Open_Sans, Inter, Poiret_One } from 'next/font/google'
 import './styles.css'
+
+const openSans = Open_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-open-sans',
+})
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+})
+
+const poiretOne = Poiret_One({
+  weight: '400',
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-poiret',
+})
 
 export const metadata: Metadata = {
   title: 'SewIndie',
@@ -15,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${openSans.variable} ${inter.variable} ${poiretOne.variable}`}>
       <body className="flex flex-col min-h-screen">
         <header>
           <nav className="navbar navbar-expand-lg navbar-dark">
