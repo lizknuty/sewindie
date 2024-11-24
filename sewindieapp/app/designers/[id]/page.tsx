@@ -1,11 +1,28 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import prisma from '@/lib/prisma'
 import { notFound } from 'next/navigation'
+import PatternCard from '@/components/PatternCard'
+import PaginationControls from '@/components/PaginationControls'
 
 type Pattern = {
   id: number;
   name: string;
   thumbnail_url: string | null;
+  url: string;
+  yardage: string | null;
+  sizes: string | null;
+  language: string | null;
+  designer: {
+    id: number;
+    name: string;
+  };
+  PatternCategory: {
+    category: {
+      id: number;
+      name: string;
+    }
+  }[];
 }
 
 type Designer = {
@@ -19,15 +36,19 @@ type Designer = {
   instagram: string | null;
   pinterest: string | null;
   youtube: string | null;
-  patterns: Pattern[];
 }
 
 type PageProps = {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default async function DesignerPage({ params }: PageProps) {
+const ITEMS_PER_PAGE = 12
+
+export default async function DesignerPage({ params, searchParams }: PageProps) {
   const { id } = await params
+  const resolvedSearchParams = await searchParams
+  const page = Number(resolvedSearchParams.page) || 1
   const designerId = parseInt(id)
 
   if (isNaN(designerId)) {
@@ -36,43 +57,103 @@ export default async function DesignerPage({ params }: PageProps) {
 
   const designer: Designer | null = await prisma.designer.findUnique({
     where: { id: designerId },
-    include: {
-      patterns: {
-        select: { id: true, name: true, thumbnail_url: true }
-      }
-    }
   })
 
   if (!designer) {
     notFound()
   }
 
+  const totalPatterns = await prisma.pattern.count({
+    where: { designer_id: designerId },
+  })
+
+  const patterns: Pattern[] = await prisma.pattern.findMany({
+    where: { designer_id: designerId },
+    include: {
+      designer: {
+        select: { id: true, name: true }
+      },
+      PatternCategory: {
+        include: {
+          category: true,
+        },
+      },
+    },
+    skip: (page - 1) * ITEMS_PER_PAGE,
+    take: ITEMS_PER_PAGE,
+  })
+
+  const totalPages = Math.ceil(totalPatterns / ITEMS_PER_PAGE)
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8">{designer.name}</h1>
-      {designer.logo_url && (
-        <img src={designer.logo_url} alt={`${designer.name} logo`} className="w-48 h-48 object-contain mb-6" />
-      )}
-      <div className="mb-6">
-        <p>Website: <a href={designer.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{designer.url}</a></p>
-        {designer.email && <p>Email: {designer.email}</p>}
-        {designer.address && <p>Address: {designer.address}</p>}
-        {designer.facebook && <p>Facebook: <a href={designer.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{designer.facebook}</a></p>}
-        {designer.instagram && <p>Instagram: <a href={designer.instagram} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{designer.instagram}</a></p>}
-        {designer.pinterest && <p>Pinterest: <a href={designer.pinterest} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{designer.pinterest}</a></p>}
-        {designer.youtube && <p>YouTube: <a href={designer.youtube} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{designer.youtube}</a></p>}
-      </div>
-      <h2 className="text-2xl font-semibold mb-4">Patterns</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {designer.patterns.map((pattern) => (
-          <Link key={pattern.id} href={`/patterns/${pattern.id}`} className="block p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
-            {pattern.thumbnail_url && (
-              <img src={pattern.thumbnail_url} alt={pattern.name} className="w-full h-48 object-cover mb-4 rounded" />
+    <div className="container py-5">
+      <div className="row mb-5">
+        <div className="col-md-8">
+          <h1 className="display-4 fw-bold mb-4">{designer.name}</h1>
+          <p className="lead mb-4">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+          </p>
+          <div className="d-flex gap-3 mb-4">
+            {designer.facebook && (
+              <a href={designer.facebook} target="_blank" rel="noopener noreferrer" className="text-decoration-none">
+                <Image src="/facebook.svg" alt="Facebook" width={24} height={24} className="social-icon" />
+              </a>
             )}
-            <h3 className="text-lg font-semibold text-center">{pattern.name}</h3>
-          </Link>
+            {designer.instagram && (
+              <a href={designer.instagram} target="_blank" rel="noopener noreferrer" className="text-decoration-none">
+                <Image src="/instagram.svg" alt="Instagram" width={24} height={24} className="social-icon" />
+              </a>
+            )}
+            {designer.pinterest && (
+              <a href={designer.pinterest} target="_blank" rel="noopener noreferrer" className="text-decoration-none">
+                <Image src="/pinterest.svg" alt="Pinterest" width={24} height={24} className="social-icon" />
+              </a>
+            )}
+            {designer.youtube && (
+              <a href={designer.youtube} target="_blank" rel="noopener noreferrer" className="text-decoration-none">
+                <Image src="/youtube.svg" alt="YouTube" width={24} height={24} className="social-icon" />
+              </a>
+            )}
+          </div>
+          {designer.address && (
+            <p className="mb-2"><strong>Address:</strong> {designer.address}</p>
+          )}
+          {designer.email && (
+            <div className="d-flex align-items-center">
+              <Image src="/email.svg" alt="Email" width={24} height={24} className="social-icon me-2" />
+              <a href={`mailto:${designer.email}`} className="text-decoration-none">{designer.email}</a>
+            </div>
+          )}
+        </div>
+        <div className="col-md-4 d-flex justify-content-center align-items-start">
+          {designer.logo_url && (
+            <a href={designer.url} target="_blank" rel="noopener noreferrer" className="text-decoration-none">
+              <Image src={designer.logo_url} alt={`${designer.name} logo`} width={200} height={200} className="img-fluid" />
+            </a>
+          )}
+        </div>
+      </div>
+
+      <h2 className="h3 fw-bold mb-4">Patterns</h2>
+      <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-5">
+        {patterns.map((pattern) => (
+          <div key={pattern.id} className="col">
+            <PatternCard
+              id={pattern.id}
+              name={pattern.name}
+              thumbnail_url={pattern.thumbnail_url}
+              designer={pattern.designer}
+              patternCategories={pattern.PatternCategory}
+            />
+          </div>
         ))}
       </div>
+
+      <PaginationControls
+        currentPage={page}
+        totalPages={totalPages}
+        basePath={`/designers/${designerId}`}
+      />
     </div>
   )
 }
