@@ -68,6 +68,7 @@ export default function ContributePage() {
   const [attributes, setAttributes] = useState<Attribute[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [submissionStatus, setSubmissionStatus] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -119,20 +120,39 @@ export default function ContributePage() {
     e.preventDefault()
     setIsSubmitting(true)
     setError(null)
+    setSubmissionStatus(null)
 
     try {
-      const response = await fetch('/api/patterns', {
+      // Send data to the existing API route
+      const patternResponse = await fetch('/api/patterns', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       })
 
-      if (!response.ok) {
+      if (!patternResponse.ok) {
         throw new Error('Failed to submit pattern')
       }
 
-      const result = await response.json()
-      router.push(`/patterns/${result.id}`)
+      const patternResult = await patternResponse.json()
+
+      // Send data to the new Google Sheets API route
+      const sheetsResponse = await fetch('/api/contribute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          designer: designers.find(d => d.id.toString() === formData.designer_id)?.name || '',
+          url: formData.url,
+        }),
+      })
+
+      if (!sheetsResponse.ok) {
+        throw new Error('Failed to submit to Google Sheets')
+      }
+
+      setSubmissionStatus('Pattern submitted successfully and added to Google Sheets!')
+      router.push(`/patterns/${patternResult.id}`)
     } catch (error) {
       console.error('Error submitting pattern:', error)
       setError('Failed to submit pattern. Please try again.')
@@ -343,6 +363,11 @@ export default function ContributePage() {
           </button>
         </div>
       </form>
+      {submissionStatus && (
+        <div className="mt-4 p-2 bg-green-100 text-green-700 rounded">
+          {submissionStatus}
+        </div>
+      )}
     </div>
   )
 }
