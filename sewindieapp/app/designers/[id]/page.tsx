@@ -18,13 +18,14 @@ type Designer = {
 
 type PageProps = {
   params: Promise<{ id: string }>
-  searchParams: { [key: string]: string | string[] | undefined }
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 export default async function DesignerPage({ params, searchParams }: PageProps) {
   const { id } = await params
+  const resolvedSearchParams = await searchParams
   const designerId = parseInt(id, 10)
-  const page = parseInt(searchParams.page as string || '1', 10)
+  const page = parseInt(resolvedSearchParams.page as string || '1', 10)
   const perPage = 20
 
   if (isNaN(designerId)) {
