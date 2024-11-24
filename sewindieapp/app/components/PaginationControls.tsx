@@ -8,10 +8,16 @@ interface PaginationControlsProps {
   totalPages: number;
   perPage: number;
   totalItems: number;
-  basePath: string;
+  basePath?: string; // Make basePath optional
 }
 
-export default function PaginationControls({ currentPage, totalPages, perPage, totalItems, basePath }: PaginationControlsProps) {
+export default function PaginationControls({ 
+  currentPage, 
+  totalPages, 
+  perPage, 
+  totalItems, 
+  basePath = '' // Provide a default value
+}: PaginationControlsProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
