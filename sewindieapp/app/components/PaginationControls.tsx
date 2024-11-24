@@ -3,13 +3,15 @@
 import React from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-type PaginationControlsProps = {
-  currentPage: number
-  totalPages: number
-  basePath: string
+interface PaginationControlsProps {
+  currentPage: number;
+  totalPages: number;
+  perPage: number;
+  totalItems: number;
+  basePath: string;
 }
 
-export default function PaginationControls({ currentPage, totalPages, basePath }: PaginationControlsProps) {
+export default function PaginationControls({ currentPage, totalPages, perPage, totalItems, basePath }: PaginationControlsProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
