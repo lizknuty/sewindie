@@ -59,13 +59,15 @@ export default async function PatternPage({ params }: PageProps) {
             <div className="card mb-4">
               {pattern.thumbnail_url && (
                 <>
-                  <Image
-                    src={pattern.thumbnail_url}
-                    alt={pattern.name}
-                    width={500}
-                    height={500}
-                    className="card-img-top"
-                  />
+                  <div className="position-relative" style={{ paddingBottom: '100%' }}>
+                    <Image
+                      src={pattern.thumbnail_url}
+                      alt={pattern.name}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="card-img-top object-fit-cover"
+                    />
+                  </div>
                   <p className="text-center mt-2">© {pattern.designer.name}</p>
                 </>
               )}
