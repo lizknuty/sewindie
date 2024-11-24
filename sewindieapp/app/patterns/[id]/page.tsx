@@ -120,7 +120,7 @@ export default async function PatternPage({ params }: PageProps) {
                 <h3 className="h5 font-heading">Categories</h3>
                 <div>
                   {pattern.PatternCategory.map(({ category }) => (
-                    <span key={category.id} className="badge bg-primary me-2 mb-2">
+                    <span key={category.id} className="badge bg-secondary text-white me-2 mb-2">
                       {category.name}
                     </span>
                   ))}
