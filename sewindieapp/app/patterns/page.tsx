@@ -6,7 +6,7 @@ import PatternSorter from '../components/PatternSorter'
 import PatternFilters from '../components/PatternFilters'
 import PatternSearch from '../components/PatternSearch'
 import PatternCard from '../components/PatternCard'
-import PaginationControls from '../components/PaginationControls'
+import PaginationControls from '@/components/PaginationControls'
 import { Metadata } from 'next'
 
 type Pattern = {
@@ -189,6 +189,7 @@ export default async function PatternsPage({ searchParams }: PageProps) {
                 totalPages={totalPages}
                 perPage={perPage}
                 totalItems={totalPatterns}
+                basePath="/patterns"
               />
             </div>
             <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
@@ -210,6 +211,7 @@ export default async function PatternsPage({ searchParams }: PageProps) {
                 totalPages={totalPages}
                 perPage={perPage}
                 totalItems={totalPatterns}
+                basePath="/patterns"
               />
             </div>
           </div>
