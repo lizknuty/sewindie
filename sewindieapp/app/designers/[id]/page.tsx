@@ -17,12 +17,13 @@ type Designer = {
 }
 
 type PageProps = {
-  params: { id: string }
+  params: Promise<{ id: string }>
   searchParams: { [key: string]: string | string[] | undefined }
 }
 
 export default async function DesignerPage({ params, searchParams }: PageProps) {
-  const designerId = parseInt(params.id, 10)
+  const { id } = await params
+  const designerId = parseInt(id, 10)
   const page = parseInt(searchParams.page as string || '1', 10)
   const perPage = 20
 
