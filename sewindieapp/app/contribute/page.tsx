@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import DatePicker from 'react-datepicker'
+import "react-datepicker/dist/react-datepicker.css"
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 // Define types for the form data and API responses
 type Designer = {
@@ -14,17 +16,7 @@ type Category = {
   name: string;
 }
 
-type Format = {
-  id: number;
-  name: string;
-}
-
-type SuggestedFabric = {
-  id: number;
-  name: string;
-}
-
-type Attribute = {
+type Audience = {
   id: number;
   name: string;
 }
@@ -32,69 +24,84 @@ type Attribute = {
 interface FormData {
   name: string;
   designer_id: string;
-  url: string;
-  thumbnail_url: string;
-  yardage: string;
-  sizes: string;
-  language: string;
-  audience: string;
-  fabric_type: string;
+  new_designer_name: string;
   categories: string[];
-  formats: string[];
-  suggestedFabrics: string[];
-  attributes: string[];
+  sizes: string;
+  audience_id: string;
+  publication_date: Date | null;
+  publication_date_unknown: boolean;
+  published_in_print: boolean;
+  published_online: boolean;
+  pattern_url: string;
+  is_free: boolean;
+  is_bundle: boolean;
+  price: string;
+  is_knit: boolean;
+  is_woven: boolean;
+  suggested_fabrics: string;
+  required_notions: string;
+  total_yardage: string;
 }
 
+const initialFormData: FormData = {
+  name: '',
+  designer_id: '',
+  new_designer_name: '',
+  categories: [],
+  sizes: '',
+  audience_id: '',
+  publication_date: null,
+  publication_date_unknown: false,
+  published_in_print: false,
+  published_online: false,
+  pattern_url: '',
+  is_free: false,
+  is_bundle: false,
+  price: '',
+  is_knit: false,
+  is_woven: false,
+  suggested_fabrics: '',
+  required_notions: '',
+  total_yardage: '',
+}
+
+const steps = [
+  'Name & Designer',
+  'Category',
+  'Sizes & Audience',
+  'Sources',
+  'Links & Price',
+  'Fabric & Notions'
+]
+
 export default function ContributePage() {
-  const [formData, setFormData] = useState<FormData>({
-    name: '',
-    designer_id: '',
-    url: '',
-    thumbnail_url: '',
-    yardage: '',
-    sizes: '',
-    language: '',
-    audience: '',
-    fabric_type: '',
-    categories: [],
-    formats: [],
-    suggestedFabrics: [],
-    attributes: [],
-  })
+  const [currentStep, setCurrentStep] = useState(0)
+  const [formData, setFormData] = useState<FormData>(initialFormData)
   const [designers, setDesigners] = useState<Designer[]>([])
   const [categories, setCategories] = useState<Category[]>([])
-  const [formats, setFormats] = useState<Format[]>([])
-  const [suggestedFabrics, setSuggestedFabrics] = useState<SuggestedFabric[]>([])
-  const [attributes, setAttributes] = useState<Attribute[]>([])
+  const [audiences, setAudiences] = useState<Audience[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submissionStatus, setSubmissionStatus] = useState<string | null>(null)
-  const router = useRouter()
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [designersRes, categoriesRes, formatsRes, suggestedFabricsRes, attributesRes] = await Promise.all([
+        const [designersRes, categoriesRes, audiencesRes] = await Promise.all([
           fetch('/api/designers'),
           fetch('/api/categories'),
-          fetch('/api/formats'),
-          fetch('/api/suggested-fabrics'),
-          fetch('/api/attributes')
+          fetch('/api/audiences')
         ])
 
-        const [designersData, categoriesData, formatsData, suggestedFabricsData, attributesData] = await Promise.all([
+        const [designersData, categoriesData, audiencesData] = await Promise.all([
           designersRes.json(),
           categoriesRes.json(),
-          formatsRes.json(),
-          suggestedFabricsRes.json(),
-          attributesRes.json()
+          audiencesRes.json()
         ])
 
         setDesigners(designersData)
         setCategories(categoriesData)
-        setFormats(formatsData)
-        setSuggestedFabrics(suggestedFabricsData)
-        setAttributes(attributesData)
+        setAudiences(audiencesData)
       } catch (error) {
         console.error('Error fetching form data:', error)
         setError('Failed to load form data. Please try again later.')
@@ -104,8 +111,11 @@ export default function ContributePage() {
   }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    const { name, value, type } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+    }))
   }
 
   const handleMultiSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -123,28 +133,11 @@ export default function ContributePage() {
     setSubmissionStatus(null)
 
     try {
-      // Send data to the existing API route
-      const patternResponse = await fetch('/api/patterns', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
-
-      if (!patternResponse.ok) {
-        throw new Error('Failed to submit pattern')
-      }
-
-      const patternResult = await patternResponse.json()
-
-      // Send data to the new Google Sheets API route
+      // Send data to the Google Sheets API route
       const sheetsResponse = await fetch('/api/contribute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name,
-          designer: designers.find(d => d.id.toString() === formData.designer_id)?.name || '',
-          url: formData.url,
-        }),
+        body: JSON.stringify(formData),
       })
 
       if (!sheetsResponse.ok) {
@@ -152,7 +145,8 @@ export default function ContributePage() {
       }
 
       setSubmissionStatus('Pattern submitted successfully and added to Google Sheets!')
-      router.push(`/patterns/${patternResult.id}`)
+      setFormData(initialFormData)
+      setCurrentStep(0)
     } catch (error) {
       console.error('Error submitting pattern:', error)
       setError('Failed to submit pattern. Please try again.')
@@ -161,213 +155,377 @@ export default function ContributePage() {
     }
   }
 
+  const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, steps.length - 1))
+  const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0))
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <div>
+            <div className="mb-3">
+              <label htmlFor="name" className="form-label">Pattern Name</label>
+              <input
+                type="text"
+                className="form-control"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="designer_id" className="form-label">Designer</label>
+              <select
+                className="form-select"
+                id="designer_id"
+                name="designer_id"
+                value={formData.designer_id}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select a designer</option>
+                <option value="not_listed">Not Listed</option>
+                {designers.map(designer => (
+                  <option key={designer.id} value={designer.id.toString()}>{designer.name}</option>
+                ))}
+              </select>
+            </div>
+            {formData.designer_id === 'not_listed' && (
+              <div className="mb-3">
+                <label htmlFor="new_designer_name" className="form-label">New Designer Name</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="new_designer_name"
+                  name="new_designer_name"
+                  value={formData.new_designer_name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            )}
+          </div>
+        )
+      case 1:
+        return (
+          <div className="mb-3">
+            <label htmlFor="categories" className="form-label">Categories</label>
+            <select
+              className="form-select"
+              id="categories"
+              name="categories"
+              multiple
+              value={formData.categories}
+              onChange={handleMultiSelect}
+            >
+              {categories.map(category => (
+                <option key={category.id} value={category.id.toString()}>{category.name}</option>
+              ))}
+            </select>
+          </div>
+        )
+      case 2:
+        return (
+          <div>
+            <div className="mb-3">
+              <label htmlFor="sizes" className="form-label">Sizes</label>
+              <input
+                type="text"
+                className="form-control"
+                id="sizes"
+                name="sizes"
+                value={formData.sizes}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="audience_id" className="form-label">Audience</label>
+              <select
+                className="form-select"
+                id="audience_id"
+                name="audience_id"
+                value={formData.audience_id}
+                onChange={handleChange}
+              >
+                <option value="">Select an audience</option>
+                {audiences.map(audience => (
+                  <option key={audience.id} value={audience.id.toString()}>{audience.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )
+      case 3:
+        return (
+          <div>
+            <div className="mb-3">
+              <label className="form-label">When was this pattern first published?</label>
+              <div className="input-group">
+                <DatePicker
+                  selected={formData.publication_date}
+                  onChange={(date: Date | null) => setFormData(prev => ({ ...prev, publication_date: date }))}
+                  disabled={formData.publication_date_unknown}
+                  className="form-control"
+                />
+                <div className="input-group-text">
+                  <input
+                    type="checkbox"
+                    className="form-check-input mt-0"
+                    name="publication_date_unknown"
+                    checked={formData.publication_date_unknown}
+                    onChange={handleChange}
+                  />
+                  <label className="form-check-label ms-2">
+                    Unknown
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Where was this pattern published? Select all that apply</label>
+              <div className="form-check">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  id="published_in_print"
+                  name="published_in_print"
+                  checked={formData.published_in_print}
+                  onChange={handleChange}
+                />
+                <label className="form-check-label" htmlFor="published_in_print">
+                  In Print (book, magazine, paper)
+                </label>
+              </div>
+              <div className="form-check">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  id="published_online"
+                  name="published_online"
+                  checked={formData.published_online}
+                  onChange={handleChange}
+                />
+                <label className="form-check-label" htmlFor="published_online">
+                  On a blog or other website
+                </label>
+              </div>
+            </div>
+          </div>
+        )
+      case 4:
+        return (
+          <div>
+            <div className="mb-3">
+              <label htmlFor="pattern_url" className="form-label">Link to an outside webpage for this pattern</label>
+              <input
+                type="url"
+                className="form-control"
+                id="pattern_url"
+                name="pattern_url"
+                value={formData.pattern_url}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Price</label>
+              <div className="form-check">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  id="is_free"
+                  name="is_free"
+                  checked={formData.is_free}
+                  onChange={handleChange}
+                />
+                <label className="form-check-label" htmlFor="is_free">
+                  Free
+                </label>
+              </div>
+              <div className="form-check">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  id="is_bundle"
+                  name="is_bundle"
+                  checked={formData.is_bundle}
+                  onChange={handleChange}
+                />
+                <label className="form-check-label" htmlFor="is_bundle">
+                  Part of a bundle
+                </label>
+              </div>
+              <input
+                type="text"
+                className="form-control mt-2"
+                name="price"
+                value={formData.price}
+                onChange={handleChange}
+                disabled={formData.is_free}
+                placeholder="Enter a price (example: 7.50)"
+              />
+            </div>
+          </div>
+        )
+      case 5:
+        return (
+          <div>
+            <div className="mb-3">
+              <label className="form-label">Fabric Type</label>
+              <div className="form-check">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  id="is_knit"
+                  name="is_knit"
+                  checked={formData.is_knit}
+                  onChange={handleChange}
+                />
+                <label className="form-check-label" htmlFor="is_knit">
+                  Knit
+                </label>
+              </div>
+              <div className="form-check">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  id="is_woven"
+                  name="is_woven"
+                  checked={formData.is_woven}
+                  onChange={handleChange}
+                />
+                <label className="form-check-label" htmlFor="is_woven">
+                  Woven
+                </label>
+              </div>
+            </div>
+            <div className="mb-3">
+              <label htmlFor="suggested_fabrics" className="form-label">Suggested Fabrics</label>
+              <textarea
+                className="form-control"
+                id="suggested_fabrics"
+                name="suggested_fabrics"
+                value={formData.suggested_fabrics}
+                onChange={handleChange}
+                rows={3}
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="required_notions" className="form-label">Required Notions</label>
+              <textarea
+                className="form-control"
+                id="required_notions"
+                name="required_notions"
+                value={formData.required_notions}
+                onChange={handleChange}
+                rows={3}
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="total_yardage" className="form-label">Total Yardage</label>
+              <input
+                type="text"
+                className="form-control"
+                id="total_yardage"
+                name="total_yardage"
+                value={formData.total_yardage}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+        )
+      default:
+        return null
+    }
+  }
+
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold mb-8">Error</h1>
-        <p className="text-red-500">{error}</p>
+      <div className="container mt-5">
+        <h1 className="mb-4">Error</h1>
+        <p className="text-danger">{error}</p>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8">Contribute a Pattern</h1>
-      <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-6">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">Pattern Name</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          />
+    <div className="container mt-5">
+      <h1 className="mb-4">Contribute a Pattern</h1>
+      <div className="row">
+        <div className="col-md-3 mb-4">
+          <div className="card" style={{ border: '1px solid #dee2e6', borderRadius: '0.25rem', overflow: 'hidden', backgroundColor: 'white' }}>
+            <div className="card-body" style={{ padding: '0' }}>
+              <nav>
+                <ul className="list-group">
+                  {steps.map((step, index) => (
+                    <li
+                      key={step}
+                      className={`list-group-item cursor-pointer`}
+                      style={{
+                        color: 'black',
+                        border: 'none',
+                        borderRadius: '0',
+                        padding: '10px 15px',
+                        borderLeft: index === currentStep ? '4px solid #fe7b83' : 'none',
+                        backgroundColor: index === currentStep ? '#fe7b83' : 'white',
+                      }}
+                      onClick={() => setCurrentStep(index)}
+                    >
+                      {step}
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            </div>
+          </div>
         </div>
-
-        <div>
-          <label htmlFor="designer_id" className="block text-sm font-medium text-gray-700">Designer</label>
-          <select
-            id="designer_id"
-            name="designer_id"
-            value={formData.designer_id}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          >
-            <option value="">Select a designer</option>
-            {designers.map(designer => (
-              <option key={designer.id} value={designer.id.toString()}>{designer.name}</option>
-            ))}
-          </select>
+        <div className="col-md-9">
+          <div className="card" style={{ backgroundColor: 'white' }}>
+            <div className="card-body">
+              <form onSubmit={handleSubmit}>
+                {renderStep()}
+                <div className="d-flex justify-content-between mt-4">
+                  {currentStep > 0 && (
+                    <button
+                      type="button"
+                      onClick={prevStep}
+                      className="btn btn-outline-primary"
+                    >
+                      <ChevronLeft className="me-1" />
+                      Back
+                    </button>
+                  )}
+                  {currentStep < steps.length - 1 && (
+                    <button
+                      type="button"
+                      onClick={nextStep}
+                      className="btn btn-rose ms-auto"
+                    >
+                      Next
+                      <ChevronRight className="ms-1" />
+                    </button>
+                  )}
+                  {currentStep === steps.length - 1 && (
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="btn btn-rose ms-auto"
+                    >
+                      {isSubmitting ? 'Submitting...' : 'Submit Pattern'}
+                    </button>
+                  )}
+                </div>
+              </form>
+              {submissionStatus && (
+                <div className="alert alert-success mt-4" role="alert">
+                  {submissionStatus}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-
-        <div>
-          <label htmlFor="url" className="block text-sm font-medium text-gray-700">Pattern URL</label>
-          <input
-            type="url"
-            id="url"
-            name="url"
-            value={formData.url}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="thumbnail_url" className="block text-sm font-medium text-gray-700">Thumbnail URL</label>
-          <input
-            type="url"
-            id="thumbnail_url"
-            name="thumbnail_url"
-            value={formData.thumbnail_url}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="yardage" className="block text-sm font-medium text-gray-700">Yardage</label>
-          <input
-            type="text"
-            id="yardage"
-            name="yardage"
-            value={formData.yardage}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="sizes" className="block text-sm font-medium text-gray-700">Sizes</label>
-          <input
-            type="text"
-            id="sizes"
-            name="sizes"
-            value={formData.sizes}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="language" className="block text-sm font-medium text-gray-700">Language</label>
-          <input
-            type="text"
-            id="language"
-            name="language"
-            value={formData.language}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="audience" className="block text-sm font-medium text-gray-700">Audience</label>
-          <input
-            type="text"
-            id="audience"
-            name="audience"
-            value={formData.audience}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="fabric_type" className="block text-sm font-medium text-gray-700">Fabric Type</label>
-          <input
-            type="text"
-            id="fabric_type"
-            name="fabric_type"
-            value={formData.fabric_type}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="categories" className="block text-sm font-medium text-gray-700">Categories</label>
-          <select
-            id="categories"
-            name="categories"
-            multiple
-            value={formData.categories}
-            onChange={handleMultiSelect}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          >
-            {categories.map(category => (
-              <option key={category.id} value={category.id.toString()}>{category.name}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="formats" className="block text-sm font-medium text-gray-700">Formats</label>
-          <select
-            id="formats"
-            name="formats"
-            multiple
-            value={formData.formats}
-            onChange={handleMultiSelect}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          >
-            {formats.map(format => (
-              <option key={format.id} value={format.id.toString()}>{format.name}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="suggestedFabrics" className="block text-sm font-medium text-gray-700">Suggested Fabrics</label>
-          <select
-            id="suggestedFabrics"
-            name="suggestedFabrics"
-            multiple
-            value={formData.suggestedFabrics}
-            onChange={handleMultiSelect}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          >
-            {suggestedFabrics.map(fabric => (
-              <option key={fabric.id} value={fabric.id.toString()}>{fabric.name}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="attributes" className="block text-sm font-medium text-gray-700">Attributes</label>
-          <select
-            id="attributes"
-            name="attributes"
-            multiple
-            value={formData.attributes}
-            onChange={handleMultiSelect}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          >
-            {attributes.map(attribute => (
-              <option key={attribute.id} value={attribute.id.toString()}>{attribute.name}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit Pattern'}
-          </button>
-        </div>
-      </form>
-      {submissionStatus && (
-        <div className="mt-4 p-2 bg-green-100 text-green-700 rounded">
-          {submissionStatus}
-        </div>
-      )}
+      </div>
     </div>
   )
 }
