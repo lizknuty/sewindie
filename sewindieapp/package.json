@@ -12,6 +12,7 @@
     "@prisma/client": "^5.22.0",
     "@types/react-datepicker": "^6.2.0",
     "bootstrap": "^5.3.3",
+    "glob": "^11.0.0",
     "googleapis": "^144.0.0",
     "lucide-react": "^0.454.0",
     "next": "^15.0.3",
@@ -19,13 +20,14 @@
     "react-bootstrap": "^2.10.5",
     "react-datepicker": "^7.5.0",
     "react-dom": "^18.3.1",
+    "rimraf": "^6.0.1",
     "swiper": "^11.1.14"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "eslint": "^8",
+    "eslint": "^9.16.0",
     "eslint-config-next": "15.0.2",
     "prisma": "^5.22.0",
     "typescript": "^5"
