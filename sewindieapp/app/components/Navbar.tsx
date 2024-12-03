@@ -3,8 +3,11 @@
 import React, { useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useSession } from 'next-auth/react'
 
 export default function Navbar() {
+  const { data: session } = useSession()
+
   useEffect(() => {
     // This will run on the client side and initialize Bootstrap's JavaScript
     require('bootstrap/dist/js/bootstrap.bundle.min.js')
@@ -31,6 +34,11 @@ export default function Navbar() {
             <li className="nav-item">
               <Link href="/contribute" className="nav-link">Contribute</Link>
             </li>
+            {session && (
+              <li className="nav-item">
+                <Link href="/my-account" className="nav-link">My Account</Link>
+              </li>
+            )}
           </ul>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import prisma from '@/lib/prisma'
+import FavoritesAndRatings from '@/components/FavoritesAndRatings'
 
 type Pattern = {
   id: number;
@@ -82,6 +83,8 @@ export default async function PatternPage({ params }: PageProps) {
             <h1 className="font-heading mb-4">{pattern.name}</h1>
             <h2 className="h4 font-heading mb-3">by {pattern.designer.name}</h2>
 
+            <FavoritesAndRatings patternId={pattern.id} />
+
             <div className="row mb-4">
               <div className="col-md-6">
                 <h3 className="h5 font-heading">Details</h3>
@@ -129,7 +132,6 @@ export default async function PatternPage({ params }: PageProps) {
                 </div>
               </div>
             </div>
-
 
             <div className="mb-4">
               <h3 className="h5 font-heading">Attributes</h3>

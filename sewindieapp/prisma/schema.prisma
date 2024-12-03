@@ -1,45 +1,42 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
-  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 model Attribute {
-  id               Int               @id @default(autoincrement())
-  name             String            @db.VarChar(255)
+  id               Int                @id @default(autoincrement())
+  name             String             @db.VarChar(255)
   PatternAttribute PatternAttribute[]
 }
 
 model Audience {
-  id             Int              @id @default(autoincrement())
-  name           String           @db.VarChar(255)
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(255)
   PatternAudience PatternAudience[]
 }
 
 model Category {
-  id             Int              @id @default(autoincrement())
-  name           String           @db.VarChar(255)
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(255)
   PatternCategory PatternCategory[]
 }
 
 model Designer {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(255)
-  url       String   @db.Text
-  logo_url  String?  @db.Text
-  email     String?  @db.VarChar(255)
-  address   String?  @db.VarChar(255)
-  facebook  String?  @db.Text
-  instagram String?  @db.Text
-  pinterest String?  @db.Text
-  youtube   String?  @db.Text
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  url       String
+  logo_url  String?
+  email     String?   @db.VarChar(255)
+  address   String?   @db.VarChar(255)
+  facebook  String?
+  instagram String?
+  pinterest String?
+  youtube   String?
   patterns  Pattern[]
 }
 
@@ -50,57 +47,69 @@ model FabricType {
 }
 
 model Format {
-  id     Int     @id @default(autoincrement())
-  name   String  @db.VarChar(255)
+  id            Int             @id @default(autoincrement())
+  name          String          @db.VarChar(255)
+  PatternFormat PatternFormat[]
 }
 
 model Pattern {
-  id                    Int                     @id @default(autoincrement())
-  name                  String                  @db.VarChar(255)
-  designer_id           Int
-  url                   String                  @db.Text
-  thumbnail_url         String?                 @db.Text
-  yardage               String?                 @db.VarChar(255)
-  sizes                 String?                 @db.VarChar(255)
-  language              String?                 @db.VarChar(255)
-  designer              Designer                @relation(fields: [designer_id], references: [id])
-  PatternAttribute      PatternAttribute[]
-  PatternAudience       PatternAudience[]
-  PatternCategory       PatternCategory[]
-  PatternFabricType     PatternFabricType[]
+  id                     Int                      @id @default(autoincrement())
+  name                   String                   @db.VarChar(255)
+  designer_id            Int
+  url                    String
+  thumbnail_url          String?
+  yardage                String?                  @db.VarChar(255)
+  sizes                  String?                  @db.VarChar(255)
+  language               String?                  @db.VarChar(255)
+  favorites              Favorite[]
+  designer               Designer                 @relation(fields: [designer_id], references: [id])
+  PatternAttribute       PatternAttribute[]
+  PatternAudience        PatternAudience[]
+  PatternCategory        PatternCategory[]
+  PatternFabricType      PatternFabricType[]
+  PatternFormat          PatternFormat[]
   PatternSuggestedFabric PatternSuggestedFabric[]
+  ratings                Rating[]
 }
 
 model PatternAttribute {
   id           Int       @id @default(autoincrement())
   pattern_id   Int
   attribute_id Int
-  pattern      Pattern   @relation(fields: [pattern_id], references: [id])
   attribute    Attribute @relation(fields: [attribute_id], references: [id])
+  pattern      Pattern   @relation(fields: [pattern_id], references: [id])
+
+  @@unique([pattern_id, attribute_id])
 }
 
 model PatternAudience {
   id          Int      @id @default(autoincrement())
   pattern_id  Int
   audience_id Int
-  pattern     Pattern  @relation(fields: [pattern_id], references: [id])
   audience    Audience @relation(fields: [audience_id], references: [id])
+  pattern     Pattern  @relation(fields: [pattern_id], references: [id])
+
+  @@unique([pattern_id, audience_id])
 }
 
 model PatternCategory {
   id          Int      @id @default(autoincrement())
   pattern_id  Int
   category_id Int
-  pattern     Pattern  @relation(fields: [pattern_id], references: [id])
   category    Category @relation(fields: [category_id], references: [id])
+  pattern     Pattern  @relation(fields: [pattern_id], references: [id])
+
+  @@unique([pattern_id, category_id])
 }
 
 model PatternFabricType {
   id            Int        @id @default(autoincrement())
   pattern_id    Int
   fabrictype_id Int
+  fabricType    FabricType @relation(fields: [fabrictype_id], references: [id], map: "PatternFabricType_fabric_type_id_fkey")
   pattern       Pattern    @relation(fields: [pattern_id], references: [id])
-  fabricType    FabricType @relation(fields: [fabrictype_id], references: [id])
+
+  @@unique([pattern_id, fabrictype_id], map: "PatternFabricType_pattern_id_fabric_type_id_key")
 }
 
 model PatternSuggestedFabric {
@@ -108,11 +117,58 @@ model PatternSuggestedFabric {
   pattern_id         Int
   suggestedfabric_id Int
   pattern            Pattern         @relation(fields: [pattern_id], references: [id])
-  suggestedFabric    SuggestedFabric @relation(fields: [suggestedfabric_id], references: [id])
+  suggestedFabric    SuggestedFabric @relation(fields: [suggestedfabric_id], references: [id], map: "PatternSuggestedFabric_suggested_fabric_id_fkey")
+
+  @@unique([pattern_id, suggestedfabric_id], map: "PatternSuggestedFabric_pattern_id_suggested_fabric_id_key")
 }
 
 model SuggestedFabric {
   id                     Int                      @id @default(autoincrement())
   name                   String                   @db.VarChar(255)
   PatternSuggestedFabric PatternSuggestedFabric[]
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  name      String?    @db.VarChar(255)
+  email     String     @unique(map: "user_email_unique") @db.VarChar(255)
+  password  String     @db.VarChar(255)
+  createdAt DateTime   @default(now()) @db.Timestamp(6)
+  updatedAt DateTime   @updatedAt @db.Timestamp(6)
+  favorites Favorite[]
+  ratings   Rating[]
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  patternId Int
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  pattern   Pattern  @relation(fields: [patternId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user      User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([userId, patternId])
+}
+
+model Rating {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  patternId Int
+  score     Int
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
+  pattern   Pattern  @relation(fields: [patternId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user      User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([userId, patternId])
+}
+
+model PatternFormat {
+  id         Int     @id @default(autoincrement())
+  pattern_id Int
+  format_id  Int
+  Format     Format  @relation(fields: [format_id], references: [id])
+  Pattern    Pattern @relation(fields: [pattern_id], references: [id])
+
+  @@unique([pattern_id, format_id])
 }

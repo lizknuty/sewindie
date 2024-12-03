@@ -21,6 +21,14 @@ const nextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   reactStrictMode: true,
+  async rewrites() {
+    return [
+      {
+        source: '/api/patterns/:id',
+        destination: '/api/patterns?id=:id',
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

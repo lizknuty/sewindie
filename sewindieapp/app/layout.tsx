@@ -3,8 +3,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Metadata } from 'next'
 import { Open_Sans, Inter, Poiret_One } from 'next/font/google'
+import 'bootstrap/dist/css/bootstrap.min.css'
 import './styles.css'
 import Navbar from '@/components/Navbar'
+import { Providers } from "./providers"
 
 const openSans = Open_Sans({
   subsets: ['latin'],
@@ -38,15 +40,17 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${openSans.variable} ${inter.variable} ${poiretOne.variable}`}>
       <body className="flex flex-col min-h-screen">
-        <header>
-          <Navbar />
-        </header>
-        {children}
-        <footer className="footer text-center">
-          <div className="container">
-            <p>&copy; 2024 SewIndie App. All rights reserved.</p>
-          </div>
-        </footer>
+        <Providers>
+          <header>
+            <Navbar />
+          </header>
+          {children}
+          <footer className="footer text-center">
+            <div className="container">
+              <p>&copy; 2024 SewIndie App. All rights reserved.</p>
+            </div>
+          </footer>
+        </Providers>
       </body>
     </html>
   )
