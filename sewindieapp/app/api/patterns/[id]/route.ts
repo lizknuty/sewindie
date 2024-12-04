@@ -3,9 +3,9 @@ import prisma from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ): Promise<NextResponse> {
-  const id = context.params.id
+  const id = params.id
 
   if (!id || isNaN(parseInt(id))) {
     return NextResponse.json({ error: 'Invalid pattern ID' }, { status: 400 })
