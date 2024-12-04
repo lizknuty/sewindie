@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma'
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
-) {
+): Promise<NextResponse> {
   const id = params.id
 
   if (!id || isNaN(parseInt(id))) {
