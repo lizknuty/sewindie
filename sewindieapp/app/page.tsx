@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from './api/auth/[...nextauth]/route'
+import { authOptions } from '@/api/auth/[...nextauth]/options'
 import prisma from '@/lib/prisma'
 import FeaturedCarousel from './components/FeaturedCarousel'
 
