@@ -1,17 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ): Promise<NextResponse> {
-  const id = params.id
+  const { id } = params;
 
   if (!id || isNaN(parseInt(id))) {
-    return NextResponse.json({ error: 'Invalid pattern ID' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid pattern ID' }, { status: 400 });
   }
 
-  const patternId = parseInt(id)
+  const patternId = parseInt(id);
 
   try {
     const pattern = await prisma.pattern.findUnique({
@@ -20,39 +20,39 @@ export async function GET(
         designer: { select: { id: true, name: true } },
         PatternCategory: {
           include: {
-            category: true
-          }
+            category: true,
+          },
         },
         PatternAudience: {
           include: {
-            audience: true
-          }
+            audience: true,
+          },
         },
         PatternFabricType: {
           include: {
-            fabricType: true
-          }
+            fabricType: true,
+          },
         },
         PatternSuggestedFabric: {
           include: {
-            suggestedFabric: true
-          }
+            suggestedFabric: true,
+          },
         },
         PatternAttribute: {
           include: {
-            attribute: true
-          }
-        }
-      }
-    })
+            attribute: true,
+          },
+        },
+      },
+    });
 
     if (!pattern) {
-      return NextResponse.json({ error: 'Pattern not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Pattern not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, pattern })
+    return NextResponse.json({ success: true, pattern });
   } catch (error) {
-    console.error('Error fetching pattern:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    console.error('Error fetching pattern:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
