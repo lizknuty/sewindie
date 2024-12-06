@@ -2,7 +2,8 @@
 
 SewIndie is a comprehensive and user-friendly directory for independent sewing patterns. This project is designed to foster a vibrant sewing community by connecting users with curated patterns, profiles of independent pattern designers, and user-generated content.
 
-![image](https://github.com/user-attachments/assets/50affbd5-7473-4f7d-8323-f3a3f0b5b1e4)
+![image](https://github.com/user-attachments/assets/f33e180a-aa4a-4009-9738-d236487ed704)
+
 
 ---
 
