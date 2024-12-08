@@ -144,7 +144,7 @@ export default function ContributePage() {
         throw new Error('Failed to submit to Google Sheets')
       }
 
-      setSubmissionStatus('Pattern submitted successfully and added to Google Sheets!')
+      setSubmissionStatus('Pattern submitted successfully. Thank you for your contribution!')
       setFormData(initialFormData)
       setCurrentStep(0)
     } catch (error) {
