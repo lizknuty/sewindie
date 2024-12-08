@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 
 export default function Navbar() {
   const { data: session } = useSession()
@@ -12,6 +12,11 @@ export default function Navbar() {
     // This will run on the client side and initialize Bootstrap's JavaScript
     require('bootstrap/dist/js/bootstrap.bundle.min.js')
   }, [])
+
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    await signOut({ callbackUrl: '/' })
+  }
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark">
@@ -34,9 +39,18 @@ export default function Navbar() {
             <li className="nav-item">
               <Link href="/contribute" className="nav-link">Contribute</Link>
             </li>
-            {session && (
+            {session ? (
+              <>
+                <li className="nav-item">
+                  <Link href="/my-account" className="nav-link">My Account</Link>
+                </li>
+                <li className="nav-item">
+                  <a href="#" onClick={handleLogout} className="nav-link">Logout</a>
+                </li>
+              </>
+            ) : (
               <li className="nav-item">
-                <Link href="/my-account" className="nav-link">My Account</Link>
+                <Link href="/login" className="nav-link">Login</Link>
               </li>
             )}
           </ul>

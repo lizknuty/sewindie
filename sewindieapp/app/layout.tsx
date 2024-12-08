@@ -40,11 +40,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${openSans.variable} ${inter.variable} ${poiretOne.variable}`}>
       <body className="flex flex-col min-h-screen">
+        {/* Providers component should include SessionProvider for NextAuth.js */}
         <Providers>
           <header>
             <Navbar />
           </header>
-          {children}
+          <main>{children}</main>
           <footer className="footer text-center">
             <div className="container">
               <p>&copy; 2024 SewIndie App. All rights reserved.</p>
