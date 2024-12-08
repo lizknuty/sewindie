@@ -4,6 +4,7 @@ import { google } from 'googleapis'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
+    console.log('Received body:', JSON.stringify(body, null, 2))
 
     // Validate required fields
     if (!body.name || (!body.designer_id && !body.new_designer_name)) {
@@ -14,6 +15,10 @@ export async function POST(request: Request) {
     const clientEmail = process.env.GOOGLE_SHEETS_CLIENT_EMAIL
     const privateKey = process.env.GOOGLE_SHEETS_PRIVATE_KEY
     const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID
+
+    console.log('Client Email:', clientEmail)
+    console.log('Private Key:', privateKey ? 'Present' : 'Missing')
+    console.log('Spreadsheet ID:', spreadsheetId)
 
     if (!clientEmail || !privateKey || !spreadsheetId) {
       console.error('Missing Google Sheets credentials or spreadsheet ID')
@@ -48,9 +53,11 @@ export async function POST(request: Request) {
       body.total_yardage
     ]
 
+    console.log('Row data prepared:', rowData)
+
     // Append data to Google Sheet
     try {
-      await sheets.spreadsheets.values.append({
+      const response = await sheets.spreadsheets.values.append({
         spreadsheetId,
         range: 'Sheet1!A:P', // Updated to include all new columns
         valueInputOption: 'USER_ENTERED',
@@ -58,14 +65,17 @@ export async function POST(request: Request) {
           values: [rowData],
         },
       })
-    } catch (sheetsError) {
-      console.error('Error appending to Google Sheets:', sheetsError)
-      return NextResponse.json({ success: false, error: 'Failed to submit pattern. Please try again later.' }, { status: 500 })
+      console.log('Google Sheets API response:', JSON.stringify(response.data, null, 2))
+    } catch (error) {
+      console.error('Error appending to Google Sheets:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      return NextResponse.json({ success: false, error: 'Failed to submit pattern to Google Sheets: ' + errorMessage }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, message: 'Pattern submitted successfully. Thank you for your contribution!' })
   } catch (error) {
     console.error('Error submitting pattern:', error)
-    return NextResponse.json({ success: false, error: 'Failed to submit pattern. Please try again later.' }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+    return NextResponse.json({ success: false, error: 'Failed to submit pattern: ' + errorMessage }, { status: 500 })
   }
 }
