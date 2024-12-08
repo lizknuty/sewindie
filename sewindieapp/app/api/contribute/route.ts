@@ -11,20 +11,18 @@ export async function POST(request: Request) {
     }
 
     // Set up Google Sheets API
-    let credentials
-    try {
-      credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS || '')
-    } catch (error) {
-      console.error('Error parsing GOOGLE_APPLICATION_CREDENTIALS:', error)
-      return NextResponse.json({ success: false, error: 'Invalid Google credentials configuration' }, { status: 500 })
+    const clientEmail = process.env.GOOGLE_SHEETS_CLIENT_EMAIL
+    const privateKey = process.env.GOOGLE_SHEETS_PRIVATE_KEY
+    const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID
+
+    if (!clientEmail || !privateKey || !spreadsheetId) {
+      console.error('Missing Google Sheets credentials or spreadsheet ID')
+      return NextResponse.json({ success: false, error: 'Server configuration error' }, { status: 500 })
     }
 
-    if (!credentials) {
-      return NextResponse.json({ success: false, error: 'Google credentials not found' }, { status: 500 })
-    }
-
-    const auth = new google.auth.GoogleAuth({
-      credentials,
+    const auth = new google.auth.JWT({
+      email: clientEmail,
+      key: privateKey.replace(/\\n/g, '\n'), // Replace escaped newlines
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     })
 
@@ -51,18 +49,23 @@ export async function POST(request: Request) {
     ]
 
     // Append data to Google Sheet
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: 'Sheet1!A:P', // Updated to include all new columns
-      valueInputOption: 'USER_ENTERED',
-      requestBody: {
-        values: [rowData],
-      },
-    })
+    try {
+      await sheets.spreadsheets.values.append({
+        spreadsheetId,
+        range: 'Sheet1!A:P', // Updated to include all new columns
+        valueInputOption: 'USER_ENTERED',
+        requestBody: {
+          values: [rowData],
+        },
+      })
+    } catch (sheetsError) {
+      console.error('Error appending to Google Sheets:', sheetsError)
+      return NextResponse.json({ success: false, error: 'Failed to submit pattern. Please try again later.' }, { status: 500 })
+    }
 
-    return NextResponse.json({ success: true, message: 'Pattern submitted successfully to Google Sheets' })
+    return NextResponse.json({ success: true, message: 'Pattern submitted successfully. Thank you for your contribution!' })
   } catch (error) {
     console.error('Error submitting pattern:', error)
-    return NextResponse.json({ success: false, error: 'Failed to submit pattern' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to submit pattern. Please try again later.' }, { status: 500 })
   }
 }
