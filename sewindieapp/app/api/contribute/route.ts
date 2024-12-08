@@ -16,18 +16,24 @@ export async function POST(request: Request) {
     const privateKey = process.env.GOOGLE_SHEETS_PRIVATE_KEY
     const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID
 
-    console.log('Client Email:', clientEmail)
-    console.log('Private Key:', privateKey ? 'Present' : 'Missing')
-    console.log('Spreadsheet ID:', spreadsheetId)
+    console.log('Environment variables:', {
+      GOOGLE_SHEETS_CLIENT_EMAIL: clientEmail ? 'Set' : 'Not set',
+      GOOGLE_SHEETS_PRIVATE_KEY: privateKey ? `Set (length: ${privateKey.length})` : 'Not set',
+      GOOGLE_SHEETS_SPREADSHEET_ID: spreadsheetId ? 'Set' : 'Not set',
+    })
 
     if (!clientEmail || !privateKey || !spreadsheetId) {
       console.error('Missing Google Sheets credentials or spreadsheet ID')
       return NextResponse.json({ success: false, error: 'Server configuration error' }, { status: 500 })
     }
 
+    // Properly format the private key
+    const formattedPrivateKey = privateKey.replace(/\\n/g, '\n').replace(/"/g, '')
+    console.log('Formatted private key (first 50 chars):', formattedPrivateKey.substring(0, 50))
+
     const auth = new google.auth.JWT({
       email: clientEmail,
-      key: privateKey.replace(/\\n/g, '\n'), // Replace escaped newlines
+      key: formattedPrivateKey,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     })
 
