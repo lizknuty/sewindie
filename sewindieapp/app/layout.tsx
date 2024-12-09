@@ -30,6 +30,9 @@ const poiretOne = Poiret_One({
 export const metadata: Metadata = {
   title: 'SewIndie',
   description: 'Explore and share sewing patterns',
+  icons: {
+    icon: '/favicon.ico',
+  },
 }
 
 export default function RootLayout({
