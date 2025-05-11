@@ -2,12 +2,9 @@ import { notFound } from "next/navigation"
 import prisma from "@/lib/prisma"
 import SimpleEntityForm from "../../../components/SimpleEntityForm"
 
-export default async function EditFabricTypePage({ params }: { params: Promise<{ id: string }> }) {
-  // Await params before using it
-  const resolvedParams = await params
-
+export default async function EditFabricTypePage({ params }: { params: { id: string } }) {
   // Convert the string ID to a number for Prisma
-  const fabricTypeId = Number.parseInt(resolvedParams.id, 10)
+  const fabricTypeId = Number.parseInt(params.id, 10)
 
   if (isNaN(fabricTypeId)) {
     notFound()

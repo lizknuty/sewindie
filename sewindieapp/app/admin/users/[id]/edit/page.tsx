@@ -2,12 +2,9 @@ import { notFound } from "next/navigation"
 import prisma from "@/lib/prisma"
 import UserForm from "../../components/UserForm"
 
-export default async function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
-  // Await params before using it
-  const resolvedParams = await params
-
+export default async function EditUserPage({ params }: { params: { id: string } }) {
   // Convert the string ID to a number for Prisma
-  const userId = Number.parseInt(resolvedParams.id, 10)
+  const userId = Number.parseInt(params.id, 10)
 
   if (isNaN(userId)) {
     notFound()
