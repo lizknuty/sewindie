@@ -2,9 +2,12 @@ import { notFound } from "next/navigation"
 import prisma from "@/lib/prisma"
 import PatternForm from "../../components/PatternForm"
 
-export default async function EditPatternPage({ params }: { params: { id: string } }) {
+export default async function EditPatternPage({ params }: { params: Promise<{ id: string }> }) {
+  // Await params before using it
+  const resolvedParams = await params
+
   // Convert the string ID to a number for Prisma
-  const patternId = Number.parseInt(params.id, 10)
+  const patternId = Number.parseInt(resolvedParams.id, 10)
 
   if (isNaN(patternId)) {
     notFound()

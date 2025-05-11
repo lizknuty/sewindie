@@ -2,9 +2,12 @@ import { notFound } from "next/navigation"
 import prisma from "@/lib/prisma"
 import SimpleEntityForm from "../../../components/SimpleEntityForm"
 
-export default async function EditFormatPage({ params }: { params: { id: string } }) {
+export default async function EditFormatPage({ params }: { params: Promise<{ id: string }> }) {
+  // Await params before using it
+  const resolvedParams = await params
+
   // Convert the string ID to a number for Prisma
-  const formatId = Number.parseInt(params.id, 10)
+  const formatId = Number.parseInt(resolvedParams.id, 10)
 
   if (isNaN(formatId)) {
     notFound()
