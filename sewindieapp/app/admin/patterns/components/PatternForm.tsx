@@ -52,9 +52,11 @@ interface PatternFormProps {
       id: number
       name: string
     }
+    url: string
     thumbnail_url?: string | null
-    description?: string | null
-    difficulty_level?: string | null
+    yardage?: string | null
+    sizes?: string | null
+    language?: string | null
     release_date?: Date | null
     price?: number | null
     PatternCategory?: Array<{
@@ -92,9 +94,11 @@ export default function PatternForm({ pattern }: PatternFormProps) {
   const [formData, setFormData] = useState({
     name: pattern?.name || "",
     designer_id: pattern?.designer_id?.toString() || "",
+    url: pattern?.url || "",
     thumbnail_url: pattern?.thumbnail_url || "",
-    description: pattern?.description || "",
-    difficulty_level: pattern?.difficulty_level || "BEGINNER",
+    yardage: pattern?.yardage || "",
+    sizes: pattern?.sizes || "",
+    language: pattern?.language || "",
     release_date: pattern?.release_date ? new Date(pattern.release_date) : null,
     price: pattern?.price?.toString() || "",
     categories: pattern?.PatternCategory?.map((pc) => pc.category.id.toString()) || [],
@@ -252,6 +256,21 @@ export default function PatternForm({ pattern }: PatternFormProps) {
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="mb-3">
+        <label htmlFor="url" className="form-label">
+          Pattern URL *
+        </label>
+        <input
+          type="url"
+          className="form-control"
+          id="url"
+          name="url"
+          value={formData.url}
+          onChange={handleChange}
+          required
+        />
       </div>
 
       <div className="mb-3">
@@ -419,23 +438,50 @@ export default function PatternForm({ pattern }: PatternFormProps) {
 
       <div className="row">
         <div className="col-md-4 mb-3">
-          <label htmlFor="difficulty_level" className="form-label">
-            Difficulty Level
+          <label htmlFor="sizes" className="form-label">
+            Sizes
           </label>
-          <select
-            className="form-select"
-            id="difficulty_level"
-            name="difficulty_level"
-            value={formData.difficulty_level}
+          <input
+            type="text"
+            className="form-control"
+            id="sizes"
+            name="sizes"
+            value={formData.sizes || ""}
             onChange={handleChange}
-          >
-            <option value="BEGINNER">Beginner</option>
-            <option value="INTERMEDIATE">Intermediate</option>
-            <option value="ADVANCED">Advanced</option>
-          </select>
+          />
         </div>
 
         <div className="col-md-4 mb-3">
+          <label htmlFor="yardage" className="form-label">
+            Yardage
+          </label>
+          <input
+            type="text"
+            className="form-control"
+            id="yardage"
+            name="yardage"
+            value={formData.yardage || ""}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="col-md-4 mb-3">
+          <label htmlFor="language" className="form-label">
+            Language
+          </label>
+          <input
+            type="text"
+            className="form-control"
+            id="language"
+            name="language"
+            value={formData.language || ""}
+            onChange={handleChange}
+          />
+        </div>
+      </div>
+
+      <div className="row">
+        <div className="col-md-6 mb-3">
           <label htmlFor="release_date" className="form-label">
             Release Date
           </label>
@@ -448,7 +494,7 @@ export default function PatternForm({ pattern }: PatternFormProps) {
           />
         </div>
 
-        <div className="col-md-4 mb-3">
+        <div className="col-md-6 mb-3">
           <label htmlFor="price" className="form-label">
             Price
           </label>
@@ -466,20 +512,6 @@ export default function PatternForm({ pattern }: PatternFormProps) {
             />
           </div>
         </div>
-      </div>
-
-      <div className="mb-3">
-        <label htmlFor="description" className="form-label">
-          Description
-        </label>
-        <textarea
-          className="form-control"
-          id="description"
-          name="description"
-          rows={4}
-          value={formData.description}
-          onChange={handleChange}
-        />
       </div>
 
       <div className="d-flex gap-2">

@@ -42,8 +42,8 @@ export async function POST(request: NextRequest) {
     const data = await request.json()
 
     // Validate required fields
-    if (!data.name || !data.designer_id) {
-      return NextResponse.json({ error: "Name and designer_id are required" }, { status: 400 })
+    if (!data.name || !data.designer_id || !data.url) {
+      return NextResponse.json({ error: "Name, designer_id, and url are required" }, { status: 400 })
     }
 
     // Extract relationship data
@@ -54,11 +54,11 @@ export async function POST(request: NextRequest) {
       data: {
         name: patternData.name,
         designer_id: patternData.designer_id,
+        url: patternData.url,
         thumbnail_url: patternData.thumbnail_url || null,
-        description: patternData.description || null,
-        difficulty_level: patternData.difficulty_level || "BEGINNER",
-        release_date: patternData.release_date || null,
-        price: patternData.price || null,
+        yardage: patternData.yardage || null,
+        sizes: patternData.sizes || null,
+        language: patternData.language || null,
         // Add relationships if provided
         ...(categories && categories.length > 0
           ? {
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
           ? {
               PatternFormat: {
                 create: formats.map((formatId: string) => ({
-                  format: { connect: { id: formatId } },
+                  Format: { connect: { id: formatId } },
                 })),
               },
             }
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
         },
         PatternFormat: {
           include: {
-            format: true,
+            Format: true,
           },
         },
       },

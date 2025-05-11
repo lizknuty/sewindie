@@ -1,495 +1,360 @@
-"use client"
+import { type NextRequest, NextResponse } from "next/server"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/api/auth/[...nextauth]/options"
+import prisma from "@/lib/prisma"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import Image from "next/image"
-import DatePicker from "react-datepicker"
-
-interface Designer {
-  id: number
-  name: string
-}
-
-interface Category {
-  id: number
-  name: string
-}
-
-interface Audience {
-  id: number
-  name: string
-}
-
-interface FabricType {
-  id: number
-  name: string
-}
-
-interface SuggestedFabric {
-  id: number
-  name: string
-}
-
-interface Attribute {
-  id: number
-  name: string
-}
-
-interface Format {
-  id: number
-  name: string
-}
-
-interface PatternFormProps {
-  pattern?: {
-    id: number
-    name: string
-    designer_id: number
-    designer?: {
-      id: number
-      name: string
-    }
-    thumbnail_url?: string | null
-    description?: string | null
-    difficulty_level?: string | null
-    release_date?: Date | null
-    price?: number | null
-    PatternCategory?: Array<{
-      category: Category
-    }>
-    PatternAudience?: Array<{
-      audience: Audience
-    }>
-    PatternFabricType?: Array<{
-      fabricType: FabricType
-    }>
-    PatternSuggestedFabric?: Array<{
-      suggestedFabric: SuggestedFabric
-    }>
-    PatternAttribute?: Array<{
-      attribute: Attribute
-    }>
-    PatternFormat?: Array<{
-      format: Format
-    }>
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  if (!params.id) {
+    return NextResponse.json({ error: "Invalid pattern ID" }, { status: 400 })
   }
-}
 
-export default function PatternForm({ pattern }: PatternFormProps) {
-  const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [designers, setDesigners] = useState<Designer[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [audiences, setAudiences] = useState<Audience[]>([])
-  const [fabricTypes, setFabricTypes] = useState<FabricType[]>([])
-  const [suggestedFabrics, setSuggestedFabrics] = useState<SuggestedFabric[]>([])
-  const [attributes, setAttributes] = useState<Attribute[]>([])
-  const [formats, setFormats] = useState<Format[]>([])
+  try {
+    const patternId = Number.parseInt(params.id, 10)
 
-  const [formData, setFormData] = useState({
-    name: pattern?.name || "",
-    designer_id: pattern?.designer_id?.toString() || "",
-    thumbnail_url: pattern?.thumbnail_url || "",
-    description: pattern?.description || "",
-    difficulty_level: pattern?.difficulty_level || "BEGINNER",
-    release_date: pattern?.release_date ? new Date(pattern.release_date) : null,
-    price: pattern?.price?.toString() || "",
-    categories: pattern?.PatternCategory?.map((pc) => pc.category.id.toString()) || [],
-    audiences: pattern?.PatternAudience?.map((pa) => pa.audience.id.toString()) || [],
-    fabricTypes: pattern?.PatternFabricType?.map((pf) => pf.fabricType.id.toString()) || [],
-    suggestedFabrics: pattern?.PatternSuggestedFabric?.map((psf) => psf.suggestedFabric.id.toString()) || [],
-    attributes: pattern?.PatternAttribute?.map((pa) => pa.attribute.id.toString()) || [],
-    formats: pattern?.PatternFormat?.map((pf) => pf.format.id.toString()) || [],
-  })
-
-  useEffect(() => {
-    // Fetch all related data
-    const fetchData = async () => {
-      try {
-        const [
-          designersRes,
-          categoriesRes,
-          audiencesRes,
-          fabricTypesRes,
-          suggestedFabricsRes,
-          attributesRes,
-          formatsRes,
-        ] = await Promise.all([
-          fetch("/api/designers"),
-          fetch("/api/categories"),
-          fetch("/api/audiences"),
-          fetch("/api/fabric-types"),
-          fetch("/api/suggested-fabrics"),
-          fetch("/api/attributes"),
-          fetch("/api/formats"),
-        ])
-
-        if (!designersRes.ok) throw new Error("Failed to fetch designers")
-        if (!categoriesRes.ok) throw new Error("Failed to fetch categories")
-        if (!audiencesRes.ok) throw new Error("Failed to fetch audiences")
-        if (!fabricTypesRes.ok) throw new Error("Failed to fetch fabric types")
-        if (!suggestedFabricsRes.ok) throw new Error("Failed to fetch suggested fabrics")
-        if (!attributesRes.ok) throw new Error("Failed to fetch attributes")
-        if (!formatsRes.ok) throw new Error("Failed to fetch formats")
-
-        const designersData = await designersRes.json()
-        const categoriesData = await categoriesRes.json()
-        const audiencesData = await audiencesRes.json()
-        const fabricTypesData = await fabricTypesRes.json()
-        const suggestedFabricsData = await suggestedFabricsRes.json()
-        const attributesData = await attributesRes.json()
-        const formatsData = await formatsRes.json()
-
-        setDesigners(designersData)
-        setCategories(categoriesData.categories || categoriesData || [])
-        setAudiences(audiencesData.audiences || audiencesData || [])
-        setFabricTypes(fabricTypesData.fabricTypes || fabricTypesData || [])
-        setSuggestedFabrics(suggestedFabricsData.suggestedFabrics || suggestedFabricsData || [])
-        setAttributes(attributesData.attributes || attributesData || [])
-        setFormats(formatsData.formats || formatsData || [])
-      } catch (error) {
-        console.error("Error fetching form data:", error)
-      }
+    if (isNaN(patternId)) {
+      return NextResponse.json({ error: "Invalid pattern ID format" }, { status: 400 })
     }
 
-    fetchData()
-  }, [])
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  const handleDateChange = (date: Date | null) => {
-    setFormData((prev) => ({ ...prev, release_date: date }))
-  }
-
-  const handleMultiSelectChange = (e: React.ChangeEvent<HTMLSelectElement>, fieldName: string) => {
-    const options = Array.from(e.target.selectedOptions, (option) => option.value)
-    setFormData((prev) => ({ ...prev, [fieldName]: options }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-
-    try {
-      const url = pattern ? `/api/patterns/${pattern.id}` : "/api/patterns"
-
-      const method = pattern ? "PUT" : "POST"
-
-      // Convert string values to appropriate types for API
-      const dataToSubmit = {
-        ...formData,
-        designer_id: Number.parseInt(formData.designer_id),
-        price: formData.price ? Number.parseFloat(formData.price) : null,
-        categories: formData.categories.map((id) => Number.parseInt(id)),
-        audiences: formData.audiences.map((id) => Number.parseInt(id)),
-        fabricTypes: formData.fabricTypes.map((id) => Number.parseInt(id)),
-        suggestedFabrics: formData.suggestedFabrics.map((id) => Number.parseInt(id)),
-        attributes: formData.attributes.map((id) => Number.parseInt(id)),
-        formats: formData.formats.map((id) => Number.parseInt(id)),
-      }
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
+    const pattern = await prisma.pattern.findUnique({
+      where: {
+        id: patternId,
+      },
+      include: {
+        designer: { select: { id: true, name: true } },
+        PatternCategory: {
+          include: {
+            category: true,
+          },
         },
-        body: JSON.stringify(dataToSubmit),
+        PatternAudience: {
+          include: {
+            audience: true,
+          },
+        },
+        PatternFabricType: {
+          include: {
+            fabricType: true,
+          },
+        },
+        PatternSuggestedFabric: {
+          include: {
+            suggestedFabric: true,
+          },
+        },
+        PatternAttribute: {
+          include: {
+            attribute: true,
+          },
+        },
+        PatternFormat: {
+          include: {
+            Format: true,
+          },
+        },
+      },
+    })
+
+    if (!pattern) {
+      return NextResponse.json({ success: false, error: "Pattern not found" }, { status: 404 })
+    }
+
+    return NextResponse.json({ success: true, pattern })
+  } catch (error) {
+    console.error("Error fetching pattern:", error)
+    return NextResponse.json({ success: false, error: "Failed to fetch pattern" }, { status: 500 })
+  }
+}
+
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    // Check authentication
+    const session = await getServerSession(authOptions)
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const patternId = Number.parseInt(params.id, 10)
+
+    if (isNaN(patternId)) {
+      return NextResponse.json({ error: "Invalid pattern ID format" }, { status: 400 })
+    }
+
+    // Get request body
+    const data = await request.json()
+
+    // Validate required fields
+    if (!data.name || !data.designer_id || !data.url) {
+      return NextResponse.json({ error: "Name, designer_id, and url are required" }, { status: 400 })
+    }
+
+    // Check if pattern exists
+    const existingPattern = await prisma.pattern.findUnique({
+      where: {
+        id: patternId,
+      },
+      include: {
+        PatternCategory: true,
+        PatternAudience: true,
+        PatternFabricType: true,
+        PatternSuggestedFabric: true,
+        PatternAttribute: true,
+        PatternFormat: true,
+      },
+    })
+
+    if (!existingPattern) {
+      return NextResponse.json({ error: "Pattern not found" }, { status: 404 })
+    }
+
+    // Extract relationship data
+    const { categories, audiences, fabricTypes, suggestedFabrics, attributes, formats, ...patternData } = data
+
+    // Update pattern with transaction to handle relationships
+    const pattern = await prisma.$transaction(async (tx) => {
+      // Delete existing relationships if new ones are provided
+      if (categories) {
+        await tx.patternCategory.deleteMany({
+          where: { pattern_id: patternId },
+        })
+      }
+
+      if (audiences) {
+        await tx.patternAudience.deleteMany({
+          where: { pattern_id: patternId },
+        })
+      }
+
+      if (fabricTypes) {
+        await tx.patternFabricType.deleteMany({
+          where: { pattern_id: patternId },
+        })
+      }
+
+      if (suggestedFabrics) {
+        await tx.patternSuggestedFabric.deleteMany({
+          where: { pattern_id: patternId },
+        })
+      }
+
+      if (attributes) {
+        await tx.patternAttribute.deleteMany({
+          where: { pattern_id: patternId },
+        })
+      }
+
+      if (formats) {
+        await tx.patternFormat.deleteMany({
+          where: { pattern_id: patternId },
+        })
+      }
+
+      // Update the pattern
+      const updatedPattern = await tx.pattern.update({
+        where: {
+          id: patternId,
+        },
+        data: {
+          name: patternData.name,
+          designer_id: patternData.designer_id,
+          url: patternData.url,
+          thumbnail_url: patternData.thumbnail_url || null,
+          yardage: patternData.yardage || null,
+          sizes: patternData.sizes || null,
+          language: patternData.language || null,
+          // Remove the description field as it doesn't exist in the schema
+        },
       })
 
-      if (!response.ok) {
-        throw new Error("Failed to save pattern")
+      // Create new relationships
+      if (categories && categories.length > 0) {
+        await Promise.all(
+          categories.map((categoryId: number) =>
+            tx.patternCategory.create({
+              data: {
+                pattern_id: patternId,
+                category_id: categoryId,
+              },
+            }),
+          ),
+        )
       }
 
-      router.push("/admin/patterns")
-      router.refresh()
-    } catch (error) {
-      console.error("Error saving pattern:", error)
-      alert("Failed to save pattern. Please try again.")
-    } finally {
-      setIsSubmitting(false)
-    }
+      if (audiences && audiences.length > 0) {
+        await Promise.all(
+          audiences.map((audienceId: number) =>
+            tx.patternAudience.create({
+              data: {
+                pattern_id: patternId,
+                audience_id: audienceId,
+              },
+            }),
+          ),
+        )
+      }
+
+      if (fabricTypes && fabricTypes.length > 0) {
+        await Promise.all(
+          fabricTypes.map((fabricTypeId: number) =>
+            tx.patternFabricType.create({
+              data: {
+                pattern_id: patternId,
+                fabrictype_id: fabricTypeId,
+              },
+            }),
+          ),
+        )
+      }
+
+      if (suggestedFabrics && suggestedFabrics.length > 0) {
+        await Promise.all(
+          suggestedFabrics.map((suggestedFabricId: number) =>
+            tx.patternSuggestedFabric.create({
+              data: {
+                pattern_id: patternId,
+                suggestedfabric_id: suggestedFabricId,
+              },
+            }),
+          ),
+        )
+      }
+
+      if (attributes && attributes.length > 0) {
+        await Promise.all(
+          attributes.map((attributeId: number) =>
+            tx.patternAttribute.create({
+              data: {
+                pattern_id: patternId,
+                attribute_id: attributeId,
+              },
+            }),
+          ),
+        )
+      }
+
+      if (formats && formats.length > 0) {
+        await Promise.all(
+          formats.map((formatId: number) =>
+            tx.patternFormat.create({
+              data: {
+                pattern_id: patternId,
+                format_id: formatId,
+              },
+            }),
+          ),
+        )
+      }
+
+      return updatedPattern
+    })
+
+    // Fetch the updated pattern with all relationships
+    const updatedPattern = await prisma.pattern.findUnique({
+      where: { id: patternId },
+      include: {
+        designer: true,
+        PatternCategory: {
+          include: {
+            category: true,
+          },
+        },
+        PatternAudience: {
+          include: {
+            audience: true,
+          },
+        },
+        PatternFabricType: {
+          include: {
+            fabricType: true,
+          },
+        },
+        PatternSuggestedFabric: {
+          include: {
+            suggestedFabric: true,
+          },
+        },
+        PatternAttribute: {
+          include: {
+            attribute: true,
+          },
+        },
+        PatternFormat: {
+          include: {
+            Format: true,
+          },
+        },
+      },
+    })
+
+    return NextResponse.json({ success: true, pattern: updatedPattern })
+  } catch (error) {
+    console.error("Error updating pattern:", error)
+    return NextResponse.json({ success: false, error: "Failed to update pattern" }, { status: 500 })
   }
+}
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <div className="mb-3">
-        <label htmlFor="name" className="form-label">
-          Name *
-        </label>
-        <input
-          type="text"
-          className="form-control"
-          id="name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          required
-        />
-      </div>
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    // Check authentication
+    const session = await getServerSession(authOptions)
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
-      <div className="mb-3">
-        <label htmlFor="designer_id" className="form-label">
-          Designer *
-        </label>
-        <select
-          className="form-select"
-          id="designer_id"
-          name="designer_id"
-          value={formData.designer_id}
-          onChange={handleChange}
-          required
-        >
-          <option value="">Select a designer</option>
-          {designers.map((designer) => (
-            <option key={designer.id} value={designer.id.toString()}>
-              {designer.name}
-            </option>
-          ))}
-        </select>
-      </div>
+    const patternId = Number.parseInt(params.id, 10)
 
-      <div className="mb-3">
-        <label htmlFor="thumbnail_url" className="form-label">
-          Thumbnail URL
-        </label>
-        <input
-          type="url"
-          className="form-control"
-          id="thumbnail_url"
-          name="thumbnail_url"
-          value={formData.thumbnail_url}
-          onChange={handleChange}
-        />
-        {formData.thumbnail_url && (
-          <div className="mt-2">
-            <Image
-              src={formData.thumbnail_url || "/placeholder.svg"}
-              alt="Thumbnail preview"
-              width={100}
-              height={100}
-              className="rounded border"
-            />
-          </div>
-        )}
-      </div>
+    if (isNaN(patternId)) {
+      return NextResponse.json({ error: "Invalid pattern ID format" }, { status: 400 })
+    }
 
-      <div className="row">
-        <div className="col-md-6 mb-3">
-          <label htmlFor="categories" className="form-label">
-            Categories
-          </label>
-          <select
-            className="form-select"
-            id="categories"
-            name="categories"
-            multiple
-            value={formData.categories}
-            onChange={(e) => handleMultiSelectChange(e, "categories")}
-            size={Math.min(5, categories.length || 3)}
-          >
-            {categories.map((category) => (
-              <option key={category.id} value={category.id.toString()}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-          <small className="form-text text-muted">Hold Ctrl (or Cmd) to select multiple categories</small>
-        </div>
+    // Check if pattern exists
+    const existingPattern = await prisma.pattern.findUnique({
+      where: {
+        id: patternId,
+      },
+    })
 
-        <div className="col-md-6 mb-3">
-          <label htmlFor="audiences" className="form-label">
-            Target Audiences
-          </label>
-          <select
-            className="form-select"
-            id="audiences"
-            name="audiences"
-            multiple
-            value={formData.audiences}
-            onChange={(e) => handleMultiSelectChange(e, "audiences")}
-            size={Math.min(5, audiences.length || 3)}
-          >
-            {audiences.map((audience) => (
-              <option key={audience.id} value={audience.id.toString()}>
-                {audience.name}
-              </option>
-            ))}
-          </select>
-          <small className="form-text text-muted">Hold Ctrl (or Cmd) to select multiple audiences</small>
-        </div>
-      </div>
+    if (!existingPattern) {
+      return NextResponse.json({ error: "Pattern not found" }, { status: 404 })
+    }
 
-      <div className="row">
-        <div className="col-md-6 mb-3">
-          <label htmlFor="fabricTypes" className="form-label">
-            Fabric Types
-          </label>
-          <select
-            className="form-select"
-            id="fabricTypes"
-            name="fabricTypes"
-            multiple
-            value={formData.fabricTypes}
-            onChange={(e) => handleMultiSelectChange(e, "fabricTypes")}
-            size={Math.min(5, fabricTypes.length || 3)}
-          >
-            {fabricTypes.map((fabricType) => (
-              <option key={fabricType.id} value={fabricType.id.toString()}>
-                {fabricType.name}
-              </option>
-            ))}
-          </select>
-          <small className="form-text text-muted">Hold Ctrl (or Cmd) to select multiple fabric types</small>
-        </div>
+    // Delete pattern with transaction to handle relationships
+    await prisma.$transaction(async (tx) => {
+      // Delete related records first
+      await tx.patternCategory.deleteMany({
+        where: { pattern_id: patternId },
+      })
 
-        <div className="col-md-6 mb-3">
-          <label htmlFor="suggestedFabrics" className="form-label">
-            Suggested Fabrics
-          </label>
-          <select
-            className="form-select"
-            id="suggestedFabrics"
-            name="suggestedFabrics"
-            multiple
-            value={formData.suggestedFabrics}
-            onChange={(e) => handleMultiSelectChange(e, "suggestedFabrics")}
-            size={Math.min(5, suggestedFabrics.length || 3)}
-          >
-            {suggestedFabrics.map((suggestedFabric) => (
-              <option key={suggestedFabric.id} value={suggestedFabric.id.toString()}>
-                {suggestedFabric.name}
-              </option>
-            ))}
-          </select>
-          <small className="form-text text-muted">Hold Ctrl (or Cmd) to select multiple suggested fabrics</small>
-        </div>
-      </div>
+      await tx.patternAudience.deleteMany({
+        where: { pattern_id: patternId },
+      })
 
-      <div className="row">
-        <div className="col-md-6 mb-3">
-          <label htmlFor="attributes" className="form-label">
-            Attributes
-          </label>
-          <select
-            className="form-select"
-            id="attributes"
-            name="attributes"
-            multiple
-            value={formData.attributes}
-            onChange={(e) => handleMultiSelectChange(e, "attributes")}
-            size={Math.min(5, attributes.length || 3)}
-          >
-            {attributes.map((attribute) => (
-              <option key={attribute.id} value={attribute.id.toString()}>
-                {attribute.name}
-              </option>
-            ))}
-          </select>
-          <small className="form-text text-muted">Hold Ctrl (or Cmd) to select multiple attributes</small>
-        </div>
+      await tx.patternFabricType.deleteMany({
+        where: { pattern_id: patternId },
+      })
 
-        <div className="col-md-6 mb-3">
-          <label htmlFor="formats" className="form-label">
-            Formats
-          </label>
-          <select
-            className="form-select"
-            id="formats"
-            name="formats"
-            multiple
-            value={formData.formats}
-            onChange={(e) => handleMultiSelectChange(e, "formats")}
-            size={Math.min(5, formats.length || 3)}
-          >
-            {formats.map((format) => (
-              <option key={format.id} value={format.id.toString()}>
-                {format.name}
-              </option>
-            ))}
-          </select>
-          <small className="form-text text-muted">Hold Ctrl (or Cmd) to select multiple formats</small>
-        </div>
-      </div>
+      await tx.patternSuggestedFabric.deleteMany({
+        where: { pattern_id: patternId },
+      })
 
-      <div className="row">
-        <div className="col-md-4 mb-3">
-          <label htmlFor="difficulty_level" className="form-label">
-            Difficulty Level
-          </label>
-          <select
-            className="form-select"
-            id="difficulty_level"
-            name="difficulty_level"
-            value={formData.difficulty_level}
-            onChange={handleChange}
-          >
-            <option value="BEGINNER">Beginner</option>
-            <option value="INTERMEDIATE">Intermediate</option>
-            <option value="ADVANCED">Advanced</option>
-          </select>
-        </div>
+      await tx.patternAttribute.deleteMany({
+        where: { pattern_id: patternId },
+      })
 
-        <div className="col-md-4 mb-3">
-          <label htmlFor="release_date" className="form-label">
-            Release Date
-          </label>
-          <DatePicker
-            selected={formData.release_date}
-            onChange={handleDateChange}
-            className="form-control"
-            dateFormat="yyyy-MM-dd"
-            isClearable
-          />
-        </div>
+      await tx.patternFormat.deleteMany({
+        where: { pattern_id: patternId },
+      })
 
-        <div className="col-md-4 mb-3">
-          <label htmlFor="price" className="form-label">
-            Price
-          </label>
-          <div className="input-group">
-            <span className="input-group-text">$</span>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              className="form-control"
-              id="price"
-              name="price"
-              value={formData.price}
-              onChange={handleChange}
-            />
-          </div>
-        </div>
-      </div>
+      // Delete the pattern
+      await tx.pattern.delete({
+        where: {
+          id: patternId,
+        },
+      })
+    })
 
-      <div className="mb-3">
-        <label htmlFor="description" className="form-label">
-          Description
-        </label>
-        <textarea
-          className="form-control"
-          id="description"
-          name="description"
-          rows={4}
-          value={formData.description}
-          onChange={handleChange}
-        />
-      </div>
-
-      <div className="d-flex gap-2">
-        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : "Save Pattern"}
-        </button>
-        <Link href="/admin/patterns" className="btn btn-outline-secondary">
-          Cancel
-        </Link>
-      </div>
-    </form>
-  )
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("Error deleting pattern:", error)
+    return NextResponse.json({ success: false, error: "Failed to delete pattern" }, { status: 500 })
+  }
 }
