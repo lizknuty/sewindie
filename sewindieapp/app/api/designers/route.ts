@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
       data: {
         name: data.name,
         logo_url: data.logo_url || null,
-        website: data.website || null,
-        description: data.description || null,
+        url: data.website || null, // Changed website to url to match schema
+        // Removed description field as it doesn't exist in the schema
       },
     })
 
