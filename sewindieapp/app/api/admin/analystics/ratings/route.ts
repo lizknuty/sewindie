@@ -2,6 +2,57 @@ import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { checkModeratorAccess } from "@/lib/admin-middleware"
 
+// Define types to match Prisma schema
+type PatternWithRatings = {
+  id: number
+  name: string
+  designer: {
+    id: number
+    name: string
+  } | null
+  ratings: {
+    score: number
+  }[]
+  _count: {
+    ratings: number
+  }
+}
+
+type RatingWithRelations = {
+  id: number
+  score: number
+  createdAt: Date
+  user: {
+    id: number
+    name: string
+    email: string
+  }
+  pattern: {
+    id: number
+    name: string
+    designer: {
+      id: number
+      name: string
+    } | null
+  }
+}
+
+type RatingDistribution = {
+  score: number
+  _count: number
+}
+
+type UserWithCount = {
+  user:
+    | {
+        id: number
+        name: string
+        email: string
+      }
+    | undefined
+  ratingCount: number
+}
+
 export async function GET() {
   try {
     // Check moderator access
@@ -9,9 +60,9 @@ export async function GET() {
     if (!authorized) return response
 
     // Get top rated patterns
-    const topRatedPatterns = await prisma.pattern.findMany({
+    const topRatedPatterns = (await prisma.pattern.findMany({
       where: {
-        Rating: {
+        ratings: {
           some: {},
         },
       },
@@ -24,50 +75,43 @@ export async function GET() {
             name: true,
           },
         },
-        Rating: {
+        ratings: {
           select: {
             score: true,
           },
         },
         _count: {
           select: {
-            Rating: true,
+            ratings: true,
           },
         },
       },
       orderBy: [
         {
-          Rating: {
-            _avg: {
-              score: "desc",
-            },
-          },
-        },
-        {
-          _count: {
-            Rating: "desc",
+          ratings: {
+            _count: "desc",
           },
         },
       ],
       take: 10,
-    })
+    })) as unknown as PatternWithRatings[]
 
     // Calculate average ratings
     const patternsWithAvgRating = topRatedPatterns.map((pattern) => {
-      const totalScore = pattern.Rating.reduce((sum, rating) => sum + rating.score, 0)
-      const avgRating = pattern.Rating.length > 0 ? totalScore / pattern.Rating.length : 0
+      const totalScore = pattern.ratings.reduce((sum: number, rating: { score: number }) => sum + rating.score, 0)
+      const avgRating = pattern.ratings.length > 0 ? totalScore / pattern.ratings.length : 0
 
       return {
         id: pattern.id,
         name: pattern.name,
         designer: pattern.designer,
         averageRating: Number.parseFloat(avgRating.toFixed(2)),
-        ratingCount: pattern._count.Rating,
+        ratingCount: pattern._count.ratings,
       }
     })
 
     // Get recent ratings activity
-    const recentRatings = await prisma.rating.findMany({
+    const recentRatings = (await prisma.rating.findMany({
       take: 20,
       orderBy: {
         createdAt: "desc",
@@ -93,22 +137,22 @@ export async function GET() {
           },
         },
       },
-    })
+    })) as unknown as RatingWithRelations[]
 
     // Get total ratings count
     const totalRatings = await prisma.rating.count()
 
     // Get rating distribution
-    const ratingDistribution = await prisma.rating.groupBy({
+    const ratingDistribution = (await prisma.rating.groupBy({
       by: ["score"],
       _count: true,
       orderBy: {
         score: "desc",
       },
-    })
+    })) as unknown as RatingDistribution[]
 
     // Format distribution for easier consumption
-    const distribution = {
+    const distribution: Record<string, number> = {
       "5": 0,
       "4": 0,
       "3": 0,
@@ -117,7 +161,9 @@ export async function GET() {
     }
 
     ratingDistribution.forEach((item) => {
-      distribution[item.score as keyof typeof distribution] = item._count
+      // Convert number to string for indexing
+      const scoreKey = item.score.toString() as keyof typeof distribution
+      distribution[scoreKey] = item._count
     })
 
     // Get users with most ratings
@@ -156,7 +202,7 @@ export async function GET() {
         user,
         ratingCount: tu._count.userId,
       }
-    })
+    }) as UserWithCount[]
 
     return NextResponse.json({
       success: true,
