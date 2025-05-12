@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if designer exists or create a new one
-    let designerId = ""
+    let designerId = 0 // Initialize as number
     if (contribution.designer && !contribution.designer.includes("not_listed")) {
       // Try to find existing designer by name
       const existingDesigner = await prisma.designer.findFirst({
@@ -31,15 +31,16 @@ export async function POST(request: NextRequest) {
       })
 
       if (existingDesigner) {
-        designerId = existingDesigner.id
+        designerId = existingDesigner.id // This is a number
       } else {
         // Create new designer
         const newDesigner = await prisma.designer.create({
           data: {
             name: contribution.designer,
+            url: "", // Add the required url field with an empty string
           },
         })
-        designerId = newDesigner.id
+        designerId = newDesigner.id // This is a number
       }
     } else {
       return NextResponse.json({ error: "Valid designer information is required" }, { status: 400 })
@@ -53,15 +54,13 @@ export async function POST(request: NextRequest) {
 
     // Create pattern with transaction to handle relationships
     const pattern = await prisma.$transaction(async (tx) => {
-      // Create the pattern
+      // Create the pattern with only fields that exist in the schema
       const newPattern = await tx.pattern.create({
         data: {
           name: contribution.name,
           designer_id: designerId,
-          description: `Sizes: ${contribution.sizes}\nRequired Notions: ${contribution.requiredNotions}\nTotal Yardage: ${contribution.totalYardage}`,
-          difficulty_level: "BEGINNER", // Default
-          price: contribution.price && contribution.price !== "Free" ? Number.parseFloat(contribution.price) : null,
-          is_free: contribution.price === "Free",
+          sizes: contribution.sizes || null,
+          url: contribution.pattern_url || "", // Add the required url field
         },
       })
 
@@ -143,7 +142,7 @@ export async function POST(request: NextRequest) {
           await tx.patternSuggestedFabric.create({
             data: {
               pattern_id: newPattern.id,
-              suggested_fabric_id: suggestedFabric.id,
+              suggestedfabric_id: suggestedFabric.id, // Corrected field name
             },
           })
         }

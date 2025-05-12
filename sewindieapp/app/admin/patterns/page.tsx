@@ -56,7 +56,7 @@ export default async function PatternsPage() {
                 </td>
                 <td>{pattern.name}</td>
                 <td>{pattern.designer?.name}</td>
-                <td>{pattern.difficulty_level || "BEGINNER"}</td>
+                <td>{"BEGINNER"}</td>
                 <td>
                   <div className="btn-group">
                     <Link href={`/admin/patterns/${pattern.id}/edit`} className="btn btn-sm btn-outline-secondary">
