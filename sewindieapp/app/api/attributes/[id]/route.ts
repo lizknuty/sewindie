@@ -2,11 +2,21 @@ import { type NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { checkModeratorAccess } from "@/lib/admin-middleware"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const attributeId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(attributeId)) {
+      return NextResponse.json({ error: "Invalid attribute ID" }, { status: 400 })
+    }
+
     const attribute = await prisma.attribute.findUnique({
       where: {
-        id: params.id,
+        id: attributeId,
       },
       include: {
         PatternAttribute: {
@@ -33,8 +43,18 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const attributeId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(attributeId)) {
+      return NextResponse.json({ error: "Invalid attribute ID" }, { status: 400 })
+    }
+
     // Check moderator access
     const { authorized, response } = await checkModeratorAccess()
     if (!authorized) return response
@@ -50,7 +70,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     // Check if attribute exists
     const existingAttribute = await prisma.attribute.findUnique({
       where: {
-        id: params.id,
+        id: attributeId,
       },
     })
 
@@ -61,7 +81,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     // Update attribute
     const attribute = await prisma.attribute.update({
       where: {
-        id: params.id,
+        id: attributeId,
       },
       data: {
         name: data.name,
@@ -75,8 +95,18 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const attributeId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(attributeId)) {
+      return NextResponse.json({ error: "Invalid attribute ID" }, { status: 400 })
+    }
+
     // Check moderator access
     const { authorized, response } = await checkModeratorAccess()
     if (!authorized) return response
@@ -84,7 +114,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // Check if attribute exists and has patterns
     const existingAttribute = await prisma.attribute.findUnique({
       where: {
-        id: params.id,
+        id: attributeId,
       },
       include: {
         PatternAttribute: true,
@@ -103,7 +133,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // Delete attribute
     await prisma.attribute.delete({
       where: {
-        id: params.id,
+        id: attributeId,
       },
     })
 

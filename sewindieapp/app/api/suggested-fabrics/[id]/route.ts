@@ -3,11 +3,21 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import prisma from "@/lib/prisma"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const suggestedFabricId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(suggestedFabricId)) {
+      return NextResponse.json({ error: "Invalid suggested fabric ID" }, { status: 400 })
+    }
+
     const suggestedFabric = await prisma.suggestedFabric.findUnique({
       where: {
-        id: params.id,
+        id: suggestedFabricId,
       },
       include: {
         PatternSuggestedFabric: {
@@ -34,8 +44,18 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const suggestedFabricId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(suggestedFabricId)) {
+      return NextResponse.json({ error: "Invalid suggested fabric ID" }, { status: 400 })
+    }
+
     // Check authentication
     const session = await getServerSession(authOptions)
     if (!session) {
@@ -53,7 +73,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     // Check if suggested fabric exists
     const existingSuggestedFabric = await prisma.suggestedFabric.findUnique({
       where: {
-        id: params.id,
+        id: suggestedFabricId,
       },
     })
 
@@ -64,7 +84,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     // Update suggested fabric
     const suggestedFabric = await prisma.suggestedFabric.update({
       where: {
-        id: params.id,
+        id: suggestedFabricId,
       },
       data: {
         name: data.name,
@@ -78,8 +98,18 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const suggestedFabricId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(suggestedFabricId)) {
+      return NextResponse.json({ error: "Invalid suggested fabric ID" }, { status: 400 })
+    }
+
     // Check authentication
     const session = await getServerSession(authOptions)
     if (!session) {
@@ -89,7 +119,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // Check if suggested fabric exists and has patterns
     const existingSuggestedFabric = await prisma.suggestedFabric.findUnique({
       where: {
-        id: params.id,
+        id: suggestedFabricId,
       },
       include: {
         PatternSuggestedFabric: true,
@@ -108,7 +138,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // Delete suggested fabric
     await prisma.suggestedFabric.delete({
       where: {
-        id: params.id,
+        id: suggestedFabricId,
       },
     })
 

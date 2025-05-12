@@ -3,13 +3,16 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import prisma from "@/lib/prisma"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  if (!params.id) {
-    return NextResponse.json({ error: "Invalid pattern ID" }, { status: 400 })
-  }
-
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const patternId = Number.parseInt(params.id, 10)
+    // Await params before using it
+    const resolvedParams = await params
+
+    if (!resolvedParams.id) {
+      return NextResponse.json({ error: "Invalid pattern ID" }, { status: 400 })
+    }
+
+    const patternId = Number.parseInt(resolvedParams.id, 10)
 
     if (isNaN(patternId)) {
       return NextResponse.json({ error: "Invalid pattern ID format" }, { status: 400 })
@@ -65,15 +68,18 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
     // Check authentication
     const session = await getServerSession(authOptions)
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const patternId = Number.parseInt(params.id, 10)
+    const patternId = Number.parseInt(resolvedParams.id, 10)
 
     if (isNaN(patternId)) {
       return NextResponse.json({ error: "Invalid pattern ID format" }, { status: 400 })
@@ -161,7 +167,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
           yardage: patternData.yardage || null,
           sizes: patternData.sizes || null,
           language: patternData.language || null,
-          // Remove the description field as it doesn't exist in the schema
         },
       })
 
@@ -292,15 +297,18 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
     // Check authentication
     const session = await getServerSession(authOptions)
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const patternId = Number.parseInt(params.id, 10)
+    const patternId = Number.parseInt(resolvedParams.id, 10)
 
     if (isNaN(patternId)) {
       return NextResponse.json({ error: "Invalid pattern ID format" }, { status: 400 })

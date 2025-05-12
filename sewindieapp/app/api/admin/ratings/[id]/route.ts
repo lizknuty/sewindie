@@ -2,16 +2,19 @@ import { type NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { checkModeratorAccess } from "@/lib/admin-middleware"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    // Check moderator access
-    const { authorized, response } = await checkModeratorAccess()
-    if (!authorized) return response
+    // Await params before using it
+    const resolvedParams = await params
 
-    const ratingId = Number.parseInt(params.id)
+    const ratingId = Number.parseInt(resolvedParams.id)
     if (isNaN(ratingId)) {
       return NextResponse.json({ error: "Invalid rating ID" }, { status: 400 })
     }
+
+    // Check moderator access
+    const { authorized, response } = await checkModeratorAccess()
+    if (!authorized) return response
 
     const rating = await prisma.rating.findUnique({
       where: {
@@ -51,16 +54,19 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    // Check moderator access
-    const { authorized, response } = await checkModeratorAccess()
-    if (!authorized) return response
+    // Await params before using it
+    const resolvedParams = await params
 
-    const ratingId = Number.parseInt(params.id)
+    const ratingId = Number.parseInt(resolvedParams.id)
     if (isNaN(ratingId)) {
       return NextResponse.json({ error: "Invalid rating ID" }, { status: 400 })
     }
+
+    // Check moderator access
+    const { authorized, response } = await checkModeratorAccess()
+    if (!authorized) return response
 
     // Get request body
     const data = await request.json()
@@ -113,16 +119,19 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    // Check moderator access
-    const { authorized, response } = await checkModeratorAccess()
-    if (!authorized) return response
+    // Await params before using it
+    const resolvedParams = await params
 
-    const ratingId = Number.parseInt(params.id)
+    const ratingId = Number.parseInt(resolvedParams.id)
     if (isNaN(ratingId)) {
       return NextResponse.json({ error: "Invalid rating ID" }, { status: 400 })
     }
+
+    // Check moderator access
+    const { authorized, response } = await checkModeratorAccess()
+    if (!authorized) return response
 
     // Check if rating exists
     const existingRating = await prisma.rating.findUnique({

@@ -2,11 +2,21 @@ import { type NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { checkModeratorAccess } from "@/lib/admin-middleware"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const categoryId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(categoryId)) {
+      return NextResponse.json({ error: "Invalid category ID" }, { status: 400 })
+    }
+
     const category = await prisma.category.findUnique({
       where: {
-        id: params.id,
+        id: categoryId,
       },
       include: {
         PatternCategory: {
@@ -33,8 +43,18 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const categoryId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(categoryId)) {
+      return NextResponse.json({ error: "Invalid category ID" }, { status: 400 })
+    }
+
     // Check moderator access
     const { authorized, response } = await checkModeratorAccess()
     if (!authorized) return response
@@ -50,7 +70,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     // Check if category exists
     const existingCategory = await prisma.category.findUnique({
       where: {
-        id: params.id,
+        id: categoryId,
       },
     })
 
@@ -61,7 +81,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     // Update category
     const category = await prisma.category.update({
       where: {
-        id: params.id,
+        id: categoryId,
       },
       data: {
         name: data.name,
@@ -75,8 +95,18 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const categoryId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(categoryId)) {
+      return NextResponse.json({ error: "Invalid category ID" }, { status: 400 })
+    }
+
     // Check moderator access
     const { authorized, response } = await checkModeratorAccess()
     if (!authorized) return response
@@ -84,7 +114,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // Check if category exists and has patterns
     const existingCategory = await prisma.category.findUnique({
       where: {
-        id: params.id,
+        id: categoryId,
       },
       include: {
         PatternCategory: true,
@@ -103,7 +133,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // Delete category
     await prisma.category.delete({
       where: {
-        id: params.id,
+        id: categoryId,
       },
     })
 

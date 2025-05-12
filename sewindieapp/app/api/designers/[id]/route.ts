@@ -3,11 +3,21 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import prisma from "@/lib/prisma"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const designerId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(designerId)) {
+      return NextResponse.json({ error: "Invalid designer ID" }, { status: 400 })
+    }
+
     const designer = await prisma.designer.findUnique({
       where: {
-        id: params.id,
+        id: designerId,
       },
       include: {
         patterns: true,
@@ -25,8 +35,18 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const designerId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(designerId)) {
+      return NextResponse.json({ error: "Invalid designer ID" }, { status: 400 })
+    }
+
     // Check authentication
     const session = await getServerSession(authOptions)
     if (!session) {
@@ -44,7 +64,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     // Check if designer exists
     const existingDesigner = await prisma.designer.findUnique({
       where: {
-        id: params.id,
+        id: designerId,
       },
     })
 
@@ -52,16 +72,21 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Designer not found" }, { status: 404 })
     }
 
-    // Update designer
+    // Update designer with fields that match the Prisma schema
     const designer = await prisma.designer.update({
       where: {
-        id: params.id,
+        id: designerId,
       },
       data: {
         name: data.name,
+        url: data.website || data.url || "", // Map website from form to url in schema
         logo_url: data.logo_url || null,
-        website: data.website || null,
-        description: data.description || null,
+        email: data.email || null,
+        address: data.address || null,
+        facebook: data.facebook || null,
+        instagram: data.instagram || null,
+        pinterest: data.pinterest || null,
+        youtube: data.youtube || null,
       },
     })
 
@@ -72,8 +97,18 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const designerId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(designerId)) {
+      return NextResponse.json({ error: "Invalid designer ID" }, { status: 400 })
+    }
+
     // Check authentication
     const session = await getServerSession(authOptions)
     if (!session) {
@@ -83,7 +118,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // Check if designer exists
     const existingDesigner = await prisma.designer.findUnique({
       where: {
-        id: params.id,
+        id: designerId,
       },
       include: {
         patterns: {
@@ -106,7 +141,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // Delete designer
     await prisma.designer.delete({
       where: {
-        id: params.id,
+        id: designerId,
       },
     })
 

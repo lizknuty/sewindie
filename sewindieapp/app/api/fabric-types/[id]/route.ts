@@ -2,9 +2,12 @@ import { type NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { checkModeratorAccess } from "@/lib/admin-middleware"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const fabricTypeId = Number.parseInt(params.id, 10)
+    // Await params before using it
+    const resolvedParams = await params
+
+    const fabricTypeId = Number.parseInt(resolvedParams.id, 10)
 
     if (isNaN(fabricTypeId)) {
       return NextResponse.json({ error: "Invalid ID format" }, { status: 400 })
@@ -39,13 +42,16 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
     // Check moderator access
     const { authorized, response } = await checkModeratorAccess()
     if (!authorized) return response
 
-    const fabricTypeId = Number.parseInt(params.id, 10)
+    const fabricTypeId = Number.parseInt(resolvedParams.id, 10)
 
     if (isNaN(fabricTypeId)) {
       return NextResponse.json({ error: "Invalid ID format" }, { status: 400 })
@@ -87,13 +93,16 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
     // Check moderator access
     const { authorized, response } = await checkModeratorAccess()
     if (!authorized) return response
 
-    const fabricTypeId = Number.parseInt(params.id, 10)
+    const fabricTypeId = Number.parseInt(resolvedParams.id, 10)
 
     if (isNaN(fabricTypeId)) {
       return NextResponse.json({ error: "Invalid ID format" }, { status: 400 })

@@ -4,8 +4,18 @@ import { authOptions } from "@/api/auth/[...nextauth]/options"
 import prisma from "@/lib/prisma"
 import bcrypt from "bcrypt"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const userId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: "Invalid user ID" }, { status: 400 })
+    }
+
     // Check authentication
     const session = await getServerSession(authOptions)
     if (!session) {
@@ -15,7 +25,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     // Get user (excluding password)
     const user = await prisma.user.findUnique({
       where: {
-        id: params.id,
+        id: userId,
       },
       select: {
         id: true,
@@ -38,8 +48,18 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const userId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: "Invalid user ID" }, { status: 400 })
+    }
+
     // Check authentication
     const session = await getServerSession(authOptions)
     if (!session) {
@@ -52,7 +72,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
       where: {
-        id: params.id,
+        id: userId,
       },
     })
 
@@ -70,7 +90,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     // Update user
     const user = await prisma.user.update({
       where: {
-        id: params.id,
+        id: userId,
       },
       data: updateData,
       select: {
@@ -90,8 +110,18 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const userId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: "Invalid user ID" }, { status: 400 })
+    }
+
     // Check authentication
     const session = await getServerSession(authOptions)
     if (!session) {
@@ -101,7 +131,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
       where: {
-        id: params.id,
+        id: userId,
       },
     })
 
@@ -112,7 +142,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // Delete user
     await prisma.user.delete({
       where: {
-        id: params.id,
+        id: userId,
       },
     })
 

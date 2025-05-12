@@ -2,16 +2,26 @@ import { type NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { checkModeratorAccess } from "@/lib/admin-middleware"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const formatId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(formatId)) {
+      return NextResponse.json({ error: "Invalid format ID" }, { status: 400 })
+    }
+
     const format = await prisma.format.findUnique({
       where: {
-        id: params.id,
+        id: formatId,
       },
       include: {
         PatternFormat: {
           include: {
-            pattern: {
+            Pattern: {
               select: {
                 id: true,
                 name: true,
@@ -33,8 +43,18 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const formatId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(formatId)) {
+      return NextResponse.json({ error: "Invalid format ID" }, { status: 400 })
+    }
+
     // Check moderator access
     const { authorized, response } = await checkModeratorAccess()
     if (!authorized) return response
@@ -50,7 +70,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     // Check if format exists
     const existingFormat = await prisma.format.findUnique({
       where: {
-        id: params.id,
+        id: formatId,
       },
     })
 
@@ -61,7 +81,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     // Update format
     const format = await prisma.format.update({
       where: {
-        id: params.id,
+        id: formatId,
       },
       data: {
         name: data.name,
@@ -75,8 +95,18 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const formatId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(formatId)) {
+      return NextResponse.json({ error: "Invalid format ID" }, { status: 400 })
+    }
+
     // Check moderator access
     const { authorized, response } = await checkModeratorAccess()
     if (!authorized) return response
@@ -84,7 +114,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // Check if format exists and has patterns
     const existingFormat = await prisma.format.findUnique({
       where: {
-        id: params.id,
+        id: formatId,
       },
       include: {
         PatternFormat: true,
@@ -103,7 +133,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // Delete format
     await prisma.format.delete({
       where: {
-        id: params.id,
+        id: formatId,
       },
     })
 

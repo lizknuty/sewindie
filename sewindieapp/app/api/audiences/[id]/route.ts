@@ -3,11 +3,21 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import prisma from "@/lib/prisma"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const audienceId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(audienceId)) {
+      return NextResponse.json({ error: "Invalid audience ID" }, { status: 400 })
+    }
+
     const audience = await prisma.audience.findUnique({
       where: {
-        id: params.id,
+        id: audienceId,
       },
       include: {
         PatternAudience: {
@@ -34,8 +44,18 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const audienceId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(audienceId)) {
+      return NextResponse.json({ error: "Invalid audience ID" }, { status: 400 })
+    }
+
     // Check authentication
     const session = await getServerSession(authOptions)
     if (!session) {
@@ -53,7 +73,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     // Check if audience exists
     const existingAudience = await prisma.audience.findUnique({
       where: {
-        id: params.id,
+        id: audienceId,
       },
     })
 
@@ -64,7 +84,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     // Update audience
     const audience = await prisma.audience.update({
       where: {
-        id: params.id,
+        id: audienceId,
       },
       data: {
         name: data.name,
@@ -78,8 +98,18 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    // Await params before using it
+    const resolvedParams = await params
+
+    // Convert string ID to number
+    const audienceId = Number.parseInt(resolvedParams.id, 10)
+
+    if (isNaN(audienceId)) {
+      return NextResponse.json({ error: "Invalid audience ID" }, { status: 400 })
+    }
+
     // Check authentication
     const session = await getServerSession(authOptions)
     if (!session) {
@@ -89,7 +119,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // Check if audience exists and has patterns
     const existingAudience = await prisma.audience.findUnique({
       where: {
-        id: params.id,
+        id: audienceId,
       },
       include: {
         PatternAudience: true,
@@ -108,7 +138,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // Delete audience
     await prisma.audience.delete({
       where: {
-        id: params.id,
+        id: audienceId,
       },
     })
 
