@@ -129,15 +129,19 @@ model SuggestedFabric {
 }
 
 model User {
-  id        Int        @id @default(autoincrement())
-  name      String?    @db.VarChar(255)
-  email     String     @unique(map: "user_email_unique") @db.VarChar(255)
-  password  String     @db.VarChar(255)
-  createdAt DateTime   @default(now()) @db.Timestamp(6)
-  updatedAt DateTime   @updatedAt @db.Timestamp(6)
-  role      String?    @db.VarChar(50)
-  favorites Favorite[]
-  ratings   Rating[]
+  id                Int        @id @default(autoincrement())
+  name              String?    @db.VarChar(255)
+  email             String     @unique(map: "user_email_unique") @db.VarChar(255)
+  password          String     @db.VarChar(255)
+  createdAt         DateTime   @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime   @updatedAt @db.Timestamp(6)
+  role              String?    @db.VarChar(50)
+  resetToken        String?
+  resetTokenExpires DateTime?  @db.Timestamp(6)
+  favorites         Favorite[]
+  ratings           Rating[]
+
+  @@index([resetToken])
 }
 
 model Favorite {

@@ -24,6 +24,7 @@
     "react-bootstrap": "^2.10.5",
     "react-datepicker": "^7.5.0",
     "react-dom": "^19.1.0",
+    "resend": "^4.5.1",
     "rimraf": "^6.0.1",
     "swiper": "^11.1.14"
   },
