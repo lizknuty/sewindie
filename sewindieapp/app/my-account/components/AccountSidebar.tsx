@@ -21,7 +21,10 @@ export default function AccountSidebar({ user }: AccountSidebarProps) {
   }
 
   return (
-    <div className="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark" style={{ height: "100vh" }}>
+    <div
+      className="d-flex flex-column flex-shrink-0 p-3 text-white sidebar-container"
+      style={{ height: "100vh", backgroundColor: "var(--color-muted)" }}
+    >
       <Link
         href="/my-account"
         className="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none"
@@ -33,7 +36,7 @@ export default function AccountSidebar({ user }: AccountSidebarProps) {
         <li className="nav-item">
           <Link
             href="/my-account"
-            className={`nav-link text-white ${isActive("/my-account") && pathname === "/my-account" ? "active" : ""}`}
+            className={`nav-link ${isActive("/my-account") && pathname === "/my-account" ? "active" : ""}`}
           >
             <User className="me-2" size={18} />
             Profile
@@ -42,17 +45,14 @@ export default function AccountSidebar({ user }: AccountSidebarProps) {
         <li>
           <Link
             href="/my-account/favorites"
-            className={`nav-link text-white ${isActive("/my-account/favorites") ? "active" : ""}`}
+            className={`nav-link ${isActive("/my-account/favorites") ? "active" : ""}`}
           >
             <Heart className="me-2" size={18} />
             Favorites
           </Link>
         </li>
         <li>
-          <Link
-            href="/my-account/ratings"
-            className={`nav-link text-white ${isActive("/my-account/ratings") ? "active" : ""}`}
-          >
+          <Link href="/my-account/ratings" className={`nav-link ${isActive("/my-account/ratings") ? "active" : ""}`}>
             <Star className="me-2" size={18} />
             Ratings
           </Link>
@@ -60,7 +60,7 @@ export default function AccountSidebar({ user }: AccountSidebarProps) {
         <li>
           <Link
             href="/my-account/change-password"
-            className={`nav-link text-white ${isActive("/my-account/change-password") ? "active" : ""}`}
+            className={`nav-link ${isActive("/my-account/change-password") ? "active" : ""}`}
           >
             <Key className="me-2" size={18} />
             Change Password
@@ -71,7 +71,7 @@ export default function AccountSidebar({ user }: AccountSidebarProps) {
       <div className="d-flex align-items-center mb-3">
         <span className="text-white">{user.name || user.email}</span>
       </div>
-      <button onClick={() => signOut({ callbackUrl: "/" })} className="btn btn-outline-light d-flex align-items-center">
+      <button onClick={() => signOut({ callbackUrl: "/" })} className="btn btn-primary d-flex align-items-center">
         <LogOut className="me-2" size={18} />
         Sign out
       </button>

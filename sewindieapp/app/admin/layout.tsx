@@ -23,12 +23,12 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="container-fluid">
-      <div className="row">
-        <div className="col-md-3 col-lg-2 p-0">
+    <div className="container-fluid px-0">
+      <div className="row g-0">
+        <div className="col-md-3 col-lg-2 sticky-top" style={{ height: "100vh" }}>
           <AdminSidebar userRole={session.user.role || "USER"} />
         </div>
-        <div className="col-md-9 col-lg-10 p-4">
+        <div className="col-md-9 col-lg-10 p-4" style={{ backgroundColor: "var(--color-light)" }}>
           <div className="admin-content">{children}</div>
         </div>
       </div>

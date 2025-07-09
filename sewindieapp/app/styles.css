@@ -1,4 +1,4 @@
-@import 'bootstrap/dist/css/bootstrap.min.css';
+@import "bootstrap/dist/css/bootstrap.min.css";
 
 :root {
   --color-dark: #070607;
@@ -17,7 +17,19 @@ body {
   font-family: var(--font-body);
 }
 
-h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, .font-heading {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6,
+.font-heading {
   font-family: var(--font-heading);
 }
 
@@ -174,7 +186,7 @@ a:not(.btn):not(.nav-link):focus {
 }
 
 .custom-checkbox .form-check-input:checked::after {
-  content: '';
+  content: "";
   display: block;
   width: 5px;
   height: 10px;
@@ -227,4 +239,47 @@ a:not(.btn):not(.nav-link):focus {
   border: 1px solid #ced4da;
   border-radius: 0.25rem;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+/* Sidebar styles */
+.sidebar-container {
+  overflow-y: auto;
+}
+
+.sidebar-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.sidebar-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Custom sidebar nav styling */
+.nav-pills .nav-link {
+  color: var(--color-light) !important;
+  border-radius: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.nav-pills .nav-link:hover {
+  color: var(--color-secondary) !important;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-pills .nav-link.active {
+  background-color: var(--color-primary) !important;
+  color: var(--color-light) !important;
+}
+
+.nav-pills .nav-link svg {
+  margin-right: 0.5rem;
 }
