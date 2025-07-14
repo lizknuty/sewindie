@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import { redirect } from "next/navigation"
 import AccountSidebar from "./components/AccountSidebar"
+import SidebarToggle from "@/app/components/SidebarToggle"
 
 export default async function AccountLayout({
   children,
@@ -20,11 +21,12 @@ export default async function AccountLayout({
   return (
     <div className="container-fluid px-0">
       <div className="row g-0">
-        <div className="col-md-3 col-lg-2 sticky-top" style={{ height: "100vh" }}>
+        <div id="account-sidebar" className="col-md-3 col-lg-2 d-none d-md-block sidebar-column">
           <AccountSidebar user={session.user} />
         </div>
-        <div className="col-md-9 col-lg-10 p-4" style={{ backgroundColor: "var(--color-light)" }}>
-          <div className="account-content">{children}</div>
+        <div className="col-md-9 col-lg-10 content-column">
+          <SidebarToggle targetId="account-sidebar" />
+          <div className="account-content p-4">{children}</div>
         </div>
       </div>
     </div>

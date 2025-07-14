@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import { redirect } from "next/navigation"
 import AdminSidebar from "./components/AdminSidebar"
+import SidebarToggle from "@/app/components/SidebarToggle"
 
 export default async function AdminLayout({
   children,
@@ -25,11 +26,12 @@ export default async function AdminLayout({
   return (
     <div className="container-fluid px-0">
       <div className="row g-0">
-        <div className="col-md-3 col-lg-2 sticky-top" style={{ height: "100vh" }}>
+        <div id="admin-sidebar" className="col-md-3 col-lg-2 d-none d-md-block sidebar-column">
           <AdminSidebar userRole={session.user.role || "USER"} />
         </div>
-        <div className="col-md-9 col-lg-10 p-4" style={{ backgroundColor: "var(--color-light)" }}>
-          <div className="admin-content">{children}</div>
+        <div className="col-md-9 col-lg-10 content-column">
+          <SidebarToggle targetId="admin-sidebar" />
+          <div className="admin-content p-4">{children}</div>
         </div>
       </div>
     </div>

@@ -23,7 +23,13 @@ export default function AccountSidebar({ user }: AccountSidebarProps) {
   return (
     <div
       className="d-flex flex-column flex-shrink-0 p-3 text-white sidebar-container"
-      style={{ height: "100vh", backgroundColor: "var(--color-muted)" }}
+      style={{
+        height: "100%",
+        minHeight: "100vh",
+        backgroundColor: "var(--color-muted)",
+        position: "sticky",
+        top: 0,
+      }}
     >
       <Link
         href="/my-account"

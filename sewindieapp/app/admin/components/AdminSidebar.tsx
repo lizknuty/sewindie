@@ -37,7 +37,13 @@ export default function AdminSidebar({ userRole }: AdminSidebarProps) {
   return (
     <div
       className="d-flex flex-column flex-shrink-0 p-3 text-white sidebar-container"
-      style={{ height: "100vh", backgroundColor: "var(--color-muted)" }}
+      style={{
+        height: "100%",
+        minHeight: "100vh",
+        backgroundColor: "var(--color-muted)",
+        position: "sticky",
+        top: 0,
+      }}
     >
       <Link href="/admin" className="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
         <span className="fs-4">SewIndie Admin</span>

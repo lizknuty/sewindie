@@ -283,3 +283,103 @@ a:not(.btn):not(.nav-link):focus {
 .nav-pills .nav-link svg {
   margin-right: 0.5rem;
 }
+
+/* Responsive layout styles */
+.sidebar-column {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 100;
+}
+
+.content-column {
+  min-height: 100vh;
+  background-color: var(--color-light);
+  overflow-y: auto;
+}
+
+/* Mobile sidebar styles */
+@media (max-width: 767.98px) {
+  .sidebar-column {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    z-index: 1030;
+  }
+
+  .sidebar-container {
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+
+  .content-column {
+    margin-top: 60px; /* Add space for mobile header */
+  }
+
+  /* Collapsed sidebar on mobile */
+  .sidebar-collapsed .sidebar-container {
+    display: none;
+  }
+
+  /* Mobile toggle button */
+  .sidebar-toggle {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1040;
+    display: block;
+  }
+}
+
+/* Mobile sidebar toggle button */
+.sidebar-toggle {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1040;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Improve scrollbar styling for content areas */
+.admin-content,
+.account-content {
+  height: 100%;
+}
+
+/* Add padding to content on mobile to account for the toggle button */
+@media (max-width: 767.98px) {
+  .admin-content,
+  .account-content {
+    padding-top: 60px !important;
+  }
+}
+
+/* Fix for tables on mobile */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Make tables responsive on mobile */
+@media (max-width: 767.98px) {
+  .table-responsive {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table th,
+  .table td {
+    white-space: nowrap;
+  }
+}
