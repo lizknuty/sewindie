@@ -3,36 +3,30 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import { redirect } from "next/navigation"
 import AdminSidebar from "./components/AdminSidebar"
-import SidebarToggle from "@/app/components/SidebarToggle"
+import SidebarToggle from "../components/SidebarToggle"
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  // Check if user is authenticated and has admin role
   const session = await getServerSession(authOptions)
 
-  // Redirect to login if not authenticated
-  if (!session) {
+  if (!session || !session.user || session.user.role !== "admin") {
     redirect("/login?callbackUrl=/admin")
   }
 
-  // Check for admin role
-  if (session?.user?.role !== "ADMIN" && session?.user?.role !== "MODERATOR") {
-    redirect("/")
-  }
-
   return (
-    <div className="container-fluid px-0">
-      <div className="row g-0">
-        <div id="admin-sidebar" className="col-md-3 col-lg-2 d-none d-md-block sidebar-column">
-          <AdminSidebar userRole={session.user.role || "USER"} />
-        </div>
-        <div className="col-md-9 col-lg-10 content-column">
+    <div className="layout-container">
+      <div id="admin-sidebar" className="sidebar-column">
+        <AdminSidebar user={session.user} />
+      </div>
+      <div className="content-wrapper">
+        <header className="content-header">
           <SidebarToggle targetId="admin-sidebar" />
-          <div className="admin-content p-4">{children}</div>
-        </div>
+          <h1 className="d-none d-md-block">Admin Dashboard</h1>
+        </header>
+        <main className="content-main p-4">{children}</main>
       </div>
     </div>
   )

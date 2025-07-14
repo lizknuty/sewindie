@@ -1,73 +1,53 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { Menu, X } from "lucide-react"
+import { useEffect, useState } from "react"
 
 interface SidebarToggleProps {
   targetId: string
 }
 
-export default function SidebarToggle({ targetId }: SidebarToggleProps) {
+const SidebarToggle = ({ targetId }: SidebarToggleProps) => {
   const [isOpen, setIsOpen] = useState(false)
 
   const toggleSidebar = () => {
-    const sidebarElement = document.getElementById(targetId)
-    if (sidebarElement) {
-      sidebarElement.classList.toggle("d-block")
+    const sidebar = document.getElementById(targetId)
+    const content = document.querySelector(".content-wrapper")
+    if (sidebar && content) {
+      sidebar.classList.toggle("open")
+      content.classList.toggle("sidebar-open")
       setIsOpen(!isOpen)
     }
   }
 
-  // Hide sidebar when clicking outside on mobile
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const sidebarElement = document.getElementById(targetId)
-      const toggleButton = document.getElementById("sidebar-toggle-button")
-
+      const sidebar = document.getElementById(targetId)
       if (
-        sidebarElement &&
-        isOpen &&
-        !sidebarElement.contains(event.target as Node) &&
-        toggleButton &&
-        !toggleButton.contains(event.target as Node)
+        sidebar &&
+        !sidebar.contains(event.target as Node) &&
+        !(event.target as HTMLElement).closest(".sidebar-toggle")
       ) {
-        sidebarElement.classList.remove("d-block")
-        setIsOpen(false)
+        if (sidebar.classList.contains("open")) {
+          toggleSidebar()
+        }
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside)
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside)
+    }
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [isOpen, targetId])
 
-  // Hide sidebar on window resize (if screen becomes larger)
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        const sidebarElement = document.getElementById(targetId)
-        if (sidebarElement) {
-          sidebarElement.classList.remove("d-block")
-          setIsOpen(false)
-        }
-      }
-    }
-
-    window.addEventListener("resize", handleResize)
-    return () => {
-      window.removeEventListener("resize", handleResize)
-    }
-  }, [targetId])
-
   return (
-    <button
-      id="sidebar-toggle-button"
-      className="btn btn-primary sidebar-toggle d-md-none"
-      onClick={toggleSidebar}
-      aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
-    >
-      {isOpen ? <X size={24} /> : <Menu size={24} />}
+    <button onClick={toggleSidebar} className="sidebar-toggle d-md-none" aria-label="Toggle sidebar">
+      {isOpen ? <X /> : <Menu />}
     </button>
   )
 }
+
+export default SidebarToggle

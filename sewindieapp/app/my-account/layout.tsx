@@ -3,31 +3,30 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import { redirect } from "next/navigation"
 import AccountSidebar from "./components/AccountSidebar"
-import SidebarToggle from "@/app/components/SidebarToggle"
+import SidebarToggle from "../components/SidebarToggle"
 
 export default async function AccountLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  // Check if user is authenticated
   const session = await getServerSession(authOptions)
 
-  // Redirect to login if not authenticated
-  if (!session) {
+  if (!session || !session.user) {
     redirect("/login?callbackUrl=/my-account")
   }
 
   return (
-    <div className="container-fluid px-0">
-      <div className="row g-0">
-        <div id="account-sidebar" className="col-md-3 col-lg-2 d-none d-md-block sidebar-column">
-          <AccountSidebar user={session.user} />
-        </div>
-        <div className="col-md-9 col-lg-10 content-column">
+    <div className="layout-container">
+      <div id="account-sidebar" className="sidebar-column">
+        <AccountSidebar user={session.user} />
+      </div>
+      <div className="content-wrapper">
+        <header className="content-header">
           <SidebarToggle targetId="account-sidebar" />
-          <div className="account-content p-4">{children}</div>
-        </div>
+          <h1 className="d-none d-md-block">My Account</h1>
+        </header>
+        <main className="content-main p-4">{children}</main>
       </div>
     </div>
   )
