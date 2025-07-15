@@ -4,7 +4,8 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import Image from "next/image"
+// The Image import is no longer needed for now
+// import Image from "next/image"
 
 interface DesignerFormProps {
   designer?: {
@@ -95,17 +96,7 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
           value={formData.logo_url}
           onChange={handleChange}
         />
-        {formData.logo_url && (
-          <div className="mt-2">
-            <Image
-              src={formData.logo_url || "/placeholder.svg"}
-              alt="Logo preview"
-              width={100}
-              height={100}
-              className="rounded border"
-            />
-          </div>
-        )}
+        {/* The Image preview has been temporarily removed for debugging */}
       </div>
 
       <div className="mb-3">
