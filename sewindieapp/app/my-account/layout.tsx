@@ -2,8 +2,8 @@ import type React from "react"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import { redirect } from "next/navigation"
-import AccountSidebar from "./components/AccountSidebar"
-import SidebarToggle from "../components/SidebarToggle"
+import AccountSidebar from "@/my-account/components/AccountSidebar"
+import SidebarToggle from "@/components/SidebarToggle"
 
 export default async function AccountLayout({
   children,
