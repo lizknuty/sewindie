@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -13,7 +12,6 @@ interface DesignerFormProps {
     name: string | null
     logo_url?: string | null
     url?: string | null
-    description?: string | null
     email?: string | null
     address?: string | null
     facebook?: string | null
@@ -30,7 +28,6 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
     name: designer?.name || "",
     logo_url: designer?.logo_url || "",
     url: designer?.url || "",
-    description: designer?.description || "",
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -44,9 +41,7 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
 
     try {
       const url = designer ? `/api/designers/${designer.id.toString()}` : "/api/designers"
-
       const method = designer ? "PUT" : "POST"
-
       const response = await fetch(url, {
         method,
         headers: {
@@ -56,14 +51,16 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to save designer")
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to save designer")
       }
 
       router.push("/admin/designers")
       router.refresh()
     } catch (error) {
       console.error("Error saving designer:", error)
-      alert("Failed to save designer. Please try again.")
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred."
+      alert(`Failed to save designer: ${errorMessage}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -113,22 +110,16 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
 
       <div className="mb-3">
         <label htmlFor="url" className="form-label">
-          Website URL
+          Website URL *
         </label>
-        <input type="url" className="form-control" id="url" name="url" value={formData.url} onChange={handleChange} />
-      </div>
-
-      <div className="mb-3">
-        <label htmlFor="description" className="form-label">
-          Description
-        </label>
-        <textarea
+        <input
+          type="url"
           className="form-control"
-          id="description"
-          name="description"
-          rows={4}
-          value={formData.description}
+          id="url"
+          name="url"
+          value={formData.url}
           onChange={handleChange}
+          required
         />
       </div>
 

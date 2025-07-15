@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
     const data = await request.json()
 
     // Validate required fields
-    if (!data.name) {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 })
+    if (!data.name || !data.url) {
+      return NextResponse.json({ error: "Name and Website URL are required" }, { status: 400 })
     }
 
     // Create designer
@@ -38,8 +38,7 @@ export async function POST(request: NextRequest) {
       data: {
         name: data.name,
         logo_url: data.logo_url || null,
-        url: data.website || null, // Changed website to url to match schema
-        // Removed description field as it doesn't exist in the schema
+        url: data.url, // Correctly use data.url
       },
     })
 
