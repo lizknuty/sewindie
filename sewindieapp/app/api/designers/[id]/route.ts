@@ -3,10 +3,17 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import prisma from "@/lib/prisma"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+// Define a specific type for the route's context to ensure type safety.
+type RouteContext = {
+  params: {
+    id: string
+  }
+}
+
+export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    // Convert string ID to number
-    const designerId = Number.parseInt(params.id, 10)
+    const { id } = context.params
+    const designerId = Number.parseInt(id, 10)
 
     if (isNaN(designerId)) {
       return NextResponse.json({ error: "Invalid designer ID" }, { status: 400 })
@@ -15,9 +22,6 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const designer = await prisma.designer.findUnique({
       where: {
         id: designerId,
-      },
-      include: {
-        patterns: true,
       },
     })
 
@@ -32,22 +36,27 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, context: RouteContext) {
   const session = await getServerSession(authOptions)
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   try {
-    const id = Number.parseInt(params.id, 10)
+    const { id } = context.params
+    const designerId = Number.parseInt(id, 10)
     const data = await request.json()
+
+    if (isNaN(designerId)) {
+      return NextResponse.json({ error: "Invalid designer ID" }, { status: 400 })
+    }
 
     if (!data.name || !data.url) {
       return NextResponse.json({ error: "Name and Website URL are required" }, { status: 400 })
     }
 
     const updatedDesigner = await prisma.designer.update({
-      where: { id },
+      where: { id: designerId },
       data: {
         name: data.name,
         url: data.url,
@@ -63,29 +72,51 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(updatedDesigner)
   } catch (error) {
-    console.error(`Error updating designer with ID ${params.id}:`, error)
+    const { id } = context.params
+    console.error(`Error updating designer with ID ${id}:`, error)
     return NextResponse.json({ error: "Failed to update designer" }, { status: 500 })
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, context: RouteContext) {
   const session = await getServerSession(authOptions)
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   try {
-    const id = Number.parseInt(params.id, 10)
+    const { id } = context.params
+    const designerId = Number.parseInt(id, 10)
 
-    // Before deleting the designer, you might need to handle related patterns.
-    // For this example, we assume onDelete: Cascade is set up or patterns are handled manually.
-    await prisma.designer.delete({
-      where: { id },
+    if (isNaN(designerId)) {
+      return NextResponse.json({ error: "Invalid designer ID" }, { status: 400 })
+    }
+
+    // Prevent deleting a designer that has associated patterns
+    const existingDesigner = await prisma.designer.findUnique({
+      where: { id: designerId },
+      include: { patterns: { take: 1 } }, // Only need to know if at least one exists
     })
 
-    return new NextResponse(null, { status: 204 }) // 204 No Content
+    if (!existingDesigner) {
+      return NextResponse.json({ error: "Designer not found" }, { status: 404 })
+    }
+
+    if (existingDesigner.patterns.length > 0) {
+      return NextResponse.json(
+        { error: "Cannot delete a designer with associated patterns. Please reassign or delete their patterns first." },
+        { status: 400 },
+      )
+    }
+
+    await prisma.designer.delete({
+      where: { id: designerId },
+    })
+
+    return new NextResponse(null, { status: 204 }) // 204 No Content for successful deletion
   } catch (error) {
-    console.error(`Error deleting designer with ID ${params.id}:`, error)
+    const { id } = context.params
+    console.error(`Error deleting designer with ID ${id}:`, error)
     return NextResponse.json({ error: "Failed to delete designer" }, { status: 500 })
   }
 }
