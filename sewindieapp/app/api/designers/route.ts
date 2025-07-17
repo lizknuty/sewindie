@@ -33,26 +33,29 @@ export async function POST(request: NextRequest) {
     const designer = await prisma.designer.create({
       data: {
         name: data.name,
-        logo_url: data.logo_url || null,
         url: data.url,
+        logo_url: data.logo_url || null,
+        email: data.email || null,
+        address: data.address || null,
+        facebook: data.facebook || null,
+        instagram: data.instagram || null,
+        pinterest: data.pinterest || null,
+        youtube: data.youtube || null,
       },
     })
 
     return NextResponse.json(designer, { status: 201 })
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      // Specific handling for Unique constraint violation
       if (error.code === "P2002") {
         const target = (error.meta?.target as string[]) || ["unknown field"]
         const message = `A designer with this ${target.join(", ")} already exists.`
         console.error("Unique constraint failed on:", target)
-        return NextResponse.json({ error: message }, { status: 409 }) // 409 Conflict
+        return NextResponse.json({ error: message }, { status: 409 })
       }
-      // Handle other known database errors
       console.error("Prisma Error Code:", error.code)
       return NextResponse.json({ error: `Database error: ${error.code}` }, { status: 500 })
     }
-    // Handle unexpected errors
     console.error("Error creating designer:", error)
     return NextResponse.json({ error: "Failed to create designer due to an unexpected error." }, { status: 500 })
   }

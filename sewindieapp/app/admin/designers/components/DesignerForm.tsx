@@ -12,6 +12,12 @@ interface DesignerFormProps {
     name: string | null
     logo_url?: string | null
     url?: string | null
+    email?: string | null
+    address?: string | null
+    facebook?: string | null
+    instagram?: string | null
+    pinterest?: string | null
+    youtube?: string | null
   }
 }
 
@@ -22,6 +28,12 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
     name: designer?.name || "",
     logo_url: designer?.logo_url || "",
     url: designer?.url || "",
+    email: designer?.email || "",
+    address: designer?.address || "",
+    facebook: designer?.facebook || "",
+    instagram: designer?.instagram || "",
+    pinterest: designer?.pinterest || "",
+    youtube: designer?.youtube || "",
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -45,7 +57,6 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
       })
 
       if (!response.ok) {
-        // Get the error message from the API response
         const errorData = await response.json()
         throw new Error(errorData.error || "Failed to save designer")
       }
@@ -54,8 +65,8 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
       router.refresh()
     } catch (error) {
       console.error("Error saving designer:", error)
-      // Display the specific error message in the alert
-      alert((error as Error).message)
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred."
+      alert(`Failed to save designer: ${errorMessage}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -77,6 +88,7 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
           required
         />
       </div>
+
       <div className="mb-3">
         <label htmlFor="logo_url" className="form-label">
           Logo URL
@@ -97,10 +109,14 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
               width={100}
               height={100}
               className="rounded border"
+              onError={(e) => {
+                e.currentTarget.src = "/placeholder.svg?height=100&width=100"
+              }}
             />
           </div>
         )}
       </div>
+
       <div className="mb-3">
         <label htmlFor="url" className="form-label">
           Website URL *
@@ -115,7 +131,90 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
           required
         />
       </div>
-      <div className="d-flex gap-2">
+
+      <div className="mb-3">
+        <label htmlFor="email" className="form-label">
+          Email
+        </label>
+        <input
+          type="email"
+          className="form-control"
+          id="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+        />
+      </div>
+
+      <div className="mb-3">
+        <label htmlFor="address" className="form-label">
+          Address
+        </label>
+        <textarea
+          className="form-control"
+          id="address"
+          name="address"
+          rows={3}
+          value={formData.address}
+          onChange={handleChange}
+        />
+      </div>
+
+      <h5 className="mt-4 mb-3">Social Media</h5>
+      <div className="mb-3">
+        <label htmlFor="facebook" className="form-label">
+          Facebook URL
+        </label>
+        <input
+          type="url"
+          className="form-control"
+          id="facebook"
+          name="facebook"
+          value={formData.facebook}
+          onChange={handleChange}
+        />
+      </div>
+      <div className="mb-3">
+        <label htmlFor="instagram" className="form-label">
+          Instagram URL
+        </label>
+        <input
+          type="url"
+          className="form-control"
+          id="instagram"
+          name="instagram"
+          value={formData.instagram}
+          onChange={handleChange}
+        />
+      </div>
+      <div className="mb-3">
+        <label htmlFor="pinterest" className="form-label">
+          Pinterest URL
+        </label>
+        <input
+          type="url"
+          className="form-control"
+          id="pinterest"
+          name="pinterest"
+          value={formData.pinterest}
+          onChange={handleChange}
+        />
+      </div>
+      <div className="mb-3">
+        <label htmlFor="youtube" className="form-label">
+          YouTube URL
+        </label>
+        <input
+          type="url"
+          className="form-control"
+          id="youtube"
+          name="youtube"
+          value={formData.youtube}
+          onChange={handleChange}
+        />
+      </div>
+
+      <div className="d-flex gap-2 mt-4">
         <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
           {isSubmitting ? "Saving..." : "Save Designer"}
         </button>
