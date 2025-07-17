@@ -4,28 +4,14 @@ import { authOptions } from "@/api/auth/[...nextauth]/options"
 import prisma from "@/lib/prisma"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const designerId = Number.parseInt(params.id, 10)
-
-    if (isNaN(designerId)) {
-      return NextResponse.json({ error: "Invalid designer ID" }, { status: 400 })
-    }
-
-    const designer = await prisma.designer.findUnique({
-      where: {
-        id: designerId,
-      },
-    })
-
-    if (!designer) {
-      return NextResponse.json({ error: "Designer not found" }, { status: 404 })
-    }
-
-    return NextResponse.json(designer)
-  } catch (error) {
-    console.error("Error fetching designer:", error)
-    return NextResponse.json({ error: "Failed to fetch designer" }, { status: 500 })
+  // Check if the id is a valid number.
+  const designerId = Number(params.id)
+  if (isNaN(designerId)) {
+    return NextResponse.json({ error: "Invalid ID format" }, { status: 400 })
   }
+
+  // If valid, return a success message with the ID.
+  return NextResponse.json({ success: true, designerId: designerId })
 }
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
