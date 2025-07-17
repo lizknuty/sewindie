@@ -3,9 +3,9 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import prisma from "@/lib/prisma"
 
-export async function GET(request: NextRequest, context: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const designerId = Number.parseInt(context.params.id, 10)
+    const designerId = Number.parseInt(params.id, 10)
 
     if (isNaN(designerId)) {
       return NextResponse.json({ error: "Invalid designer ID" }, { status: 400 })
@@ -28,14 +28,14 @@ export async function GET(request: NextRequest, context: { params: { id: string 
   }
 }
 
-export async function PUT(request: NextRequest, context: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   try {
-    const designerId = Number.parseInt(context.params.id, 10)
+    const designerId = Number.parseInt(params.id, 10)
     const data = await request.json()
 
     if (isNaN(designerId)) {
@@ -63,19 +63,19 @@ export async function PUT(request: NextRequest, context: { params: { id: string 
 
     return NextResponse.json(updatedDesigner)
   } catch (error) {
-    console.error(`Error updating designer with ID ${context.params.id}:`, error)
+    console.error(`Error updating designer with ID ${params.id}:`, error)
     return NextResponse.json({ error: "Failed to update designer" }, { status: 500 })
   }
 }
 
-export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   try {
-    const designerId = Number.parseInt(context.params.id, 10)
+    const designerId = Number.parseInt(params.id, 10)
 
     if (isNaN(designerId)) {
       return NextResponse.json({ error: "Invalid designer ID" }, { status: 400 })
@@ -103,7 +103,7 @@ export async function DELETE(request: NextRequest, context: { params: { id: stri
 
     return new NextResponse(null, { status: 204 })
   } catch (error) {
-    console.error(`Error deleting designer with ID ${context.params.id}:`, error)
+    console.error(`Error deleting designer with ID ${params.id}:`, error)
     return NextResponse.json({ error: "Failed to delete designer" }, { status: 500 })
   }
 }
