@@ -4,8 +4,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-// The Image import is no longer needed for now
-// import Image from "next/image"
+import Image from "next/image"
 
 interface DesignerFormProps {
   designer?: {
@@ -13,12 +12,6 @@ interface DesignerFormProps {
     name: string | null
     logo_url?: string | null
     url?: string | null
-    email?: string | null
-    address?: string | null
-    facebook?: string | null
-    instagram?: string | null
-    pinterest?: string | null
-    youtube?: string | null
   }
 }
 
@@ -52,6 +45,7 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
       })
 
       if (!response.ok) {
+        // Get the error message from the API response
         const errorData = await response.json()
         throw new Error(errorData.error || "Failed to save designer")
       }
@@ -60,8 +54,8 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
       router.refresh()
     } catch (error) {
       console.error("Error saving designer:", error)
-      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred."
-      alert(`Failed to save designer: ${errorMessage}`)
+      // Display the specific error message in the alert
+      alert((error as Error).message)
     } finally {
       setIsSubmitting(false)
     }
@@ -83,7 +77,6 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
           required
         />
       </div>
-
       <div className="mb-3">
         <label htmlFor="logo_url" className="form-label">
           Logo URL
@@ -96,9 +89,18 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
           value={formData.logo_url}
           onChange={handleChange}
         />
-        {/* The Image preview has been temporarily removed for debugging */}
+        {formData.logo_url && (
+          <div className="mt-2">
+            <Image
+              src={formData.logo_url || "/placeholder.svg"}
+              alt="Logo preview"
+              width={100}
+              height={100}
+              className="rounded border"
+            />
+          </div>
+        )}
       </div>
-
       <div className="mb-3">
         <label htmlFor="url" className="form-label">
           Website URL *
@@ -113,7 +115,6 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
           required
         />
       </div>
-
       <div className="d-flex gap-2">
         <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
           {isSubmitting ? "Saving..." : "Save Designer"}

@@ -40,15 +40,19 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(designer, { status: 201 })
   } catch (error) {
-    // Enhanced error logging
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      // Log detailed Prisma error
+      // Specific handling for Unique constraint violation
+      if (error.code === "P2002") {
+        const target = (error.meta?.target as string[]) || ["unknown field"]
+        const message = `A designer with this ${target.join(", ")} already exists.`
+        console.error("Unique constraint failed on:", target)
+        return NextResponse.json({ error: message }, { status: 409 }) // 409 Conflict
+      }
+      // Handle other known database errors
       console.error("Prisma Error Code:", error.code)
-      console.error("Prisma Error Meta:", error.meta)
-      console.error("Prisma Error Message:", error.message)
       return NextResponse.json({ error: `Database error: ${error.code}` }, { status: 500 })
     }
-    // Log generic error
+    // Handle unexpected errors
     console.error("Error creating designer:", error)
     return NextResponse.json({ error: "Failed to create designer due to an unexpected error." }, { status: 500 })
   }
