@@ -2,9 +2,12 @@ import { type NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { checkModeratorAccess } from "@/lib/admin-middleware"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  let patternIdStr: string | undefined
   try {
-    const patternId = Number.parseInt(params.id, 10)
+    const resolvedParams = await params
+    patternIdStr = resolvedParams.id
+    const patternId = Number.parseInt(patternIdStr, 10)
     if (isNaN(patternId)) {
       return NextResponse.json({ error: "Invalid pattern ID" }, { status: 400 })
     }
@@ -28,17 +31,20 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json({ success: true, pattern })
   } catch (error) {
-    console.error(`Error fetching pattern ${params.id}:`, error)
+    console.error(`Error fetching pattern ${patternIdStr || "unknown"}:`, error)
     return NextResponse.json({ success: false, error: "Failed to fetch pattern" }, { status: 500 })
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  let patternIdStr: string | undefined
   try {
+    const resolvedParams = await params
+    patternIdStr = resolvedParams.id
     const { authorized, response } = await checkModeratorAccess()
     if (!authorized) return response
 
-    const patternId = Number.parseInt(params.id, 10)
+    const patternId = Number.parseInt(patternIdStr, 10)
     if (isNaN(patternId)) {
       return NextResponse.json({ error: "Invalid pattern ID" }, { status: 400 })
     }
@@ -98,18 +104,21 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json({ success: true, pattern: updatedPattern })
   } catch (error) {
-    console.error(`Error updating pattern ${params.id}:`, error)
+    console.error(`Error updating pattern ${patternIdStr || "unknown"}:`, error)
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred"
     return NextResponse.json({ success: false, error: `Failed to update pattern: ${errorMessage}` }, { status: 500 })
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  let patternIdStr: string | undefined
   try {
+    const resolvedParams = await params
+    patternIdStr = resolvedParams.id
     const { authorized, response } = await checkModeratorAccess()
     if (!authorized) return response
 
-    const patternId = Number.parseInt(params.id, 10)
+    const patternId = Number.parseInt(patternIdStr, 10)
     if (isNaN(patternId)) {
       return NextResponse.json({ error: "Invalid pattern ID" }, { status: 400 })
     }
@@ -128,7 +137,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error(`Error deleting pattern ${params.id}:`, error)
+    console.error(`Error deleting pattern ${patternIdStr || "unknown"}:`, error)
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred"
     return NextResponse.json({ success: false, error: `Failed to delete pattern: ${errorMessage}` }, { status: 500 })
   }
