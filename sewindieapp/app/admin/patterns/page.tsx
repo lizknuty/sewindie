@@ -3,6 +3,15 @@ import Image from "next/image"
 import prisma from "@/lib/prisma"
 import { Plus } from "lucide-react"
 
+function formatDate(date: Date | null | undefined) {
+  if (!date) return "-"
+  return new Date(date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  })
+}
+
 export default async function PatternsPage() {
   const patterns = await prisma.pattern.findMany({
     include: {
@@ -35,6 +44,7 @@ export default async function PatternsPage() {
               <th>Name</th>
               <th>Designer</th>
               <th>Difficulty</th>
+              <th>Released</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -56,7 +66,8 @@ export default async function PatternsPage() {
                 </td>
                 <td>{pattern.name}</td>
                 <td>{pattern.designer?.name}</td>
-                <td>{"BEGINNER"}</td>
+                <td>{pattern.difficulty || "-"}</td>
+                <td>{formatDate(pattern.release_date)}</td>
                 <td>
                   <div className="btn-group">
                     <Link href={`/admin/patterns/${pattern.id}/edit`} className="btn btn-sm btn-outline-secondary">

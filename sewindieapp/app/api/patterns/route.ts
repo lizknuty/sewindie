@@ -34,22 +34,17 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    // Check moderator access
-    const { authorized, response, session } = await checkModeratorAccess()
+    const { authorized, response } = await checkModeratorAccess()
     if (!authorized) return response
 
-    // Get request body
     const data = await request.json()
 
-    // Validate required fields
     if (!data.name || !data.designer_id || !data.url) {
       return NextResponse.json({ error: "Name, designer_id, and url are required" }, { status: 400 })
     }
 
-    // Extract relationship data
     const { categories, audiences, fabricTypes, suggestedFabrics, attributes, formats, ...patternData } = data
 
-    // Create pattern
     const pattern = await prisma.pattern.create({
       data: {
         name: patternData.name,
@@ -59,100 +54,54 @@ export async function POST(request: NextRequest) {
         yardage: patternData.yardage || null,
         sizes: patternData.sizes || null,
         language: patternData.language || null,
-        // Add relationships if provided
-        ...(categories && categories.length > 0
-          ? {
-              PatternCategory: {
-                create: categories.map((categoryId: string) => ({
-                  category: { connect: { id: categoryId } },
-                })),
-              },
-            }
-          : {}),
-        ...(audiences && audiences.length > 0
-          ? {
-              PatternAudience: {
-                create: audiences.map((audienceId: string) => ({
-                  audience: { connect: { id: audienceId } },
-                })),
-              },
-            }
-          : {}),
-        ...(fabricTypes && fabricTypes.length > 0
-          ? {
-              PatternFabricType: {
-                create: fabricTypes.map((fabricTypeId: string) => ({
-                  fabricType: { connect: { id: fabricTypeId } },
-                })),
-              },
-            }
-          : {}),
-        ...(suggestedFabrics && suggestedFabrics.length > 0
-          ? {
-              PatternSuggestedFabric: {
-                create: suggestedFabrics.map((suggestedFabricId: string) => ({
-                  suggestedFabric: { connect: { id: suggestedFabricId } },
-                })),
-              },
-            }
-          : {}),
-        ...(attributes && attributes.length > 0
-          ? {
-              PatternAttribute: {
-                create: attributes.map((attributeId: string) => ({
-                  attribute: { connect: { id: attributeId } },
-                })),
-              },
-            }
-          : {}),
-        ...(formats && formats.length > 0
-          ? {
-              PatternFormat: {
-                create: formats.map((formatId: string) => ({
-                  Format: { connect: { id: formatId } },
-                })),
-              },
-            }
-          : {}),
+        difficulty: patternData.difficulty || null,
+        release_date: patternData.release_date ? new Date(patternData.release_date) : null,
+        PatternCategory: {
+          create: categories?.map((categoryId: number) => ({
+            category: { connect: { id: categoryId } },
+          })),
+        },
+        PatternAudience: {
+          create: audiences?.map((audienceId: number) => ({
+            audience: { connect: { id: audienceId } },
+          })),
+        },
+        PatternFabricType: {
+          create: fabricTypes?.map((fabricTypeId: number) => ({
+            fabricType: { connect: { id: fabricTypeId } },
+          })),
+        },
+        PatternSuggestedFabric: {
+          create: suggestedFabrics?.map((suggestedFabricId: number) => ({
+            suggestedFabric: { connect: { id: suggestedFabricId } },
+          })),
+        },
+        PatternAttribute: {
+          create: attributes?.map((attributeId: number) => ({
+            attribute: { connect: { id: attributeId } },
+          })),
+        },
+        PatternFormat: {
+          create: formats?.map((formatId: number) => ({
+            Format: { connect: { id: formatId } },
+          })),
+        },
       },
       include: {
         designer: true,
-        PatternCategory: {
-          include: {
-            category: true,
-          },
-        },
-        PatternAudience: {
-          include: {
-            audience: true,
-          },
-        },
-        PatternFabricType: {
-          include: {
-            fabricType: true,
-          },
-        },
-        PatternSuggestedFabric: {
-          include: {
-            suggestedFabric: true,
-          },
-        },
-        PatternAttribute: {
-          include: {
-            attribute: true,
-          },
-        },
-        PatternFormat: {
-          include: {
-            Format: true,
-          },
-        },
+        PatternCategory: { include: { category: true } },
+        PatternAudience: { include: { audience: true } },
+        PatternFabricType: { include: { fabricType: true } },
+        PatternSuggestedFabric: { include: { suggestedFabric: true } },
+        PatternAttribute: { include: { attribute: true } },
+        PatternFormat: { include: { Format: true } },
       },
     })
 
     return NextResponse.json({ success: true, pattern }, { status: 201 })
   } catch (error) {
     console.error("Error creating pattern:", error)
-    return NextResponse.json({ success: false, error: "Failed to create pattern" }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred"
+    return NextResponse.json({ success: false, error: `Failed to create pattern: ${errorMessage}` }, { status: 500 })
   }
 }

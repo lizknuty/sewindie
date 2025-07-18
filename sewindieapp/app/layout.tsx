@@ -5,6 +5,7 @@ import "bootstrap/dist/css/bootstrap.min.css"
 import "./styles.css"
 import Navbar from "@/components/Navbar"
 import { Providers } from "@/providers"
+import { Analytics } from "@vercel/analytics/next"
 
 const openSans = Open_Sans({
   subsets: ["latin"],

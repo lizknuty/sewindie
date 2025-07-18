@@ -61,6 +61,8 @@ model Pattern {
   yardage                String?                  @db.VarChar(255)
   sizes                  String?                  @db.VarChar(255)
   language               String?                  @db.VarChar(255)
+  difficulty             String?                  @db.VarChar(25)
+  release_date           DateTime?                @db.Date
   favorites              Favorite[]
   designer               Designer                 @relation(fields: [designer_id], references: [id])
   PatternAttribute       PatternAttribute[]

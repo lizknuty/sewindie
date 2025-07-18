@@ -1,59 +1,24 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/api/auth/[...nextauth]/options"
 import prisma from "@/lib/prisma"
+import { checkModeratorAccess } from "@/lib/admin-middleware"
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    // Await params before using it
-    const resolvedParams = await params
-
-    if (!resolvedParams.id) {
+    const patternId = Number.parseInt(params.id, 10)
+    if (isNaN(patternId)) {
       return NextResponse.json({ error: "Invalid pattern ID" }, { status: 400 })
     }
 
-    const patternId = Number.parseInt(resolvedParams.id, 10)
-
-    if (isNaN(patternId)) {
-      return NextResponse.json({ error: "Invalid pattern ID format" }, { status: 400 })
-    }
-
     const pattern = await prisma.pattern.findUnique({
-      where: {
-        id: patternId,
-      },
+      where: { id: patternId },
       include: {
         designer: { select: { id: true, name: true } },
-        PatternCategory: {
-          include: {
-            category: true,
-          },
-        },
-        PatternAudience: {
-          include: {
-            audience: true,
-          },
-        },
-        PatternFabricType: {
-          include: {
-            fabricType: true,
-          },
-        },
-        PatternSuggestedFabric: {
-          include: {
-            suggestedFabric: true,
-          },
-        },
-        PatternAttribute: {
-          include: {
-            attribute: true,
-          },
-        },
-        PatternFormat: {
-          include: {
-            Format: true,
-          },
-        },
+        PatternCategory: { include: { category: true } },
+        PatternAudience: { include: { audience: true } },
+        PatternFabricType: { include: { fabricType: true } },
+        PatternSuggestedFabric: { include: { suggestedFabric: true } },
+        PatternAttribute: { include: { attribute: true } },
+        PatternFormat: { include: { Format: true } },
       },
     })
 
@@ -63,102 +28,27 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json({ success: true, pattern })
   } catch (error) {
-    console.error("Error fetching pattern:", error)
+    console.error(`Error fetching pattern ${params.id}:`, error)
     return NextResponse.json({ success: false, error: "Failed to fetch pattern" }, { status: 500 })
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    // Await params before using it
-    const resolvedParams = await params
+    const { authorized, response } = await checkModeratorAccess()
+    if (!authorized) return response
 
-    // Check authentication
-    const session = await getServerSession(authOptions)
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const patternId = Number.parseInt(resolvedParams.id, 10)
-
+    const patternId = Number.parseInt(params.id, 10)
     if (isNaN(patternId)) {
-      return NextResponse.json({ error: "Invalid pattern ID format" }, { status: 400 })
+      return NextResponse.json({ error: "Invalid pattern ID" }, { status: 400 })
     }
 
-    // Get request body
     const data = await request.json()
-
-    // Validate required fields
-    if (!data.name || !data.designer_id || !data.url) {
-      return NextResponse.json({ error: "Name, designer_id, and url are required" }, { status: 400 })
-    }
-
-    // Check if pattern exists
-    const existingPattern = await prisma.pattern.findUnique({
-      where: {
-        id: patternId,
-      },
-      include: {
-        PatternCategory: true,
-        PatternAudience: true,
-        PatternFabricType: true,
-        PatternSuggestedFabric: true,
-        PatternAttribute: true,
-        PatternFormat: true,
-      },
-    })
-
-    if (!existingPattern) {
-      return NextResponse.json({ error: "Pattern not found" }, { status: 404 })
-    }
-
-    // Extract relationship data
     const { categories, audiences, fabricTypes, suggestedFabrics, attributes, formats, ...patternData } = data
 
-    // Update pattern with transaction to handle relationships
-    const pattern = await prisma.$transaction(async (tx) => {
-      // Delete existing relationships if new ones are provided
-      if (categories) {
-        await tx.patternCategory.deleteMany({
-          where: { pattern_id: patternId },
-        })
-      }
-
-      if (audiences) {
-        await tx.patternAudience.deleteMany({
-          where: { pattern_id: patternId },
-        })
-      }
-
-      if (fabricTypes) {
-        await tx.patternFabricType.deleteMany({
-          where: { pattern_id: patternId },
-        })
-      }
-
-      if (suggestedFabrics) {
-        await tx.patternSuggestedFabric.deleteMany({
-          where: { pattern_id: patternId },
-        })
-      }
-
-      if (attributes) {
-        await tx.patternAttribute.deleteMany({
-          where: { pattern_id: patternId },
-        })
-      }
-
-      if (formats) {
-        await tx.patternFormat.deleteMany({
-          where: { pattern_id: patternId },
-        })
-      }
-
-      // Update the pattern
-      const updatedPattern = await tx.pattern.update({
-        where: {
-          id: patternId,
-        },
+    await prisma.$transaction(async (tx) => {
+      await tx.pattern.update({
+        where: { id: patternId },
         data: {
           name: patternData.name,
           designer_id: patternData.designer_id,
@@ -167,202 +57,79 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           yardage: patternData.yardage || null,
           sizes: patternData.sizes || null,
           language: patternData.language || null,
+          difficulty: patternData.difficulty || null,
+          release_date: patternData.release_date ? new Date(patternData.release_date) : null,
         },
       })
 
-      // Create new relationships
-      if (categories && categories.length > 0) {
-        await Promise.all(
-          categories.map((categoryId: number) =>
-            tx.patternCategory.create({
-              data: {
-                pattern_id: patternId,
-                category_id: categoryId,
-              },
-            }),
-          ),
-        )
+      const updateM2M = async (model: any, relationField: string, foreignKey: string, ids: number[] | undefined) => {
+        if (ids === undefined) return
+        await model.deleteMany({ where: { [relationField]: patternId } })
+        if (ids.length > 0) {
+          await model.createMany({
+            data: ids.map((id: number) => ({
+              [relationField]: patternId,
+              [foreignKey]: id,
+            })),
+          })
+        }
       }
 
-      if (audiences && audiences.length > 0) {
-        await Promise.all(
-          audiences.map((audienceId: number) =>
-            tx.patternAudience.create({
-              data: {
-                pattern_id: patternId,
-                audience_id: audienceId,
-              },
-            }),
-          ),
-        )
-      }
-
-      if (fabricTypes && fabricTypes.length > 0) {
-        await Promise.all(
-          fabricTypes.map((fabricTypeId: number) =>
-            tx.patternFabricType.create({
-              data: {
-                pattern_id: patternId,
-                fabrictype_id: fabricTypeId,
-              },
-            }),
-          ),
-        )
-      }
-
-      if (suggestedFabrics && suggestedFabrics.length > 0) {
-        await Promise.all(
-          suggestedFabrics.map((suggestedFabricId: number) =>
-            tx.patternSuggestedFabric.create({
-              data: {
-                pattern_id: patternId,
-                suggestedfabric_id: suggestedFabricId,
-              },
-            }),
-          ),
-        )
-      }
-
-      if (attributes && attributes.length > 0) {
-        await Promise.all(
-          attributes.map((attributeId: number) =>
-            tx.patternAttribute.create({
-              data: {
-                pattern_id: patternId,
-                attribute_id: attributeId,
-              },
-            }),
-          ),
-        )
-      }
-
-      if (formats && formats.length > 0) {
-        await Promise.all(
-          formats.map((formatId: number) =>
-            tx.patternFormat.create({
-              data: {
-                pattern_id: patternId,
-                format_id: formatId,
-              },
-            }),
-          ),
-        )
-      }
-
-      return updatedPattern
+      await updateM2M(tx.patternCategory, "pattern_id", "category_id", categories)
+      await updateM2M(tx.patternAudience, "pattern_id", "audience_id", audiences)
+      await updateM2M(tx.patternFabricType, "pattern_id", "fabrictype_id", fabricTypes)
+      await updateM2M(tx.patternSuggestedFabric, "pattern_id", "suggestedfabric_id", suggestedFabrics)
+      await updateM2M(tx.patternAttribute, "pattern_id", "attribute_id", attributes)
+      await updateM2M(tx.patternFormat, "pattern_id", "format_id", formats)
     })
 
-    // Fetch the updated pattern with all relationships
     const updatedPattern = await prisma.pattern.findUnique({
       where: { id: patternId },
       include: {
         designer: true,
-        PatternCategory: {
-          include: {
-            category: true,
-          },
-        },
-        PatternAudience: {
-          include: {
-            audience: true,
-          },
-        },
-        PatternFabricType: {
-          include: {
-            fabricType: true,
-          },
-        },
-        PatternSuggestedFabric: {
-          include: {
-            suggestedFabric: true,
-          },
-        },
-        PatternAttribute: {
-          include: {
-            attribute: true,
-          },
-        },
-        PatternFormat: {
-          include: {
-            Format: true,
-          },
-        },
+        PatternCategory: { include: { category: true } },
+        PatternAudience: { include: { audience: true } },
+        PatternFabricType: { include: { fabricType: true } },
+        PatternSuggestedFabric: { include: { suggestedFabric: true } },
+        PatternAttribute: { include: { attribute: true } },
+        PatternFormat: { include: { Format: true } },
       },
     })
 
     return NextResponse.json({ success: true, pattern: updatedPattern })
   } catch (error) {
-    console.error("Error updating pattern:", error)
-    return NextResponse.json({ success: false, error: "Failed to update pattern" }, { status: 500 })
+    console.error(`Error updating pattern ${params.id}:`, error)
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred"
+    return NextResponse.json({ success: false, error: `Failed to update pattern: ${errorMessage}` }, { status: 500 })
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    // Await params before using it
-    const resolvedParams = await params
+    const { authorized, response } = await checkModeratorAccess()
+    if (!authorized) return response
 
-    // Check authentication
-    const session = await getServerSession(authOptions)
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const patternId = Number.parseInt(resolvedParams.id, 10)
-
+    const patternId = Number.parseInt(params.id, 10)
     if (isNaN(patternId)) {
-      return NextResponse.json({ error: "Invalid pattern ID format" }, { status: 400 })
+      return NextResponse.json({ error: "Invalid pattern ID" }, { status: 400 })
     }
 
-    // Check if pattern exists
-    const existingPattern = await prisma.pattern.findUnique({
-      where: {
-        id: patternId,
-      },
-    })
-
-    if (!existingPattern) {
-      return NextResponse.json({ error: "Pattern not found" }, { status: 404 })
-    }
-
-    // Delete pattern with transaction to handle relationships
     await prisma.$transaction(async (tx) => {
-      // Delete related records first
-      await tx.patternCategory.deleteMany({
-        where: { pattern_id: patternId },
-      })
-
-      await tx.patternAudience.deleteMany({
-        where: { pattern_id: patternId },
-      })
-
-      await tx.patternFabricType.deleteMany({
-        where: { pattern_id: patternId },
-      })
-
-      await tx.patternSuggestedFabric.deleteMany({
-        where: { pattern_id: patternId },
-      })
-
-      await tx.patternAttribute.deleteMany({
-        where: { pattern_id: patternId },
-      })
-
-      await tx.patternFormat.deleteMany({
-        where: { pattern_id: patternId },
-      })
-
-      // Delete the pattern
-      await tx.pattern.delete({
-        where: {
-          id: patternId,
-        },
-      })
+      await tx.patternCategory.deleteMany({ where: { pattern_id: patternId } })
+      await tx.patternAudience.deleteMany({ where: { pattern_id: patternId } })
+      await tx.patternFabricType.deleteMany({ where: { pattern_id: patternId } })
+      await tx.patternSuggestedFabric.deleteMany({ where: { pattern_id: patternId } })
+      await tx.patternAttribute.deleteMany({ where: { pattern_id: patternId } })
+      await tx.patternFormat.deleteMany({ where: { pattern_id: patternId } })
+      await tx.favorite.deleteMany({ where: { patternId: patternId } })
+      await tx.rating.deleteMany({ where: { patternId: patternId } })
+      await tx.pattern.delete({ where: { id: patternId } })
     })
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Error deleting pattern:", error)
-    return NextResponse.json({ success: false, error: "Failed to delete pattern" }, { status: 500 })
+    console.error(`Error deleting pattern ${params.id}:`, error)
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred"
+    return NextResponse.json({ success: false, error: `Failed to delete pattern: ${errorMessage}` }, { status: 500 })
   }
 }
