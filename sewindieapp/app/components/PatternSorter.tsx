@@ -1,23 +1,34 @@
-'use client'
+"use client"
+import { useState, useEffect } from "react"
+import type React from "react"
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from "next/navigation"
 
-type SortOption = 'name_asc' | 'name_desc' | 'designer_asc' | 'designer_desc'
+type SortOption = "name_asc" | "name_desc" | "designer_asc" | "designer_desc"
 
 export default function PatternSorter() {
   const router = useRouter()
-  const [sortOption, setSortOption] = useState<SortOption>('name_asc')
+  const searchParams = useSearchParams()
+  const initialSort = (searchParams.get("sort") as SortOption) || "name_asc"
+  const [sortOption, setSortOption] = useState<SortOption>(initialSort)
+
+  useEffect(() => {
+    setSortOption((searchParams.get("sort") as SortOption) || "name_asc")
+  }, [searchParams])
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newSortOption = e.target.value as SortOption
     setSortOption(newSortOption)
-    router.push(`/patterns?sort=${newSortOption}`)
+    const currentParams = new URLSearchParams(searchParams.toString())
+    currentParams.set("sort", newSortOption)
+    router.push(`/admin/patterns?${currentParams.toString()}`)
   }
 
   return (
     <div className="mb-4">
-      <label htmlFor="sort-select" className="me-2">Sort by:</label>
+      <label htmlFor="sort-select" className="me-2">
+        Sort by:
+      </label>
       <select
         id="sort-select"
         value={sortOption}

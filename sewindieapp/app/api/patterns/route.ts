@@ -3,10 +3,113 @@ import prisma from "@/lib/prisma"
 import { checkModeratorAccess } from "@/lib/admin-middleware"
 import { Prisma } from "@prisma/client"
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const searchParams = request.nextUrl.searchParams
+    const searchQuery = searchParams.get("search")
+    const sortQuery = searchParams.get("sort")
+    const categoryIds = searchParams.getAll("category").map(Number)
+    const attributeIds = searchParams.getAll("attribute").map(Number)
+    const formatIds = searchParams.getAll("format").map(Number)
+    const audienceIds = searchParams.getAll("audience").map(Number)
+    const fabricTypeIds = searchParams.getAll("fabricType").map(Number)
+    const designerIds = searchParams.getAll("designer").map(Number)
+
+    const whereClause: Prisma.PatternWhereInput = {}
+    const orderByClause: Prisma.PatternOrderByWithRelationInput = {}
+
+    if (searchQuery) {
+      whereClause.OR = [
+        {
+          name: {
+            contains: searchQuery,
+            mode: "insensitive",
+          },
+        },
+        {
+          designer: {
+            name: {
+              contains: searchQuery,
+              mode: "insensitive",
+            },
+          },
+        },
+      ]
+    }
+
+    if (categoryIds.length > 0) {
+      whereClause.PatternCategory = {
+        some: {
+          category_id: {
+            in: categoryIds,
+          },
+        },
+      }
+    }
+    if (attributeIds.length > 0) {
+      whereClause.PatternAttribute = {
+        some: {
+          attribute_id: {
+            in: attributeIds,
+          },
+        },
+      }
+    }
+    if (formatIds.length > 0) {
+      whereClause.PatternFormat = {
+        some: {
+          format_id: {
+            in: formatIds,
+          },
+        },
+      }
+    }
+    if (audienceIds.length > 0) {
+      whereClause.PatternAudience = {
+        some: {
+          audience_id: {
+            in: audienceIds,
+          },
+        },
+      }
+    }
+    if (fabricTypeIds.length > 0) {
+      whereClause.PatternFabricType = {
+        some: {
+          fabrictype_id: {
+            // Corrected from fabricType_id to fabrictype_id
+            in: fabricTypeIds,
+          },
+        },
+      }
+    }
+    if (designerIds.length > 0) {
+      whereClause.designer_id = {
+        in: designerIds,
+      }
+    }
+
+    switch (sortQuery) {
+      case "name_asc":
+        orderByClause.name = "asc"
+        break
+      case "name_desc":
+        orderByClause.name = "desc"
+        break
+      case "designer_asc":
+        orderByClause.designer = { name: "asc" }
+        break
+      case "designer_desc":
+        orderByClause.designer = { name: "desc" }
+        break
+      default:
+        orderByClause.name = "asc" // Default sort
+        break
+    }
+
     const patterns = await prisma.pattern.findMany({
-      orderBy: { name: "asc" },
+      where: whereClause,
+      orderBy: orderByClause,
       include: {
         designer: { select: { id: true, name: true } },
       },
@@ -24,42 +127,23 @@ export async function POST(request: NextRequest) {
     if (!authorized) return response
 
     const body = await request.json()
-    const {
-      name,
-      designer_id,
-      url,
-      thumbnail_url,
-      yardage,
-      sizes,
-      language,
-      difficulty,
-      release_date,
-      categories,
-      audiences,
-      fabricTypes,
-      suggestedFabrics,
-      attributes,
-      formats,
-    } = body
 
-    if (!name || !designer_id || !url) {
+    if (!body.name || !body.designer_id || !body.url) {
       return NextResponse.json({ error: "Name, designer_id, and url are required" }, { status: 400 })
     }
 
-    // --- DEFINITIVE FIX: TWO-STEP CREATE ---
-
-    // Step 1: Create the Pattern with scalar fields ONLY. This is a simple, reliable operation.
+    // Step 1: Create the Pattern with an explicitly constructed data object.
     const newPattern = await prisma.pattern.create({
       data: {
-        name,
-        url,
-        designer_id: Number(designer_id),
-        thumbnail_url: thumbnail_url || null,
-        yardage: yardage || null,
-        sizes: sizes || null,
-        language: language || null,
-        difficulty: difficulty || null,
-        release_date: release_date ? new Date(release_date) : null,
+        name: body.name,
+        url: body.url,
+        designer_id: Number(body.designer_id),
+        thumbnail_url: body.thumbnail_url || null,
+        yardage: body.yardage || null,
+        sizes: body.sizes || null,
+        language: body.language || null,
+        difficulty: body.difficulty || null,
+        release_date: body.release_date ? new Date(body.release_date) : null,
       },
     })
 
@@ -68,22 +152,22 @@ export async function POST(request: NextRequest) {
       where: { id: newPattern.id },
       data: {
         PatternCategory: {
-          create: categories?.map((id: number) => ({ category: { connect: { id } } })),
+          create: body.categories?.map((id: number) => ({ category: { connect: { id } } })),
         },
         PatternAudience: {
-          create: audiences?.map((id: number) => ({ audience: { connect: { id } } })),
+          create: body.audiences?.map((id: number) => ({ audience: { connect: { id } } })),
         },
         PatternFabricType: {
-          create: fabricTypes?.map((id: number) => ({ fabricType: { connect: { id } } })),
+          create: body.fabricTypes?.map((id: number) => ({ fabricType: { connect: { id } } })),
         },
         PatternSuggestedFabric: {
-          create: suggestedFabrics?.map((id: number) => ({ suggestedFabric: { connect: { id } } })),
+          create: body.suggestedFabrics?.map((id: number) => ({ suggestedFabric: { connect: { id } } })),
         },
         PatternAttribute: {
-          create: attributes?.map((id: number) => ({ attribute: { connect: { id } } })),
+          create: body.attributes?.map((id: number) => ({ attribute: { connect: { id } } })),
         },
         PatternFormat: {
-          create: formats?.map((id: number) => ({ Format: { connect: { id } } })),
+          create: body.formats?.map((id: number) => ({ Format: { connect: { id } } })),
         },
       },
     })
