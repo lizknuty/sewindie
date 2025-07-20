@@ -155,7 +155,7 @@ export default function PatternForm({ pattern }: PatternFormProps) {
         const attributesData = await attributesRes.json()
         const formatsData = await formatsRes.json()
 
-        setDesigners(designersData)
+        setDesigners(designersData.designers || designersData || []) // Corrected to handle potential object wrapping
         setCategories(categoriesData.categories || categoriesData || [])
         setAudiences(audiencesData.audiences || audiencesData || [])
         setFabricTypes(fabricTypesData.fabricTypes || fabricTypesData || [])

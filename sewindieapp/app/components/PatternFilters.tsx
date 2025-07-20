@@ -29,71 +29,17 @@ export default function PatternFilters({
   const searchParams = useSearchParams()
   const [expandedSections, setExpandedSections] = useState<string[]>([])
 
+  // Initialize expanded sections based on current search params
   useEffect(() => {
-    const style = document.createElement("style")
-    style.textContent = `
-      .scrollable-filter {
-        max-height: 200px;
-        overflow-y: auto;
-        padding-right: 10px;
-        background-color: var(--color-light); /* Changed to var(--color-light) */
+    const initialExpanded: string[] = []
+    const filterTypes = ["category", "attribute", "format", "audience", "fabricType", "designer"]
+    filterTypes.forEach((type) => {
+      if (searchParams.has(type)) {
+        initialExpanded.push(type)
       }
-      .scrollable-filter::-webkit-scrollbar {
-        width: 6px;
-      }
-      .scrollable-filter::-webkit-scrollbar-track {
-        background: #f1f1f1;
-      }
-      .scrollable-filter::-webkit-scrollbar-thumb {
-        background: var(--color-muted);
-        border-radius: 3px;
-      }
-      .scrollable-filter::-webkit-scrollbar-thumb:hover {
-        background: var(--color-primary);
-      }
-
-      /* Override Bootstrap's form-check behavior for custom-checkbox */
-      .form-check {
-        padding-left: 0 !important; /* Remove Bootstrap's default padding */
-        margin-left: 1.5rem; /* Add desired indentation for the whole form-check element */
-      }
-
-      .custom-checkbox .form-check-input {
-        border-color: #adb5bd;
-        width: 1.25rem;
-        height: 1.25rem;
-        /* Override Bootstrap's negative margin to keep it aligned with the new padding */
-        margin-left: 0 !important;
-      }
-
-      .custom-checkbox .form-check-input:checked {
-        background-color: var(--color-primary) !important; /* Align with user's styles.css */
-        border-color: var(--color-primary) !important; /* Align with user's styles.css */
-      }
-
-      .custom-checkbox .form-check-input:checked::after {
-        content: '';
-        display: block;
-        width: 6px;
-        height: 12px;
-        border: solid white;
-        border-width: 0 2px 2px 0;
-        transform: rotate(45deg);
-        position: absolute;
-        top: 2px;
-        left: 6px;
-      }
-
-      .custom-checkbox .form-check-label {
-        padding-left: 0.5rem;
-        color: var(--color-dark); /* Ensure label color is consistent */
-      }
-    `
-    document.head.appendChild(style)
-    return () => {
-      document.head.removeChild(style)
-    }
-  }, [])
+    })
+    setExpandedSections(initialExpanded)
+  }, [searchParams])
 
   const handleFilterChange = useCallback(
     (filterType: string, value: string) => {

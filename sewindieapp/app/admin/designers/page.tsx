@@ -18,6 +18,7 @@ type Designer = {
 export default function DesignersPage() {
   const searchParams = useSearchParams()
   const initialSearchQuery = searchParams.get("search") || ""
+
   const [designers, setDesigners] = useState<Designer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
