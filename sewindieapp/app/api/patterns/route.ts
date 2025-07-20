@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { checkModeratorAccess } from "@/lib/admin-middleware"
+import { Prisma } from "@prisma/client"
 
 export async function GET() {
   try {
@@ -22,56 +23,78 @@ export async function POST(request: NextRequest) {
     const { authorized, response } = await checkModeratorAccess()
     if (!authorized) return response
 
-    const requestData = await request.json()
+    const body = await request.json()
+    const {
+      name,
+      designer_id,
+      url,
+      thumbnail_url,
+      yardage,
+      sizes,
+      language,
+      difficulty,
+      release_date,
+      categories,
+      audiences,
+      fabricTypes,
+      suggestedFabrics,
+      attributes,
+      formats,
+    } = body
 
-    // Destructure and explicitly ignore any 'id' from the request body.
-    const { id, categories, audiences, fabricTypes, suggestedFabrics, attributes, formats, ...patternData } =
-      requestData
-
-    if (!patternData.name || !patternData.designer_id || !patternData.url) {
+    if (!name || !designer_id || !url) {
       return NextResponse.json({ error: "Name, designer_id, and url are required" }, { status: 400 })
     }
 
-    const pattern = await prisma.pattern.create({
+    // --- DEFINITIVE FIX: TWO-STEP CREATE ---
+
+    // Step 1: Create the Pattern with scalar fields ONLY. This is a simple, reliable operation.
+    const newPattern = await prisma.pattern.create({
       data: {
-        ...patternData,
-        release_date: patternData.release_date ? new Date(patternData.release_date) : null,
+        name,
+        url,
+        designer_id: Number(designer_id),
+        thumbnail_url: thumbnail_url || null,
+        yardage: yardage || null,
+        sizes: sizes || null,
+        language: language || null,
+        difficulty: difficulty || null,
+        release_date: release_date ? new Date(release_date) : null,
+      },
+    })
+
+    // Step 2: Update the new pattern to connect all its many-to-many relationships.
+    const updatedPatternWithRelations = await prisma.pattern.update({
+      where: { id: newPattern.id },
+      data: {
         PatternCategory: {
-          create: categories?.map((categoryId: number) => ({
-            category: { connect: { id: categoryId } },
-          })),
+          create: categories?.map((id: number) => ({ category: { connect: { id } } })),
         },
         PatternAudience: {
-          create: audiences?.map((audienceId: number) => ({
-            audience: { connect: { id: audienceId } },
-          })),
+          create: audiences?.map((id: number) => ({ audience: { connect: { id } } })),
         },
         PatternFabricType: {
-          create: fabricTypes?.map((fabricTypeId: number) => ({
-            fabricType: { connect: { id: fabricTypeId } },
-          })),
+          create: fabricTypes?.map((id: number) => ({ fabricType: { connect: { id } } })),
         },
         PatternSuggestedFabric: {
-          create: suggestedFabrics?.map((suggestedFabricId: number) => ({
-            suggestedFabric: { connect: { id: suggestedFabricId } },
-          })),
+          create: suggestedFabrics?.map((id: number) => ({ suggestedFabric: { connect: { id } } })),
         },
         PatternAttribute: {
-          create: attributes?.map((attributeId: number) => ({
-            attribute: { connect: { id: attributeId } },
-          })),
+          create: attributes?.map((id: number) => ({ attribute: { connect: { id } } })),
         },
         PatternFormat: {
-          create: formats?.map((formatId: number) => ({
-            Format: { connect: { id: formatId } },
-          })),
+          create: formats?.map((id: number) => ({ Format: { connect: { id } } })),
         },
       },
     })
 
-    return NextResponse.json({ success: true, pattern }, { status: 201 })
+    return NextResponse.json({ success: true, pattern: updatedPatternWithRelations }, { status: 201 })
   } catch (error) {
     console.error("Error creating pattern:", error)
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      console.error("Prisma Error Code:", error.code)
+      console.error("Prisma Meta:", error.meta)
+    }
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred"
     return NextResponse.json({ success: false, error: `Failed to create pattern: ${errorMessage}` }, { status: 500 })
   }

@@ -8,7 +8,6 @@ import Image from "next/image"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 
-// This interface now matches the full Designer model from your schema
 interface Designer {
   id: number
   name: string
@@ -57,7 +56,7 @@ interface PatternFormProps {
     id: number
     name: string
     designer_id: number
-    designer?: Designer // Uses the updated Designer interface
+    designer?: Designer
     url: string
     thumbnail_url?: string | null
     yardage?: string | null
@@ -194,9 +193,15 @@ export default function PatternForm({ pattern }: PatternFormProps) {
       const method = pattern ? "PUT" : "POST"
 
       const dataToSubmit = {
-        ...formData,
+        name: formData.name,
         designer_id: Number.parseInt(formData.designer_id),
-        difficulty: formData.difficulty || null,
+        url: formData.url,
+        thumbnail_url: formData.thumbnail_url,
+        yardage: formData.yardage,
+        sizes: formData.sizes,
+        language: formData.language,
+        difficulty: formData.difficulty,
+        release_date: formData.release_date,
         categories: formData.categories.map((id) => Number.parseInt(id)),
         audiences: formData.audiences.map((id) => Number.parseInt(id)),
         fabricTypes: formData.fabricTypes.map((id) => Number.parseInt(id)),
