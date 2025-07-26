@@ -51,6 +51,14 @@ interface Format {
   name: string
 }
 
+interface SizeChart {
+  id: number
+  label: string
+  Designer: {
+    name: string
+  }
+}
+
 interface PatternFormProps {
   pattern?: {
     id: number
@@ -60,7 +68,7 @@ interface PatternFormProps {
     url: string
     thumbnail_url?: string | null
     yardage?: string | null
-    sizes?: string | null
+    sizes?: string | null // This remains optional in the type, but the input field is removed
     language?: string | null
     difficulty?: string | null
     release_date?: Date | null
@@ -82,6 +90,9 @@ interface PatternFormProps {
     PatternFormat?: Array<{
       Format: Format
     }>
+    PatternSizeChart?: Array<{
+      SizeChart: SizeChart
+    }>
   }
 }
 
@@ -95,6 +106,7 @@ export default function PatternForm({ pattern }: PatternFormProps) {
   const [suggestedFabrics, setSuggestedFabrics] = useState<SuggestedFabric[]>([])
   const [attributes, setAttributes] = useState<Attribute[]>([])
   const [formats, setFormats] = useState<Format[]>([])
+  const [sizeCharts, setSizeCharts] = useState<SizeChart[]>([]) // New state for size charts
 
   const [formData, setFormData] = useState({
     name: pattern?.name || "",
@@ -102,7 +114,7 @@ export default function PatternForm({ pattern }: PatternFormProps) {
     url: pattern?.url || "",
     thumbnail_url: pattern?.thumbnail_url || "",
     yardage: pattern?.yardage || "",
-    sizes: pattern?.sizes || "",
+    // sizes: pattern?.sizes || "", // Removed from form data
     language: pattern?.language || "",
     difficulty: pattern?.difficulty || "",
     release_date: pattern?.release_date ? new Date(pattern.release_date) : null,
@@ -112,6 +124,7 @@ export default function PatternForm({ pattern }: PatternFormProps) {
     suggestedFabrics: pattern?.PatternSuggestedFabric?.map((psf) => psf.suggestedFabric.id.toString()) || [],
     attributes: pattern?.PatternAttribute?.map((pa) => pa.attribute.id.toString()) || [],
     formats: pattern?.PatternFormat?.map((pf) => pf.Format.id.toString()) || [],
+    sizeCharts: pattern?.PatternSizeChart?.map((psc) => psc.SizeChart.id.toString()) || [], // New field
   })
 
   useEffect(() => {
@@ -125,6 +138,7 @@ export default function PatternForm({ pattern }: PatternFormProps) {
           suggestedFabricsRes,
           attributesRes,
           formatsRes,
+          sizeChartsRes, // New fetch
         ] = await Promise.all([
           fetch("/api/designers"),
           fetch("/api/categories"),
@@ -133,6 +147,7 @@ export default function PatternForm({ pattern }: PatternFormProps) {
           fetch("/api/suggested-fabrics"),
           fetch("/api/attributes"),
           fetch("/api/formats"),
+          fetch("/api/size-charts"), // New fetch
         ])
 
         if (
@@ -142,7 +157,8 @@ export default function PatternForm({ pattern }: PatternFormProps) {
           !fabricTypesRes.ok ||
           !suggestedFabricsRes.ok ||
           !attributesRes.ok ||
-          !formatsRes.ok
+          !formatsRes.ok ||
+          !sizeChartsRes.ok // Check new fetch
         ) {
           throw new Error("Failed to fetch form data")
         }
@@ -154,19 +170,20 @@ export default function PatternForm({ pattern }: PatternFormProps) {
         const suggestedFabricsData = await suggestedFabricsRes.json()
         const attributesData = await attributesRes.json()
         const formatsData = await formatsRes.json()
+        const sizeChartsData = await sizeChartsRes.json() // Process new data
 
-        setDesigners(designersData.designers || designersData || []) // Corrected to handle potential object wrapping
+        setDesigners(designersData.designers || designersData || [])
         setCategories(categoriesData.categories || categoriesData || [])
         setAudiences(audiencesData.audiences || audiencesData || [])
         setFabricTypes(fabricTypesData.fabricTypes || fabricTypesData || [])
         setSuggestedFabrics(suggestedFabricsData.suggestedFabrics || suggestedFabricsData || [])
         setAttributes(attributesData.attributes || attributesData || [])
         setFormats(formatsData.formats || formatsData || [])
+        setSizeCharts(sizeChartsData || []) // Set new state
       } catch (error) {
         console.error("Error fetching form data:", error)
       }
     }
-
     fetchData()
   }, [])
 
@@ -198,7 +215,7 @@ export default function PatternForm({ pattern }: PatternFormProps) {
         url: formData.url,
         thumbnail_url: formData.thumbnail_url,
         yardage: formData.yardage,
-        sizes: formData.sizes,
+        // sizes: formData.sizes, // Removed from data to submit
         language: formData.language,
         difficulty: formData.difficulty,
         release_date: formData.release_date,
@@ -208,6 +225,7 @@ export default function PatternForm({ pattern }: PatternFormProps) {
         suggestedFabrics: formData.suggestedFabrics.map((id) => Number.parseInt(id)),
         attributes: formData.attributes.map((id) => Number.parseInt(id)),
         formats: formData.formats.map((id) => Number.parseInt(id)),
+        sizeCharts: formData.sizeCharts.map((id) => Number.parseInt(id)), // New field
       }
 
       const response = await fetch(url, {
@@ -443,22 +461,30 @@ export default function PatternForm({ pattern }: PatternFormProps) {
         </div>
       </div>
 
-      <div className="row">
-        <div className="col-md-4 mb-3">
-          <label htmlFor="sizes" className="form-label">
-            Sizes
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            id="sizes"
-            name="sizes"
-            value={formData.sizes || ""}
-            onChange={handleChange}
-          />
-        </div>
+      {/* New Size Charts Multi-select */}
+      <div className="mb-3">
+        <label htmlFor="sizeCharts" className="form-label">
+          Size Charts
+        </label>
+        <select
+          className="form-select"
+          id="sizeCharts"
+          name="sizeCharts"
+          multiple
+          value={formData.sizeCharts}
+          onChange={(e) => handleMultiSelectChange(e, "sizeCharts")}
+          size={5}
+        >
+          {sizeCharts.map((chart) => (
+            <option key={chart.id} value={chart.id.toString()}>
+              {chart.label} ({chart.Designer.name})
+            </option>
+          ))}
+        </select>
+      </div>
 
-        <div className="col-md-4 mb-3">
+      <div className="row">
+        <div className="col-md-6 mb-3">
           <label htmlFor="yardage" className="form-label">
             Yardage
           </label>
@@ -472,7 +498,7 @@ export default function PatternForm({ pattern }: PatternFormProps) {
           />
         </div>
 
-        <div className="col-md-4 mb-3">
+        <div className="col-md-6 mb-3">
           <label htmlFor="language" className="form-label">
             Language
           </label>

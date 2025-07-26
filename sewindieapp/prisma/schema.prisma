@@ -27,17 +27,18 @@ model Category {
 }
 
 model Designer {
-  id        Int       @id @default(autoincrement())
-  name      String    @db.VarChar(255)
+  id        Int         @id @default(autoincrement())
+  name      String      @db.VarChar(255)
   url       String
   logo_url  String?
-  email     String?   @db.VarChar(255)
-  address   String?   @db.VarChar(255)
+  email     String?     @db.VarChar(255)
+  address   String?     @db.VarChar(255)
   facebook  String?
   instagram String?
   pinterest String?
   youtube   String?
   patterns  Pattern[]
+  SizeChart SizeChart[]
 }
 
 model FabricType {
@@ -59,7 +60,6 @@ model Pattern {
   url                    String
   thumbnail_url          String?
   yardage                String?                  @db.VarChar(255)
-  sizes                  String?                  @db.VarChar(255)
   language               String?                  @db.VarChar(255)
   difficulty             String?                  @db.VarChar(25)
   release_date           DateTime?                @db.Date
@@ -70,6 +70,7 @@ model Pattern {
   PatternCategory        PatternCategory[]
   PatternFabricType      PatternFabricType[]
   PatternFormat          PatternFormat[]
+  PatternSizeChart       PatternSizeChart[]
   PatternSuggestedFabric PatternSuggestedFabric[]
   ratings                Rating[]
 }
@@ -131,17 +132,18 @@ model SuggestedFabric {
 }
 
 model User {
-  id                Int        @id @default(autoincrement())
-  name              String?    @db.VarChar(255)
-  email             String     @unique(map: "user_email_unique") @db.VarChar(255)
-  password          String     @db.VarChar(255)
-  createdAt         DateTime   @default(now()) @db.Timestamp(6)
-  updatedAt         DateTime   @updatedAt @db.Timestamp(6)
-  role              String?    @db.VarChar(50)
+  id                Int               @id @default(autoincrement())
+  name              String?           @db.VarChar(255)
+  email             String            @unique(map: "user_email_unique") @db.VarChar(255)
+  password          String            @db.VarChar(255)
+  createdAt         DateTime          @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime          @updatedAt @db.Timestamp(6)
+  role              String?           @db.VarChar(50)
   resetToken        String?
-  resetTokenExpires DateTime?  @db.Timestamp(6)
+  resetTokenExpires DateTime?         @db.Timestamp(6)
   favorites         Favorite[]
   ratings           Rating[]
+  UserMeasurement   UserMeasurement[]
 
   @@index([resetToken])
 }
@@ -178,4 +180,71 @@ model PatternFormat {
   Pattern    Pattern @relation(fields: [pattern_id], references: [id])
 
   @@unique([pattern_id, format_id])
+}
+
+model PatternSizeChart {
+  id            Int       @id @default(autoincrement())
+  pattern_id    Int
+  size_chart_id Int
+  Pattern       Pattern   @relation(fields: [pattern_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  SizeChart     SizeChart @relation(fields: [size_chart_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([pattern_id, size_chart_id])
+  @@index([pattern_id])
+  @@index([size_chart_id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model SizeChart {
+  id               Int                @id @default(autoincrement())
+  designer_id      Int
+  label            String
+  measurement_unit MeasurementUnit
+  PatternSizeChart PatternSizeChart[]
+  Designer         Designer           @relation(fields: [designer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  SizeChartRow     SizeChartRow[]
+
+  @@index([designer_id])
+}
+
+model SizeChartRow {
+  id             Int       @id @default(autoincrement())
+  size_chart_id  Int
+  size_label     String
+  upper_bust_min Decimal?  @db.Decimal
+  upper_bust_max Decimal?  @db.Decimal
+  full_bust_min  Decimal?  @db.Decimal
+  full_bust_max  Decimal?  @db.Decimal
+  chest_min      Decimal?  @db.Decimal
+  chest_max      Decimal?  @db.Decimal
+  waist_min      Decimal?  @db.Decimal
+  waist_max      Decimal?  @db.Decimal
+  hip_min        Decimal?  @db.Decimal
+  hip_max        Decimal?  @db.Decimal
+  inseam_min     Decimal?  @db.Decimal
+  inseam_max     Decimal?  @db.Decimal
+  height_min     Decimal?  @db.Decimal
+  height_max     Decimal?  @db.Decimal
+  SizeChart      SizeChart @relation(fields: [size_chart_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model UserMeasurement {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  upper_bust Decimal? @db.Decimal
+  full_bust  Decimal? @db.Decimal
+  waist      Decimal? @db.Decimal
+  hip        Decimal? @db.Decimal
+  inseam     Decimal? @db.Decimal
+  height     Decimal? @db.Decimal
+  unit       String   @default("inches")
+  User       User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id])
+}
+
+enum MeasurementUnit {
+  inches
+  cm
 }

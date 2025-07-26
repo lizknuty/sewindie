@@ -24,6 +24,7 @@ const AdminSidebar = ({ user }: AdminSidebarProps) => {
     { href: "/admin/fabric-types", label: "Fabric Types", roles: ["ADMIN"] },
     { href: "/admin/formats", label: "Formats", roles: ["ADMIN"] },
     { href: "/admin/suggested-fabrics", label: "Suggested Fabrics", roles: ["ADMIN"] },
+    { href: "/admin/size-charts", label: "Size Charts", roles: ["ADMIN", "MODERATOR"] }, // New item added here
     { href: "/admin/contributions", label: "Contributions", roles: ["ADMIN", "MODERATOR"] },
     {
       href: "/admin/analytics",

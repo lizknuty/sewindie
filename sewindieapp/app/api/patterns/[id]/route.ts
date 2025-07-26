@@ -22,6 +22,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         PatternSuggestedFabric: { include: { suggestedFabric: true } },
         PatternAttribute: { include: { attribute: true } },
         PatternFormat: { include: { Format: true } },
+        PatternSizeChart: { include: { SizeChart: true } }, // Added for size charts
       },
     })
 
@@ -56,7 +57,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       url,
       thumbnail_url,
       yardage,
-      sizes,
+      // sizes, // Removed
       language,
       difficulty,
       release_date,
@@ -66,6 +67,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       suggestedFabrics,
       attributes,
       formats,
+      sizeCharts, // Added for size charts
     } = body
 
     if (!name || !designer_id || !url) {
@@ -83,7 +85,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           designer_id: Number(designer_id),
           thumbnail_url: thumbnail_url || null,
           yardage: yardage || null,
-          sizes: sizes || null,
+          // sizes: sizes || null, // Removed
           language: language || null,
           difficulty: difficulty || null,
           release_date: release_date ? new Date(release_date) : null,
@@ -98,6 +100,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         tx.patternSuggestedFabric.deleteMany({ where: { pattern_id: id } }),
         tx.patternAttribute.deleteMany({ where: { pattern_id: id } }),
         tx.patternFormat.deleteMany({ where: { pattern_id: id } }),
+        tx.patternSizeChart.deleteMany({ where: { pattern_id: id } }), // Delete existing size chart associations
       ])
 
       // Step 3: Create the new many-to-many relationships using createMany.
@@ -125,6 +128,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         formats?.length > 0 &&
           tx.patternFormat.createMany({
             data: formats.map((forId: number) => ({ pattern_id: id!, format_id: forId })),
+          }),
+        sizeCharts?.length > 0 && // Create new size chart associations
+          tx.patternSizeChart.createMany({
+            data: sizeCharts.map((scId: number) => ({ pattern_id: id!, size_chart_id: scId })),
           }),
       ])
 
@@ -163,6 +170,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       await tx.patternSuggestedFabric.deleteMany({ where: { pattern_id: id } })
       await tx.patternAttribute.deleteMany({ where: { pattern_id: id } })
       await tx.patternFormat.deleteMany({ where: { pattern_id: id } })
+      await tx.patternSizeChart.deleteMany({ where: { pattern_id: id } }) // Delete size chart associations
       await tx.favorite.deleteMany({ where: { patternId: id } })
       await tx.rating.deleteMany({ where: { patternId: id } })
       await tx.pattern.delete({ where: { id } })
