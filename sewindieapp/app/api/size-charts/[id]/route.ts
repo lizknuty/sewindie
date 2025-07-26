@@ -12,14 +12,15 @@ const toDecimal = (value: string | number | null | undefined): Decimal | null =>
   return isNaN(num) ? null : new Decimal(num)
 }
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { authorized, response } = await checkAdminAccess()
   if (!authorized) {
     return response
   }
 
-  // params is directly available as an object in Route Handlers, no need to await
-  const sizeChartId = Number.parseInt(params.id, 10)
+  // Await params to ensure it's resolved before accessing properties
+  const resolvedParams = await params
+  const sizeChartId = Number.parseInt(resolvedParams.id, 10)
 
   if (isNaN(sizeChartId)) {
     return NextResponse.json({ error: "Invalid Size Chart ID" }, { status: 400 })
@@ -54,14 +55,15 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { authorized, response } = await checkAdminAccess()
   if (!authorized) {
     return response
   }
 
-  // params is directly available as an object in Route Handlers, no need to await
-  const sizeChartId = Number.parseInt(params.id, 10)
+  // Await params to ensure it's resolved before accessing properties
+  const resolvedParams = await params
+  const sizeChartId = Number.parseInt(resolvedParams.id, 10)
 
   if (isNaN(sizeChartId)) {
     return NextResponse.json({ error: "Invalid Size Chart ID" }, { status: 400 })
@@ -175,14 +177,15 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { authorized, response } = await checkAdminAccess()
   if (!authorized) {
     return response
   }
 
-  // params is directly available as an object in Route Handlers, no need to await
-  const sizeChartId = Number.parseInt(params.id, 10)
+  // Await params to ensure it's resolved before accessing properties
+  const resolvedParams = await params
+  const sizeChartId = Number.parseInt(resolvedParams.id, 10)
 
   if (isNaN(sizeChartId)) {
     return NextResponse.json({ error: "Invalid Size Chart ID" }, { status: 400 })
