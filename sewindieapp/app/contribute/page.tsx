@@ -1,77 +1,77 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import DatePicker from 'react-datepicker'
+import type React from "react"
+
+import { useState, useEffect } from "react"
+import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 // Define types for the form data and API responses
 type Designer = {
-  id: number;
-  name: string;
+  id: number
+  name: string
 }
 
 type Category = {
-  id: number;
-  name: string;
+  id: number
+  name: string
 }
 
 type Audience = {
-  id: number;
-  name: string;
+  id: number
+  name: string
 }
 
 interface FormData {
-  name: string;
-  designer_id: string;
-  new_designer_name: string;
-  categories: string[];
-  sizes: string;
-  audience_id: string;
-  publication_date: Date | null;
-  publication_date_unknown: boolean;
-  published_in_print: boolean;
-  published_online: boolean;
-  pattern_url: string;
-  is_free: boolean;
-  is_bundle: boolean;
-  price: string;
-  is_knit: boolean;
-  is_woven: boolean;
-  suggested_fabrics: string;
-  required_notions: string;
-  total_yardage: string;
+  name: string
+  designer_id: string
+  new_designer_name: string
+  categories: string[]
+  audience_id: string
+  publication_date: Date | null
+  publication_date_unknown: boolean
+  published_in_print: boolean
+  published_online: boolean
+  pattern_url: string
+  is_free: boolean
+  is_bundle: boolean
+  price: string
+  is_knit: boolean
+  is_woven: boolean
+  suggested_fabrics: string
+  required_notions: string
+  total_yardage: string
 }
 
 const initialFormData: FormData = {
-  name: '',
-  designer_id: '',
-  new_designer_name: '',
+  name: "",
+  designer_id: "",
+  new_designer_name: "",
   categories: [],
-  sizes: '',
-  audience_id: '',
+  audience_id: "",
   publication_date: null,
   publication_date_unknown: false,
   published_in_print: false,
   published_online: false,
-  pattern_url: '',
+  pattern_url: "",
   is_free: false,
   is_bundle: false,
-  price: '',
+  price: "",
   is_knit: false,
   is_woven: false,
-  suggested_fabrics: '',
-  required_notions: '',
-  total_yardage: '',
+  suggested_fabrics: "",
+  required_notions: "",
+  total_yardage: "",
 }
 
 const steps = [
-  'Name & Designer',
-  'Category',
-  'Sizes & Audience',
-  'Sources',
-  'Links & Price',
-  'Fabric & Notions'
+  "Name & Designer",
+  "Category",
+  "Audience", // Changed from 'Sizes & Audience'
+  "Sources",
+  "Links & Price",
+  "Fabric & Notions",
 ]
 
 export default function ContributePage() {
@@ -88,23 +88,23 @@ export default function ContributePage() {
     async function fetchData() {
       try {
         const [designersRes, categoriesRes, audiencesRes] = await Promise.all([
-          fetch('/api/designers'),
-          fetch('/api/categories'),
-          fetch('/api/audiences')
+          fetch("/api/designers"),
+          fetch("/api/categories"),
+          fetch("/api/audiences"),
         ])
 
         const [designersData, categoriesData, audiencesData] = await Promise.all([
           designersRes.json(),
           categoriesRes.json(),
-          audiencesRes.json()
+          audiencesRes.json(),
         ])
 
         setDesigners(designersData)
         setCategories(categoriesData)
         setAudiences(audiencesData)
       } catch (error) {
-        console.error('Error fetching form data:', error)
-        setError('Failed to load form data. Please try again later.')
+        console.error("Error fetching form data:", error)
+        setError("Failed to load form data. Please try again later.")
       }
     }
     fetchData()
@@ -112,18 +112,18 @@ export default function ContributePage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+      [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
     }))
   }
 
   const handleMultiSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, options } = e.target
     const selectedValues = Array.from(options)
-      .filter(option => option.selected)
-      .map(option => option.value)
-    setFormData(prev => ({ ...prev, [name]: selectedValues }))
+      .filter((option) => option.selected)
+      .map((option) => option.value)
+    setFormData((prev) => ({ ...prev, [name]: selectedValues }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -134,29 +134,29 @@ export default function ContributePage() {
 
     try {
       // Send data to the Google Sheets API route
-      const sheetsResponse = await fetch('/api/contribute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const sheetsResponse = await fetch("/api/contribute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       })
 
       if (!sheetsResponse.ok) {
-        throw new Error('Failed to submit to Google Sheets')
+        throw new Error("Failed to submit to Google Sheets")
       }
 
-      setSubmissionStatus('Pattern submitted successfully. Thank you for your contribution!')
+      setSubmissionStatus("Pattern submitted successfully. Thank you for your contribution!")
       setFormData(initialFormData)
       setCurrentStep(0)
     } catch (error) {
-      console.error('Error submitting pattern:', error)
-      setError('Failed to submit pattern. Please try again.')
+      console.error("Error submitting pattern:", error)
+      setError("Failed to submit pattern. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, steps.length - 1))
-  const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0))
+  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1))
+  const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0))
 
   const renderStep = () => {
     switch (currentStep) {
@@ -164,7 +164,9 @@ export default function ContributePage() {
         return (
           <div>
             <div className="mb-3">
-              <label htmlFor="name" className="form-label">Pattern Name</label>
+              <label htmlFor="name" className="form-label">
+                Pattern Name
+              </label>
               <input
                 type="text"
                 className="form-control"
@@ -176,7 +178,9 @@ export default function ContributePage() {
               />
             </div>
             <div className="mb-3">
-              <label htmlFor="designer_id" className="form-label">Designer</label>
+              <label htmlFor="designer_id" className="form-label">
+                Designer
+              </label>
               <select
                 className="form-select"
                 id="designer_id"
@@ -187,14 +191,18 @@ export default function ContributePage() {
               >
                 <option value="">Select a designer</option>
                 <option value="not_listed">Not Listed</option>
-                {designers.map(designer => (
-                  <option key={designer.id} value={designer.id.toString()}>{designer.name}</option>
+                {designers.map((designer) => (
+                  <option key={designer.id} value={designer.id.toString()}>
+                    {designer.name}
+                  </option>
                 ))}
               </select>
             </div>
-            {formData.designer_id === 'not_listed' && (
+            {formData.designer_id === "not_listed" && (
               <div className="mb-3">
-                <label htmlFor="new_designer_name" className="form-label">New Designer Name</label>
+                <label htmlFor="new_designer_name" className="form-label">
+                  New Designer Name
+                </label>
                 <input
                   type="text"
                   className="form-control"
@@ -211,7 +219,9 @@ export default function ContributePage() {
       case 1:
         return (
           <div className="mb-3">
-            <label htmlFor="categories" className="form-label">Categories</label>
+            <label htmlFor="categories" className="form-label">
+              Categories
+            </label>
             <select
               className="form-select"
               id="categories"
@@ -220,28 +230,21 @@ export default function ContributePage() {
               value={formData.categories}
               onChange={handleMultiSelect}
             >
-              {categories.map(category => (
-                <option key={category.id} value={category.id.toString()}>{category.name}</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id.toString()}>
+                  {category.name}
+                </option>
               ))}
             </select>
           </div>
         )
-      case 2:
+      case 2: // This step is now just for Audience
         return (
           <div>
             <div className="mb-3">
-              <label htmlFor="sizes" className="form-label">Sizes</label>
-              <input
-                type="text"
-                className="form-control"
-                id="sizes"
-                name="sizes"
-                value={formData.sizes}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="audience_id" className="form-label">Audience</label>
+              <label htmlFor="audience_id" className="form-label">
+                Audience
+              </label>
               <select
                 className="form-select"
                 id="audience_id"
@@ -250,8 +253,10 @@ export default function ContributePage() {
                 onChange={handleChange}
               >
                 <option value="">Select an audience</option>
-                {audiences.map(audience => (
-                  <option key={audience.id} value={audience.id.toString()}>{audience.name}</option>
+                {audiences.map((audience) => (
+                  <option key={audience.id} value={audience.id.toString()}>
+                    {audience.name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -265,7 +270,7 @@ export default function ContributePage() {
               <div className="input-group">
                 <DatePicker
                   selected={formData.publication_date}
-                  onChange={(date: Date | null) => setFormData(prev => ({ ...prev, publication_date: date }))}
+                  onChange={(date: Date | null) => setFormData((prev) => ({ ...prev, publication_date: date }))}
                   disabled={formData.publication_date_unknown}
                   className="form-control"
                 />
@@ -277,9 +282,7 @@ export default function ContributePage() {
                     checked={formData.publication_date_unknown}
                     onChange={handleChange}
                   />
-                  <label className="form-check-label ms-2">
-                    Unknown
-                  </label>
+                  <label className="form-check-label ms-2">Unknown</label>
                 </div>
               </div>
             </div>
@@ -318,7 +321,9 @@ export default function ContributePage() {
         return (
           <div>
             <div className="mb-3">
-              <label htmlFor="pattern_url" className="form-label">Link to an outside webpage for this pattern</label>
+              <label htmlFor="pattern_url" className="form-label">
+                Link to an outside webpage for this pattern
+              </label>
               <input
                 type="url"
                 className="form-control"
@@ -401,7 +406,9 @@ export default function ContributePage() {
               </div>
             </div>
             <div className="mb-3">
-              <label htmlFor="suggested_fabrics" className="form-label">Suggested Fabrics</label>
+              <label htmlFor="suggested_fabrics" className="form-label">
+                Suggested Fabrics
+              </label>
               <textarea
                 className="form-control"
                 id="suggested_fabrics"
@@ -412,7 +419,9 @@ export default function ContributePage() {
               />
             </div>
             <div className="mb-3">
-              <label htmlFor="required_notions" className="form-label">Required Notions</label>
+              <label htmlFor="required_notions" className="form-label">
+                Required Notions
+              </label>
               <textarea
                 className="form-control"
                 id="required_notions"
@@ -423,7 +432,9 @@ export default function ContributePage() {
               />
             </div>
             <div className="mb-3">
-              <label htmlFor="total_yardage" className="form-label">Total Yardage</label>
+              <label htmlFor="total_yardage" className="form-label">
+                Total Yardage
+              </label>
               <input
                 type="text"
                 className="form-control"
@@ -454,8 +465,16 @@ export default function ContributePage() {
       <h1 className="mb-4">Contribute a Pattern</h1>
       <div className="row">
         <div className="col-md-3 mb-4">
-          <div className="card" style={{ border: '1px solid #dee2e6', borderRadius: '0.25rem', overflow: 'hidden', backgroundColor: 'white' }}>
-            <div className="card-body" style={{ padding: '0' }}>
+          <div
+            className="card"
+            style={{
+              border: "1px solid #dee2e6",
+              borderRadius: "0.25rem",
+              overflow: "hidden",
+              backgroundColor: "white",
+            }}
+          >
+            <div className="card-body" style={{ padding: "0" }}>
               <nav>
                 <ul className="list-group">
                   {steps.map((step, index) => (
@@ -463,12 +482,12 @@ export default function ContributePage() {
                       key={step}
                       className={`list-group-item cursor-pointer`}
                       style={{
-                        color: 'black',
-                        border: 'none',
-                        borderRadius: '0',
-                        padding: '10px 15px',
-                        borderLeft: index === currentStep ? '4px solid #fe7b83' : 'none',
-                        backgroundColor: index === currentStep ? '#fe7b83' : 'white',
+                        color: "black",
+                        border: "none",
+                        borderRadius: "0",
+                        padding: "10px 15px",
+                        borderLeft: index === currentStep ? "4px solid #fe7b83" : "none",
+                        backgroundColor: index === currentStep ? "#fe7b83" : "white",
                       }}
                       onClick={() => setCurrentStep(index)}
                     >
@@ -481,38 +500,26 @@ export default function ContributePage() {
           </div>
         </div>
         <div className="col-md-9">
-          <div className="card" style={{ backgroundColor: 'white' }}>
+          <div className="card" style={{ backgroundColor: "white" }}>
             <div className="card-body">
               <form onSubmit={handleSubmit}>
                 {renderStep()}
                 <div className="d-flex justify-content-between mt-4">
                   {currentStep > 0 && (
-                    <button
-                      type="button"
-                      onClick={prevStep}
-                      className="btn btn-outline-primary"
-                    >
+                    <button type="button" onClick={prevStep} className="btn btn-outline-primary">
                       <ChevronLeft className="me-1" />
                       Back
                     </button>
                   )}
                   {currentStep < steps.length - 1 && (
-                    <button
-                      type="button"
-                      onClick={nextStep}
-                      className="btn btn-rose ms-auto"
-                    >
+                    <button type="button" onClick={nextStep} className="btn btn-rose ms-auto">
                       Next
                       <ChevronRight className="ms-1" />
                     </button>
                   )}
                   {currentStep === steps.length - 1 && (
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="btn btn-rose ms-auto"
-                    >
-                      {isSubmitting ? 'Submitting...' : 'Submit Pattern'}
+                    <button type="submit" disabled={isSubmitting} className="btn btn-rose ms-auto">
+                      {isSubmitting ? "Submitting..." : "Submit Pattern"}
                     </button>
                   )}
                 </div>

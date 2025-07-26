@@ -44,7 +44,6 @@ export async function POST(request: Request) {
       body.name,
       body.designer_id === "not_listed" ? body.new_designer_name : body.designer_id,
       body.categories.join(", "),
-      body.sizes,
       body.audience_id,
       body.publication_date ? new Date(body.publication_date).toISOString() : "Unknown",
       body.published_in_print ? "Yes" : "No",
@@ -59,14 +58,13 @@ export async function POST(request: Request) {
       body.total_yardage,
       "Pending", // Add status column with default value "Pending"
     ]
-
     console.log("Row data prepared:", rowData)
 
     // Append data to Google Sheet
     try {
       const response = await sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: "Sheet1!A:Q", // Updated from A:P to A:Q to include status column
+        range: "Sheet1!A:P", // Updated from A:Q to A:P to reflect removal of 'sizes' column
         valueInputOption: "USER_ENTERED",
         requestBody: {
           values: [rowData],
