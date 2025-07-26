@@ -18,9 +18,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return response
   }
 
-  // Await params to ensure it's resolved before accessing properties
-  const awaitedParams = await params
-  const sizeChartId = Number.parseInt(awaitedParams.id, 10)
+  // params is directly available as an object in Route Handlers, no need to await
+  const sizeChartId = Number.parseInt(params.id, 10)
 
   if (isNaN(sizeChartId)) {
     return NextResponse.json({ error: "Invalid Size Chart ID" }, { status: 400 })
@@ -61,9 +60,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     return response
   }
 
-  // Await params to ensure it's resolved before accessing properties
-  const awaitedParams = await params
-  const sizeChartId = Number.parseInt(awaitedParams.id, 10)
+  // params is directly available as an object in Route Handlers, no need to await
+  const sizeChartId = Number.parseInt(params.id, 10)
 
   if (isNaN(sizeChartId)) {
     return NextResponse.json({ error: "Invalid Size Chart ID" }, { status: 400 })
@@ -183,9 +181,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     return response
   }
 
-  // Await params to ensure it's resolved before accessing properties
-  const awaitedParams = await params
-  const sizeChartId = Number.parseInt(awaitedParams.id, 10)
+  // params is directly available as an object in Route Handlers, no need to await
+  const sizeChartId = Number.parseInt(params.id, 10)
 
   if (isNaN(sizeChartId)) {
     return NextResponse.json({ error: "Invalid Size Chart ID" }, { status: 400 })
