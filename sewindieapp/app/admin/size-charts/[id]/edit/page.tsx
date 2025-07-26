@@ -57,10 +57,10 @@ interface SerializableSizeChart {
   }
 }
 
-export default async function EditSizeChartPage({ params }: { params: { id: string } }) {
-  // Await params to ensure it's resolved before accessing properties
-  const awaitedParams = await params
-  const sizeChartId = Number.parseInt(awaitedParams.id, 10)
+export default async function EditSizeChartPage({ params }: { params: Promise<{ id: string }> }) {
+  // Await params before using it, following the pattern in EditDesignerPage
+  const resolvedParams = await params
+  const sizeChartId = Number.parseInt(resolvedParams.id, 10)
 
   if (isNaN(sizeChartId)) {
     notFound()
@@ -91,7 +91,6 @@ export default async function EditSizeChartPage({ params }: { params: { id: stri
 
   // Convert Decimal objects to strings for passing to Client Component
   const serializableSizeChart: SerializableSizeChart = {
-    // Use the new serializable type here
     ...sizeChart,
     SizeChartRow: sizeChart.SizeChartRow.map((row) => ({
       ...row,
