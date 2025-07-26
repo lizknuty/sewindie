@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { checkModeratorAccess } from "@/lib/admin-middleware"
-import prisma from "@/lib/prisma"
 import { updateContributionStatus } from "@/lib/google-sheets"
+import prisma from "@/lib/prisma"
+import { checkModeratorAccess } from "@/lib/admin-middleware"
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +29,6 @@ export async function POST(request: NextRequest) {
           },
         },
       })
-
       if (existingDesigner) {
         designerId = existingDesigner.id // This is a number
       } else {
@@ -59,7 +58,6 @@ export async function POST(request: NextRequest) {
         data: {
           name: contribution.name,
           designer_id: designerId,
-          sizes: contribution.sizes || null,
           url: contribution.pattern_url || "", // Add the required url field
         },
       })
@@ -75,7 +73,6 @@ export async function POST(request: NextRequest) {
             },
           },
         })
-
         if (!category) {
           category = await tx.category.create({
             data: {
@@ -83,7 +80,6 @@ export async function POST(request: NextRequest) {
             },
           })
         }
-
         // Create pattern-category relationship
         await tx.patternCategory.create({
           data: {
@@ -103,7 +99,6 @@ export async function POST(request: NextRequest) {
             },
           },
         })
-
         if (audience) {
           await tx.patternAudience.create({
             data: {
@@ -120,7 +115,6 @@ export async function POST(request: NextRequest) {
           .split(",")
           .map((fabric: string) => fabric.trim())
           .filter((fabric: string) => fabric)
-
         for (const fabricName of fabricNames) {
           let suggestedFabric = await tx.suggestedFabric.findFirst({
             where: {
@@ -130,7 +124,6 @@ export async function POST(request: NextRequest) {
               },
             },
           })
-
           if (!suggestedFabric) {
             suggestedFabric = await tx.suggestedFabric.create({
               data: {
@@ -138,7 +131,6 @@ export async function POST(request: NextRequest) {
               },
             })
           }
-
           await tx.patternSuggestedFabric.create({
             data: {
               pattern_id: newPattern.id,
@@ -147,7 +139,6 @@ export async function POST(request: NextRequest) {
           })
         }
       }
-
       return newPattern
     })
 
