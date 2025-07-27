@@ -14,12 +14,32 @@ interface PrismaSizeChartRow {
   full_bust_max: Decimal | null
   chest_min: Decimal | null
   chest_max: Decimal | null
+  under_bust_min: Decimal | null
+  under_bust_max: Decimal | null
   waist_min: Decimal | null
   waist_max: Decimal | null
+  preferred_waist_min: Decimal | null
+  preferred_waist_max: Decimal | null
+  side_waist_length_min: Decimal | null
+  side_waist_length_max: Decimal | null
+  waist_to_hip_length_min: Decimal | null
+  waist_to_hip_length_max: Decimal | null
+  high_hip_min: Decimal | null
+  high_hip_max: Decimal | null
   hip_min: Decimal | null
   hip_max: Decimal | null
+  thigh_min: Decimal | null
+  thigh_max: Decimal | null
+  calf_min: Decimal | null
+  calf_max: Decimal | null
   inseam_min: Decimal | null
   inseam_max: Decimal | null
+  crotch_length_min: Decimal | null
+  crotch_length_max: Decimal | null
+  arm_length_min: Decimal | null
+  arm_length_max: Decimal | null
+  upper_arm_min: Decimal | null
+  upper_arm_max: Decimal | null
   height_min: Decimal | null
   height_max: Decimal | null
 }
@@ -34,12 +54,32 @@ interface SerializableSizeChartRow {
   full_bust_max: string | null
   chest_min: string | null
   chest_max: string | null
+  under_bust_min: string | null
+  under_bust_max: string | null
   waist_min: string | null
   waist_max: string | null
+  preferred_waist_min: string | null
+  preferred_waist_max: string | null
+  side_waist_length_min: string | null
+  side_waist_length_max: string | null
+  waist_to_hip_length_min: string | null
+  waist_to_hip_length_max: string | null
+  high_hip_min: string | null
+  high_hip_max: string | null
   hip_min: string | null
   hip_max: string | null
+  thigh_min: string | null
+  thigh_max: string | null
+  calf_min: string | null
+  calf_max: string | null
   inseam_min: string | null
   inseam_max: string | null
+  crotch_length_min: string | null
+  crotch_length_max: string | null
+  arm_length_min: string | null
+  arm_length_max: string | null
+  upper_arm_min: string | null
+  upper_arm_max: string | null
   height_min: string | null
   height_max: string | null
 }
@@ -100,12 +140,32 @@ export default async function EditSizeChartPage({ params }: { params: Promise<{ 
       full_bust_max: row.full_bust_max?.toString() || null,
       chest_min: row.chest_min?.toString() || null,
       chest_max: row.chest_max?.toString() || null,
+      under_bust_min: row.under_bust_min?.toString() || null,
+      under_bust_max: row.under_bust_max?.toString() || null,
       waist_min: row.waist_min?.toString() || null,
       waist_max: row.waist_max?.toString() || null,
+      preferred_waist_min: row.preferred_waist_min?.toString() || null,
+      preferred_waist_max: row.preferred_waist_max?.toString() || null,
+      side_waist_length_min: row.side_waist_length_min?.toString() || null,
+      side_waist_length_max: row.side_waist_length_max?.toString() || null,
+      waist_to_hip_length_min: row.waist_to_hip_length_min?.toString() || null,
+      waist_to_hip_length_max: row.waist_to_hip_length_max?.toString() || null,
+      high_hip_min: row.high_hip_min?.toString() || null,
+      high_hip_max: row.high_hip_max?.toString() || null,
       hip_min: row.hip_min?.toString() || null,
       hip_max: row.hip_max?.toString() || null,
+      thigh_min: row.thigh_min?.toString() || null,
+      thigh_max: row.thigh_max?.toString() || null,
+      calf_min: row.calf_min?.toString() || null,
+      calf_max: row.calf_max?.toString() || null,
       inseam_min: row.inseam_min?.toString() || null,
       inseam_max: row.inseam_max?.toString() || null,
+      crotch_length_min: row.crotch_length_min?.toString() || null,
+      crotch_length_max: row.crotch_length_max?.toString() || null,
+      arm_length_min: row.arm_length_min?.toString() || null,
+      arm_length_max: row.arm_length_max?.toString() || null,
+      upper_arm_min: row.upper_arm_min?.toString() || null,
+      upper_arm_max: row.upper_arm_max?.toString() || null,
       height_min: row.height_min?.toString() || null,
       height_max: row.height_max?.toString() || null,
     })),

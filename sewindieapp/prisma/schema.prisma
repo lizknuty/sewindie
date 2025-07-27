@@ -208,24 +208,44 @@ model SizeChart {
 }
 
 model SizeChartRow {
-  id             Int       @id @default(autoincrement())
-  size_chart_id  Int
-  size_label     String
-  upper_bust_min Decimal?  @db.Decimal
-  upper_bust_max Decimal?  @db.Decimal
-  full_bust_min  Decimal?  @db.Decimal
-  full_bust_max  Decimal?  @db.Decimal
-  chest_min      Decimal?  @db.Decimal
-  chest_max      Decimal?  @db.Decimal
-  waist_min      Decimal?  @db.Decimal
-  waist_max      Decimal?  @db.Decimal
-  hip_min        Decimal?  @db.Decimal
-  hip_max        Decimal?  @db.Decimal
-  inseam_min     Decimal?  @db.Decimal
-  inseam_max     Decimal?  @db.Decimal
-  height_min     Decimal?  @db.Decimal
-  height_max     Decimal?  @db.Decimal
-  SizeChart      SizeChart @relation(fields: [size_chart_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                      Int       @id @default(autoincrement())
+  size_chart_id           Int
+  size_label              String
+  upper_bust_min          Decimal?  @db.Decimal
+  upper_bust_max          Decimal?  @db.Decimal
+  full_bust_min           Decimal?  @db.Decimal
+  full_bust_max           Decimal?  @db.Decimal
+  chest_min               Decimal?  @db.Decimal
+  chest_max               Decimal?  @db.Decimal
+  under_bust_min          Decimal?  @db.Decimal
+  under_bust_max          Decimal?  @db.Decimal
+  waist_min               Decimal?  @db.Decimal
+  waist_max               Decimal?  @db.Decimal
+  preferred_waist_min     Decimal?  @db.Decimal
+  preferred_waist_max     Decimal?  @db.Decimal
+  side_waist_length_min   Decimal?  @db.Decimal
+  side_waist_length_max   Decimal?  @db.Decimal
+  waist_to_hip_length_min Decimal?  @db.Decimal
+  waist_to_hip_length_max Decimal?  @db.Decimal
+  high_hip_min            Decimal?  @db.Decimal
+  high_hip_max            Decimal?  @db.Decimal
+  hip_min                 Decimal?  @db.Decimal
+  hip_max                 Decimal?  @db.Decimal
+  thigh_min               Decimal?  @db.Decimal
+  thigh_max               Decimal?  @db.Decimal
+  calf_min                Decimal?  @db.Decimal
+  calf_max                Decimal?  @db.Decimal
+  inseam_min              Decimal?  @db.Decimal
+  inseam_max              Decimal?  @db.Decimal
+  crotch_length_min       Decimal?  @db.Decimal
+  crotch_length_max       Decimal?  @db.Decimal
+  arm_length_min          Decimal?  @db.Decimal
+  arm_length_max          Decimal?  @db.Decimal
+  upper_arm_min           Decimal?  @db.Decimal
+  upper_arm_max           Decimal?  @db.Decimal
+  height_min              Decimal?  @db.Decimal
+  height_max              Decimal?  @db.Decimal
+  SizeChart               SizeChart @relation(fields: [size_chart_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
