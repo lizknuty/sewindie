@@ -471,7 +471,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                     name="under_bust"
                     value={row.under_bust}
                     onChange={(e) => handleRowChange(index, e)}
-                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
@@ -526,7 +525,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                     name="hip"
                     value={row.hip}
                     onChange={(e) => handleRowChange(index, e)}
-                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
