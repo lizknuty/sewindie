@@ -1,122 +1,21 @@
-import { notFound } from "next/navigation"
 import prisma from "@/lib/prisma"
+import { notFound } from "next/navigation"
 import SizeChartForm from "@/admin/size-charts/components/SizeChartForm"
-import type { Decimal } from "@prisma/client/runtime/library"
 
-// Define types that match Prisma's output for SizeChart and SizeChartRow
-interface PrismaSizeChartRow {
-  id?: number
-  size_chart_id?: number
-  size_label: string
-  upper_bust_min: Decimal | null
-  upper_bust_max: Decimal | null
-  full_bust_min: Decimal | null
-  full_bust_max: Decimal | null
-  chest_min: Decimal | null
-  chest_max: Decimal | null
-  under_bust_min: Decimal | null
-  under_bust_max: Decimal | null
-  waist_min: Decimal | null
-  waist_max: Decimal | null
-  preferred_waist_min: Decimal | null
-  preferred_waist_max: Decimal | null
-  side_waist_length_min: Decimal | null
-  side_waist_length_max: Decimal | null
-  waist_to_hip_length_min: Decimal | null
-  waist_to_hip_length_max: Decimal | null
-  high_hip_min: Decimal | null
-  high_hip_max: Decimal | null
-  hip_min: Decimal | null
-  hip_max: Decimal | null
-  thigh_min: Decimal | null
-  thigh_max: Decimal | null
-  calf_min: Decimal | null
-  calf_max: Decimal | null
-  inseam_min: Decimal | null
-  inseam_max: Decimal | null
-  crotch_length_min: Decimal | null
-  crotch_length_max: Decimal | null
-  arm_length_min: Decimal | null
-  arm_length_max: Decimal | null
-  upper_arm_min: Decimal | null
-  upper_arm_max: Decimal | null
-  height_min: Decimal | null
-  height_max: Decimal | null
+type PageProps = {
+  params: { id: string }
 }
 
-// New interface for serializable SizeChartRow (all measurements are strings)
-interface SerializableSizeChartRow {
-  id?: number
-  size_label: string
-  upper_bust_min: string | null
-  upper_bust_max: string | null
-  full_bust_min: string | null
-  full_bust_max: string | null
-  chest_min: string | null
-  chest_max: string | null
-  under_bust_min: string | null
-  under_bust_max: string | null
-  waist_min: string | null
-  waist_max: string | null
-  preferred_waist_min: string | null
-  preferred_waist_max: string | null
-  side_waist_length_min: string | null
-  side_waist_length_max: string | null
-  waist_to_hip_length_min: string | null
-  waist_to_hip_length_max: string | null
-  high_hip_min: string | null
-  high_hip_max: string | null
-  hip_min: string | null
-  hip_max: string | null
-  thigh_min: string | null
-  thigh_max: string | null
-  calf_min: string | null
-  calf_max: string | null
-  inseam_min: string | null
-  inseam_max: string | null
-  crotch_length_min: string | null
-  crotch_length_max: string | null
-  arm_length_min: string | null
-  arm_length_max: string | null
-  upper_arm_min: string | null
-  upper_arm_max: string | null
-  height_min: string | null
-  height_max: string | null
-}
-
-// New interface for serializable SizeChart (using SerializableSizeChartRow)
-interface SerializableSizeChart {
-  id: number
-  label: string
-  designer_id: number
-  measurement_unit: string
-  SizeChartRow: SerializableSizeChartRow[]
-  Designer?: {
-    id: number
-    name: string
-  }
-}
-
-export default async function EditSizeChartPage({ params }: { params: Promise<{ id: string }> }) {
-  // Await params before using it, following the pattern in EditDesignerPage
-  const resolvedParams = await params
-  const sizeChartId = Number.parseInt(resolvedParams.id, 10)
+export default async function EditSizeChartPage({ params }: PageProps) {
+  const sizeChartId = Number.parseInt(params.id, 10)
 
   if (isNaN(sizeChartId)) {
     notFound()
   }
 
   const sizeChart = await prisma.sizeChart.findUnique({
-    where: {
-      id: sizeChartId,
-    },
+    where: { id: sizeChartId },
     include: {
-      Designer: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
       SizeChartRow: {
         orderBy: {
           id: "asc",
@@ -129,8 +28,14 @@ export default async function EditSizeChartPage({ params }: { params: Promise<{ 
     notFound()
   }
 
-  // Convert Decimal objects to strings for passing to Client Component
-  const serializableSizeChart: SerializableSizeChart = {
+  const designers = await prisma.designer.findMany({
+    orderBy: {
+      name: "asc",
+    },
+  })
+
+  // Convert Decimal values to string for client component serialization
+  const serializableSizeChart = {
     ...sizeChart,
     SizeChartRow: sizeChart.SizeChartRow.map((row) => ({
       ...row,
@@ -171,19 +76,9 @@ export default async function EditSizeChartPage({ params }: { params: Promise<{ 
     })),
   }
 
-  const designers = await prisma.designer.findMany({
-    select: {
-      id: true,
-      name: true,
-    },
-    orderBy: {
-      name: "asc",
-    },
-  })
-
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-6">Edit Size Chart</h1>
+    <div className="container my-4">
+      <h1 className="mb-4">Edit Size Chart</h1>
       <SizeChartForm sizeChart={serializableSizeChart} designers={designers} />
     </div>
   )

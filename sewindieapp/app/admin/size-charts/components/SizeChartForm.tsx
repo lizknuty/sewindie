@@ -51,44 +51,27 @@ interface PrismaSizeChartRow {
   height_max: Decimal | null
 }
 
-// This interface reflects the data structure for the form's internal state (all measurements are strings)
+// This interface reflects the data structure for the form's internal state (all measurements are single strings)
 interface FormSizeChartRowData {
   id?: number
   size_label: string
-  upper_bust_min: string
-  upper_bust_max: string
-  full_bust_min: string
-  full_bust_max: string
-  chest_min: string
-  chest_max: string
-  under_bust_min: string
-  under_bust_max: string
-  waist_min: string
-  waist_max: string
-  preferred_waist_min: string
-  preferred_waist_max: string
-  side_waist_length_min: string
-  side_waist_length_max: string
-  waist_to_hip_length_min: string
-  waist_to_hip_length_max: string
-  high_hip_min: string
-  high_hip_max: string
-  hip_min: string
-  hip_max: string
-  thigh_min: string
-  thigh_max: string
-  calf_min: string
-  calf_max: string
-  inseam_min: string
-  inseam_max: string
-  crotch_length_min: string
-  crotch_length_max: string
-  arm_length_min: string
-  arm_length_max: string
-  upper_arm_min: string
-  upper_arm_max: string
-  height_min: string
-  height_max: string
+  upper_bust: string
+  full_bust: string
+  chest: string
+  under_bust: string
+  waist: string
+  preferred_waist: string
+  side_waist_length: string
+  waist_to_hip_length: string
+  high_hip: string
+  hip: string
+  thigh: string
+  calf: string
+  inseam: string
+  crotch_length: string
+  arm_length: string
+  upper_arm: string
+  height: string
 }
 
 // New interface for serializable SizeChartRow (all measurements are strings)
@@ -142,6 +125,41 @@ interface SizeChartFormProps {
   designers: Designer[]
 }
 
+// Helper function to parse a measurement input string into min/max numbers
+const parseMeasurementInput = (input: string): { min: number | null; max: number | null } => {
+  const trimmedInput = input.trim()
+  if (trimmedInput === "") {
+    return { min: null, max: null }
+  }
+
+  const parts = trimmedInput.split("-").map((p) => Number(p.trim()))
+
+  if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+    // Case: "32-34" or "32.5-34.5"
+    return { min: parts[0], max: parts[1] }
+  } else if (parts.length === 1 && !isNaN(parts[0])) {
+    // Case: "32" or "32.5" (single value, treat as max)
+    return { min: null, max: parts[0] }
+  } else {
+    // Invalid format
+    return { min: null, max: null }
+  }
+}
+
+// Helper function to format min/max numbers into a single string for display
+const formatMeasurementOutput = (min: string | null, max: string | null): string => {
+  if (min !== null && max !== null) {
+    return `${min}-${max}`
+  }
+  if (max !== null) {
+    return max
+  }
+  if (min !== null) {
+    return min // If only min is present, display it as a single value
+  }
+  return ""
+}
+
 export default function SizeChartForm({ sizeChart, designers }: SizeChartFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -158,40 +176,23 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
       sizeChart?.SizeChartRow.map((row) => ({
         id: row.id, // Ensure ID is carried over for existing rows
         size_label: row.size_label,
-        upper_bust_min: row.upper_bust_min || "",
-        upper_bust_max: row.upper_bust_max || "",
-        full_bust_min: row.full_bust_min || "",
-        full_bust_max: row.full_bust_max || "",
-        chest_min: row.chest_min || "",
-        chest_max: row.chest_max || "",
-        under_bust_min: row.under_bust_min || "",
-        under_bust_max: row.under_bust_max || "",
-        waist_min: row.waist_min || "",
-        waist_max: row.waist_max || "",
-        preferred_waist_min: row.preferred_waist_min || "",
-        preferred_waist_max: row.preferred_waist_max || "",
-        side_waist_length_min: row.side_waist_length_min || "",
-        side_waist_length_max: row.side_waist_length_max || "",
-        waist_to_hip_length_min: row.waist_to_hip_length_min || "",
-        waist_to_hip_length_max: row.waist_to_hip_length_max || "",
-        high_hip_min: row.high_hip_min || "",
-        high_hip_max: row.high_hip_max || "",
-        hip_min: row.hip_min || "",
-        hip_max: row.hip_max || "",
-        thigh_min: row.thigh_min || "",
-        thigh_max: row.thigh_max || "",
-        calf_min: row.calf_min || "",
-        calf_max: row.calf_max || "",
-        inseam_min: row.inseam_min || "",
-        inseam_max: row.inseam_max || "",
-        crotch_length_min: row.crotch_length_min || "",
-        crotch_length_max: row.crotch_length_max || "",
-        arm_length_min: row.arm_length_min || "",
-        arm_length_max: row.arm_length_max || "",
-        upper_arm_min: row.upper_arm_min || "",
-        upper_arm_max: row.upper_arm_max || "",
-        height_min: row.height_min || "",
-        height_max: row.height_max || "",
+        upper_bust: formatMeasurementOutput(row.upper_bust_min, row.upper_bust_max),
+        full_bust: formatMeasurementOutput(row.full_bust_min, row.full_bust_max),
+        chest: formatMeasurementOutput(row.chest_min, row.chest_max),
+        under_bust: formatMeasurementOutput(row.under_bust_min, row.under_bust_max),
+        waist: formatMeasurementOutput(row.waist_min, row.waist_max),
+        preferred_waist: formatMeasurementOutput(row.preferred_waist_min, row.preferred_waist_max),
+        side_waist_length: formatMeasurementOutput(row.side_waist_length_min, row.side_waist_length_max),
+        waist_to_hip_length: formatMeasurementOutput(row.waist_to_hip_length_min, row.waist_to_hip_length_max),
+        high_hip: formatMeasurementOutput(row.high_hip_min, row.high_hip_max),
+        hip: formatMeasurementOutput(row.hip_min, row.hip_max),
+        thigh: formatMeasurementOutput(row.thigh_min, row.thigh_max),
+        calf: formatMeasurementOutput(row.calf_min, row.calf_max),
+        inseam: formatMeasurementOutput(row.inseam_min, row.inseam_max),
+        crotch_length: formatMeasurementOutput(row.crotch_length_min, row.crotch_length_max),
+        arm_length: formatMeasurementOutput(row.arm_length_min, row.arm_length_max),
+        upper_arm: formatMeasurementOutput(row.upper_arm_min, row.upper_arm_max),
+        height: formatMeasurementOutput(row.height_min, row.height_max),
       })) || [],
   })
 
@@ -214,40 +215,23 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
         ...prev.rows,
         {
           size_label: "",
-          upper_bust_min: "",
-          upper_bust_max: "",
-          full_bust_min: "",
-          full_bust_max: "",
-          chest_min: "",
-          chest_max: "",
-          under_bust_min: "",
-          under_bust_max: "",
-          waist_min: "",
-          waist_max: "",
-          preferred_waist_min: "",
-          preferred_waist_max: "",
-          side_waist_length_min: "",
-          side_waist_length_max: "",
-          waist_to_hip_length_min: "",
-          waist_to_hip_length_max: "",
-          high_hip_min: "",
-          high_hip_max: "",
-          hip_min: "",
-          hip_max: "",
-          thigh_min: "",
-          thigh_max: "",
-          calf_min: "",
-          calf_max: "",
-          inseam_min: "",
-          inseam_max: "",
-          crotch_length_min: "",
-          crotch_length_max: "",
-          arm_length_min: "",
-          arm_length_max: "",
-          upper_arm_min: "",
-          upper_arm_max: "",
-          height_min: "",
-          height_max: "",
+          upper_bust: "",
+          full_bust: "",
+          chest: "",
+          under_bust: "",
+          waist: "",
+          preferred_waist: "",
+          side_waist_length: "",
+          waist_to_hip_length: "",
+          high_hip: "",
+          hip: "",
+          thigh: "",
+          calf: "",
+          inseam: "",
+          crotch_length: "",
+          arm_length: "",
+          upper_arm: "",
+          height: "",
         },
       ],
     }))
@@ -266,49 +250,70 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
     try {
       const url = sizeChart ? `/api/size-charts/${sizeChart.id}` : "/api/size-charts"
       const method = sizeChart ? "PUT" : "POST"
+
       const dataToSubmit = {
         ...formData,
         designer_id: Number.parseInt(formData.designer_id),
-        // Filter out empty rows and ensure numeric fields are numbers or null
         rows: formData.rows
           .filter((row) => row.size_label.trim() !== "")
-          .map((row) => ({
-            ...row,
-            upper_bust_min: row.upper_bust_min === "" ? null : Number(row.upper_bust_min),
-            upper_bust_max: row.upper_bust_max === "" ? null : Number(row.upper_bust_max),
-            full_bust_min: row.full_bust_min === "" ? null : Number(row.full_bust_min),
-            full_bust_max: row.full_bust_max === "" ? null : Number(row.full_bust_max),
-            chest_min: row.chest_min === "" ? null : Number(row.chest_min),
-            chest_max: row.chest_max === "" ? null : Number(row.chest_max),
-            under_bust_min: row.under_bust_min === "" ? null : Number(row.under_bust_min),
-            under_bust_max: row.under_bust_max === "" ? null : Number(row.under_bust_max),
-            waist_min: row.waist_min === "" ? null : Number(row.waist_min),
-            waist_max: row.waist_max === "" ? null : Number(row.waist_max),
-            preferred_waist_min: row.preferred_waist_min === "" ? null : Number(row.preferred_waist_min),
-            preferred_waist_max: row.preferred_waist_max === "" ? null : Number(row.preferred_waist_max),
-            side_waist_length_min: row.side_waist_length_min === "" ? null : Number(row.side_waist_length_min),
-            side_waist_length_max: row.side_waist_length_max === "" ? null : Number(row.side_waist_length_max),
-            waist_to_hip_length_min: row.waist_to_hip_length_min === "" ? null : Number(row.waist_to_hip_length_min),
-            waist_to_hip_length_max: row.waist_to_hip_length_max === "" ? null : Number(row.waist_to_hip_length_max),
-            high_hip_min: row.high_hip_min === "" ? null : Number(row.high_hip_min),
-            high_hip_max: row.high_hip_max === "" ? null : Number(row.high_hip_max),
-            hip_min: row.hip_min === "" ? null : Number(row.hip_min),
-            hip_max: row.hip_max === "" ? null : Number(row.hip_max),
-            thigh_min: row.thigh_min === "" ? null : Number(row.thigh_min),
-            thigh_max: row.thigh_max === "" ? null : Number(row.thigh_max),
-            calf_min: row.calf_min === "" ? null : Number(row.calf_min),
-            calf_max: row.calf_max === "" ? null : Number(row.calf_max),
-            inseam_min: row.inseam_min === "" ? null : Number(row.inseam_min),
-            inseam_max: row.inseam_max === "" ? null : Number(row.inseam_max),
-            crotch_length_min: row.crotch_length_min === "" ? null : Number(row.crotch_length_min),
-            crotch_length_max: row.crotch_length_max === "" ? null : Number(row.crotch_length_max),
-            arm_length_min: row.arm_length_min === "" ? null : Number(row.arm_length_min),
-            arm_length_max: row.arm_length_max === "" ? null : Number(row.arm_length_max),
-            upper_arm_min: row.upper_arm_min === "" ? null : Number(row.upper_arm_min),
-            upper_arm_max: row.upper_arm_max === "" ? null : Number(row.upper_arm_max),
-            height_min: row.height_min === "" ? null : Number(row.height_min),
-            height_max: row.height_max === "" ? null : Number(row.height_max),
-          })),
+          .map((row) => {
+            const upperBust = parseMeasurementInput(row.upper_bust)
+            const fullBust = parseMeasurementInput(row.full_bust)
+            const chest = parseMeasurementInput(row.chest)
+            const underBust = parseMeasurementInput(row.under_bust)
+            const waist = parseMeasurementInput(row.waist)
+            const preferredWaist = parseMeasurementInput(row.preferred_waist)
+            const sideWaistLength = parseMeasurementInput(row.side_waist_length)
+            const waistToHipLength = parseMeasurementInput(row.waist_to_hip_length)
+            const highHip = parseMeasurementInput(row.high_hip)
+            const hip = parseMeasurementInput(row.hip)
+            const thigh = parseMeasurementInput(row.thigh)
+            const calf = parseMeasurementInput(row.calf)
+            const inseam = parseMeasurementInput(row.inseam)
+            const crotchLength = parseMeasurementInput(row.crotch_length)
+            const armLength = parseMeasurementInput(row.arm_length)
+            const upperArm = parseMeasurementInput(row.upper_arm)
+            const height = parseMeasurementInput(row.height)
+
+            return {
+              id: row.id, // Ensure ID is carried over for existing rows
+              size_label: row.size_label,
+              upper_bust_min: upperBust.min,
+              upper_bust_max: upperBust.max,
+              full_bust_min: fullBust.min,
+              full_bust_max: fullBust.max,
+              chest_min: chest.min,
+              chest_max: chest.max,
+              under_bust_min: underBust.min,
+              under_bust_max: underBust.max,
+              waist_min: waist.min,
+              waist_max: waist.max,
+              preferred_waist_min: preferredWaist.min,
+              preferred_waist_max: preferredWaist.max,
+              side_waist_length_min: sideWaistLength.min,
+              side_waist_length_max: sideWaistLength.max,
+              waist_to_hip_length_min: waistToHipLength.min,
+              waist_to_hip_length_max: waistToHipLength.max,
+              high_hip_min: highHip.min,
+              high_hip_max: highHip.max,
+              hip_min: hip.min,
+              hip_max: hip.max,
+              thigh_min: thigh.min,
+              thigh_max: thigh.max,
+              calf_min: calf.min,
+              calf_max: calf.max,
+              inseam_min: inseam.min,
+              inseam_max: inseam.max,
+              crotch_length_min: crotchLength.min,
+              crotch_length_max: crotchLength.max,
+              arm_length_min: armLength.min,
+              arm_length_max: armLength.max,
+              upper_arm_min: upperArm.min,
+              upper_arm_max: upperArm.max,
+              height_min: height.min,
+              height_max: height.max,
+            }
+          }),
       }
       const response = await fetch(url, {
         method,
@@ -389,62 +394,24 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
           <thead>
             <tr>
               <th>Size Label *</th>
-              <th colSpan={2}>Upper Bust</th>
-              <th colSpan={2}>Full Bust</th>
-              <th colSpan={2}>Chest</th>
-              <th colSpan={2}>Under Bust</th>
-              <th colSpan={2}>Waist</th>
-              <th colSpan={2}>Preferred Waist</th>
-              <th colSpan={2}>Side Waist Length</th>
-              <th colSpan={2}>Waist to Hip Length</th>
-              <th colSpan={2}>High Hip</th>
-              <th colSpan={2}>Hip</th>
-              <th colSpan={2}>Thigh</th>
-              <th colSpan={2}>Calf</th>
-              <th colSpan={2}>Inseam</th>
-              <th colSpan={2}>Crotch Length</th>
-              <th colSpan={2}>Arm Length</th>
-              <th colSpan={2}>Upper Arm</th>
-              <th colSpan={2}>Height</th>
+              <th>Upper Bust</th>
+              <th>Full Bust</th>
+              <th>Chest</th>
+              <th>Under Bust</th>
+              <th>Waist</th>
+              <th>Preferred Waist</th>
+              <th>Side Waist Length</th>
+              <th>Waist to Hip Length</th>
+              <th>High Hip</th>
+              <th>Hip</th>
+              <th>Thigh</th>
+              <th>Calf</th>
+              <th>Inseam</th>
+              <th>Crotch Length</th>
+              <th>Arm Length</th>
+              <th>Upper Arm</th>
+              <th>Height</th>
               <th>Actions</th>
-            </tr>
-            <tr>
-              <th></th>
-              <th>Min</th>
-              <th>Max</th>
-              <th>Min</th>
-              <th>Max</th>
-              <th>Min</th>
-              <th>Max</th>
-              <th>Min</th>
-              <th>Max</th>
-              <th>Min</th>
-              <th>Max</th>
-              <th>Min</th>
-              <th>Max</th>
-              <th>Min</th>
-              <th>Max</th>
-              <th>Min</th>
-              <th>Max</th>
-              <th>Min</th>
-              <th>Max</th>
-              <th>Min</th>
-              <th>Max</th>
-              <th>Min</th>
-              <th>Max</th>
-              <th>Min</th>
-              <th>Max</th>
-              <th>Min</th>
-              <th>Max</th>
-              <th>Min</th>
-              <th>Max</th>
-              <th>Min</th>
-              <th>Max</th>
-              <th>Min</th>
-              <th>Max</th>
-              <th>Min</th>
-              <th>Max</th>
-              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -462,342 +429,189 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                 </td>
                 <td>
                   <input
-                    type="number"
+                    type="text"
                     step="0.1"
                     className="form-control form-control-sm"
-                    name="upper_bust_min"
-                    value={row.upper_bust_min}
+                    name="upper_bust"
+                    value={row.upper_bust}
                     onChange={(e) => handleRowChange(index, e)}
+                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
                   <input
-                    type="number"
+                    type="text"
                     step="0.1"
                     className="form-control form-control-sm"
-                    name="upper_bust_max"
-                    value={row.upper_bust_max}
+                    name="full_bust"
+                    value={row.full_bust}
                     onChange={(e) => handleRowChange(index, e)}
+                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
                   <input
-                    type="number"
+                    type="text"
                     step="0.1"
                     className="form-control form-control-sm"
-                    name="full_bust_min"
-                    value={row.full_bust_min}
+                    name="chest"
+                    value={row.chest}
                     onChange={(e) => handleRowChange(index, e)}
+                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
                   <input
-                    type="number"
+                    type="text"
                     step="0.1"
                     className="form-control form-control-sm"
-                    name="full_bust_max"
-                    value={row.full_bust_max}
+                    name="under_bust"
+                    value={row.under_bust}
                     onChange={(e) => handleRowChange(index, e)}
+                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
                   <input
-                    type="number"
+                    type="text"
                     step="0.1"
                     className="form-control form-control-sm"
-                    name="chest_min"
-                    value={row.chest_min}
+                    name="waist"
+                    value={row.waist}
                     onChange={(e) => handleRowChange(index, e)}
+                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
                   <input
-                    type="number"
+                    type="text"
                     step="0.1"
                     className="form-control form-control-sm"
-                    name="chest_max"
-                    value={row.chest_max}
+                    name="preferred_waist"
+                    value={row.preferred_waist}
                     onChange={(e) => handleRowChange(index, e)}
+                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
                   <input
-                    type="number"
+                    type="text"
                     step="0.1"
                     className="form-control form-control-sm"
-                    name="under_bust_min"
-                    value={row.under_bust_min}
+                    name="side_waist_length"
+                    value={row.side_waist_length}
                     onChange={(e) => handleRowChange(index, e)}
+                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
                   <input
-                    type="number"
+                    type="text"
                     step="0.1"
                     className="form-control form-control-sm"
-                    name="under_bust_max"
-                    value={row.under_bust_max}
+                    name="waist_to_hip_length"
+                    value={row.waist_to_hip_length}
                     onChange={(e) => handleRowChange(index, e)}
+                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
                   <input
-                    type="number"
+                    type="text"
                     step="0.1"
                     className="form-control form-control-sm"
-                    name="waist_min"
-                    value={row.waist_min}
+                    name="high_hip"
+                    value={row.high_hip}
                     onChange={(e) => handleRowChange(index, e)}
+                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
                   <input
-                    type="number"
+                    type="text"
                     step="0.1"
                     className="form-control form-control-sm"
-                    name="waist_max"
-                    value={row.waist_max}
+                    name="hip"
+                    value={row.hip}
                     onChange={(e) => handleRowChange(index, e)}
+                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
                   <input
-                    type="number"
+                    type="text"
                     step="0.1"
                     className="form-control form-control-sm"
-                    name="preferred_waist_min"
-                    value={row.preferred_waist_min}
+                    name="thigh"
+                    value={row.thigh}
                     onChange={(e) => handleRowChange(index, e)}
+                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
                   <input
-                    type="number"
+                    type="text"
                     step="0.1"
                     className="form-control form-control-sm"
-                    name="preferred_waist_max"
-                    value={row.preferred_waist_max}
+                    name="calf"
+                    value={row.calf}
                     onChange={(e) => handleRowChange(index, e)}
+                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
                   <input
-                    type="number"
+                    type="text"
                     step="0.1"
                     className="form-control form-control-sm"
-                    name="side_waist_length_min"
-                    value={row.side_waist_length_min}
+                    name="inseam"
+                    value={row.inseam}
                     onChange={(e) => handleRowChange(index, e)}
+                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
                   <input
-                    type="number"
+                    type="text"
                     step="0.1"
                     className="form-control form-control-sm"
-                    name="side_waist_length_max"
-                    value={row.side_waist_length_max}
+                    name="crotch_length"
+                    value={row.crotch_length}
                     onChange={(e) => handleRowChange(index, e)}
+                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
                   <input
-                    type="number"
+                    type="text"
                     step="0.1"
                     className="form-control form-control-sm"
-                    name="waist_to_hip_length_min"
-                    value={row.waist_to_hip_length_min}
+                    name="arm_length"
+                    value={row.arm_length}
                     onChange={(e) => handleRowChange(index, e)}
+                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
                   <input
-                    type="number"
+                    type="text"
                     step="0.1"
                     className="form-control form-control-sm"
-                    name="waist_to_hip_length_max"
-                    value={row.waist_to_hip_length_max}
+                    name="upper_arm"
+                    value={row.upper_arm}
                     onChange={(e) => handleRowChange(index, e)}
+                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
                   <input
-                    type="number"
+                    type="text"
                     step="0.1"
                     className="form-control form-control-sm"
-                    name="high_hip_min"
-                    value={row.high_hip_min}
+                    name="height"
+                    value={row.height}
                     onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="form-control form-control-sm"
-                    name="high_hip_max"
-                    value={row.high_hip_max}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="form-control form-control-sm"
-                    name="hip_min"
-                    value={row.hip_min}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="form-control form-control-sm"
-                    name="hip_max"
-                    value={row.hip_max}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="form-control form-control-sm"
-                    name="thigh_min"
-                    value={row.thigh_min}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="form-control form-control-sm"
-                    name="thigh_max"
-                    value={row.thigh_max}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="form-control form-control-sm"
-                    name="calf_min"
-                    value={row.calf_min}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="form-control form-control-sm"
-                    name="calf_max"
-                    value={row.calf_max}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="form-control form-control-sm"
-                    name="inseam_min"
-                    value={row.inseam_min}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="form-control form-control-sm"
-                    name="inseam_max"
-                    value={row.inseam_max}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="form-control form-control-sm"
-                    name="crotch_length_min"
-                    value={row.crotch_length_min}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="form-control form-control-sm"
-                    name="crotch_length_max"
-                    value={row.crotch_length_max}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="form-control form-control-sm"
-                    name="arm_length_min"
-                    value={row.arm_length_min}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="form-control form-control-sm"
-                    name="arm_length_max"
-                    value={row.arm_length_max}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="form-control form-control-sm"
-                    name="upper_arm_min"
-                    value={row.upper_arm_min}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="form-control form-control-sm"
-                    name="upper_arm_max"
-                    value={row.upper_arm_max}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="form-control form-control-sm"
-                    name="height_min"
-                    value={row.height_min}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="form-control form-control-sm"
-                    name="height_max"
-                    value={row.height_max}
-                    onChange={(e) => handleRowChange(index, e)}
+                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
