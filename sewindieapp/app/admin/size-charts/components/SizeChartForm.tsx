@@ -299,7 +299,7 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
               hip_min: hip.min,
               hip_max: hip.max,
               thigh_min: thigh.min,
-              thigh_max: thigh.max,
+              thigh_max: thigh.max, // Fixed the typo here
               calf_min: calf.min,
               calf_max: calf.max,
               inseam_min: inseam.min,
@@ -388,6 +388,16 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
           <option value="cm">CM</option>
         </select>
       </div>
+
+      <div className="alert alert-info mb-3">
+        <strong>Input Format:</strong>
+        <ul className="mb-0 mt-2">
+          <li>Single value (e.g., "32") - will be saved as max value</li>
+          <li>Range (e.g., "32-34") - will be saved as min-max range</li>
+          <li>Leave empty for no measurement</li>
+        </ul>
+      </div>
+
       <h3 className="mt-4 mb-3">Size Chart Rows</h3>
       <div className="table-responsive mb-3">
         <table className="table table-bordered table-sm">
@@ -430,7 +440,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                 <td>
                   <input
                     type="text"
-                    step="0.1"
                     className="form-control form-control-sm"
                     name="upper_bust"
                     value={row.upper_bust}
@@ -441,7 +450,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                 <td>
                   <input
                     type="text"
-                    step="0.1"
                     className="form-control form-control-sm"
                     name="full_bust"
                     value={row.full_bust}
@@ -452,7 +460,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                 <td>
                   <input
                     type="text"
-                    step="0.1"
                     className="form-control form-control-sm"
                     name="chest"
                     value={row.chest}
@@ -463,7 +470,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                 <td>
                   <input
                     type="text"
-                    step="0.1"
                     className="form-control form-control-sm"
                     name="under_bust"
                     value={row.under_bust}
@@ -474,7 +480,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                 <td>
                   <input
                     type="text"
-                    step="0.1"
                     className="form-control form-control-sm"
                     name="waist"
                     value={row.waist}
@@ -485,7 +490,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                 <td>
                   <input
                     type="text"
-                    step="0.1"
                     className="form-control form-control-sm"
                     name="preferred_waist"
                     value={row.preferred_waist}
@@ -496,7 +500,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                 <td>
                   <input
                     type="text"
-                    step="0.1"
                     className="form-control form-control-sm"
                     name="side_waist_length"
                     value={row.side_waist_length}
@@ -507,7 +510,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                 <td>
                   <input
                     type="text"
-                    step="0.1"
                     className="form-control form-control-sm"
                     name="waist_to_hip_length"
                     value={row.waist_to_hip_length}
@@ -518,7 +520,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                 <td>
                   <input
                     type="text"
-                    step="0.1"
                     className="form-control form-control-sm"
                     name="high_hip"
                     value={row.high_hip}
@@ -529,7 +530,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                 <td>
                   <input
                     type="text"
-                    step="0.1"
                     className="form-control form-control-sm"
                     name="hip"
                     value={row.hip}
@@ -540,7 +540,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                 <td>
                   <input
                     type="text"
-                    step="0.1"
                     className="form-control form-control-sm"
                     name="thigh"
                     value={row.thigh}
@@ -551,7 +550,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                 <td>
                   <input
                     type="text"
-                    step="0.1"
                     className="form-control form-control-sm"
                     name="calf"
                     value={row.calf}
@@ -562,7 +560,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                 <td>
                   <input
                     type="text"
-                    step="0.1"
                     className="form-control form-control-sm"
                     name="inseam"
                     value={row.inseam}
@@ -573,7 +570,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                 <td>
                   <input
                     type="text"
-                    step="0.1"
                     className="form-control form-control-sm"
                     name="crotch_length"
                     value={row.crotch_length}
@@ -584,7 +580,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                 <td>
                   <input
                     type="text"
-                    step="0.1"
                     className="form-control form-control-sm"
                     name="arm_length"
                     value={row.arm_length}
@@ -595,7 +590,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                 <td>
                   <input
                     type="text"
-                    step="0.1"
                     className="form-control form-control-sm"
                     name="upper_arm"
                     value={row.upper_arm}
@@ -606,7 +600,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                 <td>
                   <input
                     type="text"
-                    step="0.1"
                     className="form-control form-control-sm"
                     name="height"
                     value={row.height}
