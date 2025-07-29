@@ -444,7 +444,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                     name="upper_bust"
                     value={row.upper_bust}
                     onChange={(e) => handleRowChange(index, e)}
-                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
@@ -454,7 +453,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                     name="full_bust"
                     value={row.full_bust}
                     onChange={(e) => handleRowChange(index, e)}
-                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
@@ -464,7 +462,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                     name="chest"
                     value={row.chest}
                     onChange={(e) => handleRowChange(index, e)}
-                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
@@ -484,7 +481,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                     name="waist"
                     value={row.waist}
                     onChange={(e) => handleRowChange(index, e)}
-                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
@@ -494,7 +490,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                     name="preferred_waist"
                     value={row.preferred_waist}
                     onChange={(e) => handleRowChange(index, e)}
-                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
@@ -504,7 +499,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                     name="side_waist_length"
                     value={row.side_waist_length}
                     onChange={(e) => handleRowChange(index, e)}
-                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
@@ -514,7 +508,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                     name="waist_to_hip_length"
                     value={row.waist_to_hip_length}
                     onChange={(e) => handleRowChange(index, e)}
-                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
@@ -524,7 +517,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                     name="high_hip"
                     value={row.high_hip}
                     onChange={(e) => handleRowChange(index, e)}
-                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
@@ -544,7 +536,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                     name="thigh"
                     value={row.thigh}
                     onChange={(e) => handleRowChange(index, e)}
-                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
@@ -554,7 +545,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                     name="calf"
                     value={row.calf}
                     onChange={(e) => handleRowChange(index, e)}
-                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
@@ -564,7 +554,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                     name="inseam"
                     value={row.inseam}
                     onChange={(e) => handleRowChange(index, e)}
-                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
@@ -574,7 +563,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                     name="crotch_length"
                     value={row.crotch_length}
                     onChange={(e) => handleRowChange(index, e)}
-                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
@@ -584,7 +572,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                     name="arm_length"
                     value={row.arm_length}
                     onChange={(e) => handleRowChange(index, e)}
-                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
@@ -594,7 +581,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                     name="upper_arm"
                     value={row.upper_arm}
                     onChange={(e) => handleRowChange(index, e)}
-                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
@@ -604,7 +590,6 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                     name="height"
                     value={row.height}
                     onChange={(e) => handleRowChange(index, e)}
-                    placeholder="e.g., 32 or 32-34"
                   />
                 </td>
                 <td>
