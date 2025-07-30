@@ -299,7 +299,7 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
               hip_min: hip.min,
               hip_max: hip.max,
               thigh_min: thigh.min,
-              thigh_max: thigh.max, // Fixed the typo here
+              thigh_max: thigh.max,
               calf_min: calf.min,
               calf_max: calf.max,
               inseam_min: inseam.min,
