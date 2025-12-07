@@ -18,18 +18,21 @@ export default function SidebarToggle({ targetId }: SidebarToggleProps) {
     }
   }
 
-  // Hide sidebar when clicking outside on mobile
+  // Hide sidebar when clicking/touching outside on mobile
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       const sidebarElement = document.getElementById(targetId)
       const toggleButton = document.getElementById("sidebar-toggle-button")
+
+      // Get the actual target element from touch or mouse event
+      const target = event.target as Node
 
       if (
         sidebarElement &&
         isOpen &&
-        !sidebarElement.contains(event.target as Node) &&
+        !sidebarElement.contains(target) &&
         toggleButton &&
-        !toggleButton.contains(event.target as Node)
+        !toggleButton.contains(target)
       ) {
         sidebarElement.classList.remove("d-block")
         setIsOpen(false)
@@ -37,8 +40,11 @@ export default function SidebarToggle({ targetId }: SidebarToggleProps) {
     }
 
     document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("touchstart", handleClickOutside)
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside)
+      document.removeEventListener("touchstart", handleClickOutside)
     }
   }, [isOpen, targetId])
 
@@ -65,7 +71,16 @@ export default function SidebarToggle({ targetId }: SidebarToggleProps) {
       id="sidebar-toggle-button"
       className="btn btn-primary sidebar-toggle d-md-none"
       onClick={toggleSidebar}
+      onTouchEnd={(e) => {
+        e.preventDefault() // Prevent ghost click
+        toggleSidebar()
+      }}
       aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
+      style={{
+        minWidth: "44px",
+        minHeight: "44px",
+        touchAction: "manipulation",
+      }}
     >
       {isOpen ? <X size={24} /> : <Menu size={24} />}
     </button>
