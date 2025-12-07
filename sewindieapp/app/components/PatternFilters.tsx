@@ -1,6 +1,7 @@
 "use client"
+
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { useState, useEffect, useMemo, useCallback } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
 import { ChevronDown, ChevronRight } from "lucide-react"
 
 type FilterOption = {
@@ -27,10 +28,18 @@ export default function PatternFilters({
 }: PatternFiltersProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const pathname = usePathname() // This should be '/patterns'
   const [expandedSections, setExpandedSections] = useState<string[]>([])
 
-  // Initialize expanded sections based on current search params
+  // Initialize state from URL params
   useEffect(() => {
+    const categoryParams = searchParams.getAll("category")
+    const attributeParams = searchParams.getAll("attribute")
+    const formatParams = searchParams.getAll("format")
+    const audienceParams = searchParams.getAll("audience")
+    const fabricTypeParams = searchParams.getAll("fabricType")
+    const designerParams = searchParams.getAll("designer")
+
     const initialExpanded: string[] = []
     const filterTypes = ["category", "attribute", "format", "audience", "fabricType", "designer"]
     filterTypes.forEach((type) => {
@@ -39,6 +48,8 @@ export default function PatternFilters({
       }
     })
     setExpandedSections(initialExpanded)
+
+    console.log("[v0] PatternFilters - pathname:", pathname)
   }, [searchParams])
 
   const handleFilterChange = useCallback(
@@ -50,9 +61,9 @@ export default function PatternFilters({
       } else {
         currentParams.append(filterType, value)
       }
-      router.push(`/admin/patterns?${currentParams.toString()}`)
+      router.push(`${pathname}?${currentParams.toString()}`)
     },
-    [router, searchParams],
+    [router, searchParams, pathname],
   )
 
   const handleClearAll = useCallback(() => {
@@ -61,8 +72,8 @@ export default function PatternFilters({
     filterTypes.forEach((type) => {
       currentParams.delete(type)
     })
-    router.push(`/admin/patterns?${currentParams.toString()}`)
-  }, [router, searchParams])
+    router.push(`${pathname}?${currentParams.toString()}`)
+  }, [router, searchParams, pathname])
 
   const toggleSection = useCallback((section: string) => {
     setExpandedSections((prev) => (prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]))
