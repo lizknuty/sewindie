@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import { redirect } from "next/navigation"
 import AdminSidebar from "@/admin/components/AdminSidebar"
-import SidebarToggle from "@/components/SidebarToggle"
+import SidebarToggle from "@/admin/components/SidebarToggle"
 
 export default async function AdminLayout({
   children,
@@ -17,8 +17,6 @@ export default async function AdminLayout({
     redirect("/login?callbackUrl=/admin")
   }
 
-  // We can now safely assume session and session.user exist.
-  // The type assertion is safe because of the redirect above.
   const user = session!.user
 
   return (
@@ -27,7 +25,7 @@ export default async function AdminLayout({
         <AdminSidebar user={user} />
       </div>
       <div className="content-wrapper">
-        <header className="content-header">
+        <header className="content-header relative z-50 flex items-center justify-between">
           <SidebarToggle targetId="admin-sidebar" />
           <h1 className="d-none d-md-block">Admin Dashboard</h1>
         </header>
