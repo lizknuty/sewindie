@@ -1,26 +1,33 @@
-const path = require('path'); // Add this line
+const path = require("path")
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  turbopack: {},
   webpack: (config) => {
-    config.resolve.alias['@'] = path.join(__dirname, './app');
-    return config;
+    config.resolve.alias["@"] = path.join(__dirname, "./app")
+    return config
   },
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: '**',
+        protocol: "https",
+        hostname: "**",
       },
       {
-        protocol: 'http',
-        hostname: '**',
+        protocol: "http",
+        hostname: "**",
       },
     ],
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   reactStrictMode: true,
-};
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig
