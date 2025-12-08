@@ -294,7 +294,7 @@ a:not(.btn):not(.nav-link):focus {
   border-bottom: 1px solid #dee2e6;
   position: sticky;
   top: 0;
-  z-index: 1020;
+  z-index: 1060; /* Increased to be above navbar z-40 */
 }
 
 .content-main {
@@ -410,7 +410,9 @@ a:not(.btn):not(.nav-link):focus {
   color: var(--color-dark);
   padding: 0.5rem;
   margin-right: 1rem;
-  z-index: 1035;
+  z-index: 9999; /* Increased z-index */
+  position: relative; /* Added position relative */
+  pointer-events: auto; /* Ensure pointer events work */
 }
 
 /* Responsive Styles for Sidebar Layout */

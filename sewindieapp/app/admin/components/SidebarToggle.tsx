@@ -79,35 +79,52 @@ export default function SidebarToggle({ targetId }: SidebarToggleProps) {
   }, [targetId])
 
   return (
-    <button
-      id="sidebar-toggle-button"
-      type="button"
-      className="p-2 rounded-md border border-gray-300 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-      onClick={(e) => {
-        console.log("[v0] onClick triggered")
-        e.stopPropagation()
-        toggleSidebar()
-      }}
-      onTouchStart={(e) => {
-        console.log("[v0] onTouchStart triggered")
-      }}
-      onTouchEnd={(e) => {
-        console.log("[v0] onTouchEnd triggered")
-        e.preventDefault()
-        e.stopPropagation()
-        toggleSidebar()
-      }}
-      aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
-      aria-expanded={isOpen}
-      style={{
-        minWidth: "44px",
-        minHeight: "44px",
-        touchAction: "manipulation",
-        WebkitTapHighlightColor: "transparent",
-        cursor: "pointer",
-      }}
-    >
-      {isOpen ? <X size={24} /> : <Menu size={24} />}
-    </button>
+    <div style={{ position: "relative", zIndex: 9999 }}>
+      <button
+        id="sidebar-toggle-button"
+        type="button"
+        className="p-2 rounded-md border border-gray-300 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary d-md-none"
+        onClick={(e) => {
+          console.log("[v0] onClick triggered")
+          e.preventDefault()
+          e.stopPropagation()
+          toggleSidebar()
+        }}
+        onTouchStart={(e) => {
+          console.log("[v0] onTouchStart triggered")
+        }}
+        onTouchEnd={(e) => {
+          console.log("[v0] onTouchEnd triggered")
+          e.preventDefault()
+          e.stopPropagation()
+          toggleSidebar()
+        }}
+        onPointerDown={(e) => {
+          console.log("[v0] onPointerDown triggered")
+        }}
+        onPointerUp={(e) => {
+          console.log("[v0] onPointerUp triggered")
+          e.preventDefault()
+          e.stopPropagation()
+          toggleSidebar()
+        }}
+        aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
+        aria-expanded={isOpen}
+        style={{
+          minWidth: "44px",
+          minHeight: "44px",
+          touchAction: "manipulation",
+          WebkitTapHighlightColor: "transparent",
+          WebkitUserSelect: "none",
+          userSelect: "none",
+          cursor: "pointer",
+          position: "relative",
+          zIndex: 9999,
+          pointerEvents: "auto",
+        }}
+      >
+        {isOpen ? <X size={24} /> : <Menu size={24} />}
+      </button>
+    </div>
   )
 }
