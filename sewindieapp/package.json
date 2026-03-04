@@ -30,7 +30,6 @@
     "tar": "^7.5.9"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^5.0.2",
     "@types/node": "^20",
     "@types/react": "^18.3.13",
     "@types/react-dom": "^18.3.1",
