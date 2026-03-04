@@ -1,0 +1,205 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  hashedPassword String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+  favorites     Favorite[]
+  ratings       Rating[]
+  resetPasswordToken String? @unique
+  resetPasswordExpires DateTime?
+}
+
+model Account {
+  id                Int     @id @default(autoincrement())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           Int      @id @default(autoincrement())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+enum Role {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+model Pattern {
+  id               Int        @id @default(autoincrement())
+  name             String
+  designerId       Int
+  designer         Designer   @relation(fields: [designerId], references: [id])
+  description      String?
+  difficulty_level String?
+  fabricTypeId     Int?
+  fabricType       FabricType? @relation(fields: [fabricTypeId], references: [id])
+  audienceId       Int?
+  audience         Audience?  @relation(fields: [audienceId], references: [id])
+  formatId         Int?
+  format           Format?    @relation(fields: [formatId], references: [id])
+  categoryIds      Int[]
+  categories       Category[] @relation(fields: [categoryIds], references: [id])
+  suggestedFabricIds Int[]
+  suggestedFabrics SuggestedFabric[] @relation(fields: [suggestedFabricIds], references: [id])
+  image            String?
+  favorites        Favorite[]
+  ratings          Rating[]
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+}
+
+model Designer {
+  id          Int         @id @default(autoincrement())
+  name        String      @unique
+  description String?
+  patterns    Pattern[]
+  sizeCharts  SizeChart[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model FabricType {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  description String?
+  patterns  Pattern[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Audience {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  description String?
+  patterns  Pattern[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Format {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  description String?
+  patterns  Pattern[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  description String?
+  patterns  Pattern[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model SuggestedFabric {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  description String?
+  patterns  Pattern[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  patternId Int
+  pattern   Pattern  @relation(fields: [patternId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, patternId])
+}
+
+model Rating {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  patternId Int
+  pattern   Pattern  @relation(fields: [patternId], references: [id], onDelete: Cascade)
+  value     Int      @db.SmallInt // Rating value, e.g., 1-5
+  comment   String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, patternId])
+  @@check([value >= 1 AND value <= 5])
+}
+
+model SizeChart {
+  id              Int            @id @default(autoincrement())
+  label           String
+  designer_id     Int
+  Designer        Designer       @relation(fields: [designer_id], references: [id])
+  measurement_unit String
+  SizeChartRow    SizeChartRow[]
+
+  @@unique([label, designer_id])
+}
+
+model SizeChartRow {
+  id             Int       @id @default(autoincrement())
+  size_chart_id  Int
+  sizeChart      SizeChart @relation(fields: [size_chart_id], references: [id])
+  size_label     String
+  upper_bust_min Decimal?  @db.Decimal(10, 2)
+  upper_bust_max Decimal?  @db.Decimal(10, 2)
+  full_bust_min  Decimal?  @db.Decimal(10, 2)
+  full_bust_max  Decimal?  @db.Decimal(10, 2)
+  chest_min      Decimal?  @db.Decimal(10, 2)
+  chest_max      Decimal?  @db.Decimal(10, 2)
+  waist_min      Decimal?  @db.Decimal(10, 2)
+  waist_max      Decimal?  @db.Decimal(10, 2)
+  hip_min        Decimal?  @db.Decimal(10, 2)
+  hip_max        Decimal?  @db.Decimal(10, 2)
+  inseam_min     Decimal?  @db.Decimal(10, 2)
+  inseam_max     Decimal?  @db.Decimal(10, 2)
+  height_min     Decimal?  @db.Decimal(10, 2)
+  height_max     Decimal?  @db.Decimal(10, 2)
+}
