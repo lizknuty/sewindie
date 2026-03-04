@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import prisma from "@/lib/prisma"
-import bcrypt from "bcrypt"
+import bcryptjs from "bcryptjs"
 
 export async function POST(req: Request) {
   try {
@@ -31,13 +31,13 @@ export async function POST(req: Request) {
     }
 
     // Verify current password
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.password)
+    const isPasswordValid = await bcryptjs.compare(currentPassword, user.password)
     if (!isPasswordValid) {
       return NextResponse.json({ error: "Current password is incorrect" }, { status: 400 })
     }
 
     // Hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10)
+    const hashedPassword = await bcryptjs.hash(newPassword, 10)
 
     // Update user's password
     await prisma.user.update({
