@@ -1,11 +1,11 @@
-import type { NextAuthOptions } from "next-auth"
+import type { AuthOptions, SessionStrategy } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { neon } from "@neondatabase/serverless"
-import bcrypt from "bcryptjs"
+import { PrismaAdapter } from "@next-auth/prisma-adapter"
+import prisma from "@/lib/prisma"
+import bcryptjs from "bcryptjs"
 
-const sql = neon(process.env.POSTGRES_URL!)
-
-export const authOptions: NextAuthOptions = {
+export const authOptions: AuthOptions = {
+  adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -14,25 +14,28 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) {
+        if (!credentials?.email || !credentials?.password) {
           return null
         }
 
-        const result = await sql`
-          SELECT id, email, name, "hashedPassword", role
-          FROM "User"
-          WHERE email = ${credentials.email}
-        `
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            password: true,
+            role: true,
+          },
+        })
 
-        const user = result[0]
-
-        if (!user || !user.hashedPassword) {
+        if (!user) {
           return null
         }
 
-        const isValid = await bcrypt.compare(credentials.password, user.hashedPassword)
+        const isPasswordValid = await bcryptjs.compare(credentials.password, user.password)
 
-        if (!isValid) {
+        if (!isPasswordValid) {
           return null
         }
 
@@ -40,30 +43,23 @@ export const authOptions: NextAuthOptions = {
           id: user.id.toString(),
           email: user.email,
           name: user.name,
-          role: user.role,
+          role: user.role || "USER",
         }
       },
     }),
   ],
-  session: {
-    strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60,
-  },
-  pages: {
-    signIn: "/login",
-  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
-        token.role = (user as any).role || "USER"
+        token.role = user.role || "USER"
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as number
-        session.user.role = token.role as string
+        session.user.id = token.id
+        session.user.role = token.role
       }
       return session
     },
@@ -72,6 +68,12 @@ export const authOptions: NextAuthOptions = {
       if (new URL(url).origin === baseUrl) return url
       return baseUrl
     },
+  },
+  session: {
+    strategy: "jwt" as SessionStrategy,
+  },
+  pages: {
+    signIn: "/login",
   },
   secret: process.env.NEXTAUTH_SECRET,
 }
