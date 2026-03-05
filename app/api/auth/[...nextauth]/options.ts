@@ -1,12 +1,11 @@
 import type { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import prisma from "@/lib/prisma"
+import { neon } from "@neondatabase/serverless"
 import bcrypt from "bcryptjs"
-import type { Adapter } from "next-auth/adapters"
+
+const sql = neon(process.env.POSTGRES_URL!)
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as Adapter,
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -19,9 +18,13 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        })
+        const result = await sql`
+          SELECT id, email, name, "hashedPassword", role
+          FROM "User"
+          WHERE email = ${credentials.email}
+        `
+
+        const user = result[0]
 
         if (!user || !user.hashedPassword) {
           return null
@@ -44,23 +47,16 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
-  jwt: {
-    secret: process.env.NEXTAUTH_SECRET,
+    maxAge: 30 * 24 * 60 * 60,
   },
   pages: {
     signIn: "/login",
-    signOut: "/logout",
-    error: "/login", // Error page will be the login page
-    verifyRequest: "/verify-request", // (used for email provider)
-    newUser: "/signup", // New users will be directed to signup
   },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
-        token.role = (user as any).role // Cast user to any to access role
+        token.role = (user as any).role || "USER"
       }
       return token
     },
@@ -72,9 +68,7 @@ export const authOptions: NextAuthOptions = {
       return session
     },
     async redirect({ url, baseUrl }) {
-      // Allow relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`
-      // Allow callback URLs on the same origin
       if (new URL(url).origin === baseUrl) return url
       return baseUrl
     },

@@ -12,6 +12,7 @@
     "@auth/core": "latest",
     "@auth/prisma-adapter": "2.11.1",
     "@hookform/resolvers": "^3.10.0",
+    "@neondatabase/serverless": "1.0.2",
     "@popperjs/core": "latest",
     "@prisma/client": "7.1.0",
     "@radix-ui/react-accordion": "1.2.2",
