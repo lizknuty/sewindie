@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import bcrypt from "bcryptjs"
 import prisma from "@/lib/prisma"
+import bcryptjs from "bcryptjs"
 
 async function verifyTurnstileToken(token: string): Promise<boolean> {
   const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
@@ -16,13 +16,9 @@ async function verifyTurnstileToken(token: string): Promise<boolean> {
   return data.success === true
 }
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const { name, email, password, turnstileToken } = await request.json()
-
-    if (!email || !password) {
-      return NextResponse.json({ error: "Email and password are required" }, { status: 400 })
-    }
+    const { name, email, password, turnstileToken } = await req.json()
 
     // Verify Turnstile token
     if (!turnstileToken) {
@@ -39,26 +35,23 @@ export async function POST(request: Request) {
     })
 
     if (existingUser) {
-      return NextResponse.json({ error: "User with this email already exists" }, { status: 409 })
+      return NextResponse.json({ message: "User already exists" }, { status: 400 })
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10)
+    const hashedPassword = await bcryptjs.hash(password, 10)
 
-    const newUser = await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         name,
         email,
-        hashedPassword,
-        role: "USER", // Default role
+        password: hashedPassword,
+        role: "USER", // Set default role
       },
     })
 
-    // Do not return hashedPassword in the response
-    const { hashedPassword: _, ...userWithoutPassword } = newUser
-
-    return NextResponse.json(userWithoutPassword, { status: 201 })
+    return NextResponse.json({ message: "User created successfully" }, { status: 201 })
   } catch (error) {
-    console.error("Error during user registration:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Error creating user:", error)
+    return NextResponse.json({ message: "An error occurred" }, { status: 500 })
   }
 }
