@@ -3,19 +3,44 @@ import prisma from "@/lib/prisma"
 import { checkAdminAccess } from "@/lib/admin-middleware"
 import bcrypt from "bcryptjs"
 
-export async function GET() {
+export async function GET(request: Request) {
   const { authorized, response } = await checkAdminAccess()
   if (!authorized) {
     return response
   }
 
   try {
+    const { searchParams } = new URL(request.url)
+    const search = searchParams.get("search") || ""
+    const role = searchParams.get("role") || ""
+    const status = searchParams.get("status") || ""
+
+    const where: any = {}
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+      ]
+    }
+
+    if (role) {
+      where.role = role
+    }
+
+    if (status) {
+      where.status = status
+    }
+
     const users = await prisma.user.findMany({
+      where,
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
+        status: true,
+        lastLogin: true,
         createdAt: true,
       },
       orderBy: {
