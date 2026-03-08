@@ -15,19 +15,25 @@ export async function GET(request: Request) {
     const role = searchParams.get("role") || ""
     const status = searchParams.get("status") || ""
 
+    const where: any = {}
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+      ]
+    }
+
+    if (role) {
+      where.role = role
+    }
+
+    if (status) {
+      where.status = status
+    }
+
     const users = await prisma.user.findMany({
-      where: {
-        AND: [
-          search ? {
-            OR: [
-              { name: { contains: search, mode: "insensitive" } },
-              { email: { contains: search, mode: "insensitive" } },
-            ],
-          } : {},
-          role ? { role: role as any } : {},
-          status ? { status: status as any } : {},
-        ],
-      },
+      where,
       select: {
         id: true,
         name: true,
@@ -55,7 +61,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { name, email, password, role } = await request.json()
+    const { name, email, password, role, status = "ACTIVE" } = await request.json()
 
     if (!email || !password || !role) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -69,6 +75,7 @@ export async function POST(request: Request) {
         email,
         hashedPassword,
         role,
+        status,
       },
     })
     return NextResponse.json(newUser, { status: 201 })

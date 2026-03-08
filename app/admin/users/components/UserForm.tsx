@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Role } from "@prisma/client"
+import { Role, UserStatus } from "@prisma/client"
 
 interface UserFormProps {
   userId?: string // Optional, for edit mode
@@ -18,6 +18,7 @@ export default function UserForm({ userId }: UserFormProps) {
     email: "",
     password: "",
     role: Role.USER,
+    status: UserStatus.ACTIVE,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -38,6 +39,7 @@ export default function UserForm({ userId }: UserFormProps) {
             email: data.email,
             password: "", // Never pre-fill password
             role: data.role,
+            status: data.status || UserStatus.ACTIVE,
           })
         } catch (err) {
           console.error("Error fetching user:", err)
@@ -62,10 +64,11 @@ export default function UserForm({ userId }: UserFormProps) {
       const url = isEditMode ? `/api/admin/users/${userId}` : "/api/admin/users"
       const method = isEditMode ? "PUT" : "POST"
 
-      const payload: { name?: string; email: string; password?: string; role: Role } = {
+      const payload: { name?: string; email: string; password?: string; role: Role; status: UserStatus } = {
         name: formData.name,
         email: formData.email,
         role: formData.role,
+        status: formData.status,
       }
 
       if (formData.password) {
@@ -154,6 +157,25 @@ export default function UserForm({ userId }: UserFormProps) {
           {Object.values(Role).map((role) => (
             <option key={role} value={role}>
               {role}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+          Status *
+        </label>
+        <select
+          id="status"
+          name="status"
+          value={formData.status}
+          onChange={handleChange}
+          required
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        >
+          {Object.values(UserStatus).map((status) => (
+            <option key={status} value={status}>
+              {status}
             </option>
           ))}
         </select>

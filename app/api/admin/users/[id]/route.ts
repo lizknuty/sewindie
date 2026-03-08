@@ -60,7 +60,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    const updateData: any = { name, email, role, status }
+    const updateData: any = { name, email, role }
+    
+    if (status) {
+      updateData.status = status
+    }
 
     if (password) {
       updateData.hashedPassword = await bcrypt.hash(password, 10)
@@ -94,6 +98,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   }
 
   const userId = Number.parseInt(params.id, 10)
+
   if (isNaN(userId)) {
     return NextResponse.json({ error: "Invalid User ID" }, { status: 400 })
   }
@@ -101,16 +106,21 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   try {
     const { status } = await request.json()
 
-    if (!["ACTIVE", "SUSPENDED", "PENDING"].includes(status)) {
+    if (!status || !["ACTIVE", "SUSPENDED", "PENDING"].includes(status)) {
       return NextResponse.json({ error: "Invalid status value" }, { status: 400 })
     }
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: { status },
-      select: { id: true, name: true, email: true, role: true, status: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        status: true,
+      },
     })
-
     return NextResponse.json(updatedUser)
   } catch (error) {
     console.error("Error updating user status:", error)
