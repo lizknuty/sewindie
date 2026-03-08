@@ -16,6 +16,10 @@ model User {
   image         String?
   hashedPassword String?
   role          Role      @default(USER)
+  status        UserStatus @default(ACTIVE)
+  lockedAt      DateTime?
+  lockedReason  String?
+  archivedAt    DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
@@ -65,6 +69,12 @@ enum Role {
   USER
   MODERATOR
   ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  LOCKED
+  ARCHIVED
 }
 
 model Pattern {
