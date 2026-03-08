@@ -15,25 +15,19 @@ export async function GET(request: Request) {
     const role = searchParams.get("role") || ""
     const status = searchParams.get("status") || ""
 
-    const where: any = {}
-
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { email: { contains: search, mode: "insensitive" } },
-      ]
-    }
-
-    if (role) {
-      where.role = role
-    }
-
-    if (status) {
-      where.status = status
-    }
-
     const users = await prisma.user.findMany({
-      where,
+      where: {
+        AND: [
+          search ? {
+            OR: [
+              { name: { contains: search, mode: "insensitive" } },
+              { email: { contains: search, mode: "insensitive" } },
+            ],
+          } : {},
+          role ? { role: role as any } : {},
+          status ? { status: status as any } : {},
+        ],
+      },
       select: {
         id: true,
         name: true,

@@ -23,6 +23,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
         name: true,
         email: true,
         role: true,
+        status: true,
+        lastLogin: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -52,13 +54,13 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 
   try {
-    const { name, email, password, role } = await request.json()
+    const { name, email, password, role, status } = await request.json()
 
     if (!email || !role) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    const updateData: any = { name, email, role }
+    const updateData: any = { name, email, role, status }
 
     if (password) {
       updateData.hashedPassword = await bcrypt.hash(password, 10)
@@ -72,6 +74,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         name: true,
         email: true,
         role: true,
+        status: true,
+        lastLogin: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -80,6 +84,37 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   } catch (error) {
     console.error("Error updating user:", error)
     return NextResponse.json({ error: "Failed to update user" }, { status: 500 })
+  }
+}
+
+export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+  const { authorized, response } = await checkAdminAccess()
+  if (!authorized) {
+    return response
+  }
+
+  const userId = Number.parseInt(params.id, 10)
+  if (isNaN(userId)) {
+    return NextResponse.json({ error: "Invalid User ID" }, { status: 400 })
+  }
+
+  try {
+    const { status } = await request.json()
+
+    if (!["ACTIVE", "SUSPENDED", "PENDING"].includes(status)) {
+      return NextResponse.json({ error: "Invalid status value" }, { status: 400 })
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { status },
+      select: { id: true, name: true, email: true, role: true, status: true },
+    })
+
+    return NextResponse.json(updatedUser)
+  } catch (error) {
+    console.error("Error updating user status:", error)
+    return NextResponse.json({ error: "Failed to update user status" }, { status: 500 })
   }
 }
 
