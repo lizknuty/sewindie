@@ -9,19 +9,17 @@ datasource db {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
+  id            Int        @id @default(autoincrement())
   name          String?
-  email         String    @unique
+  email         String     @unique
   emailVerified DateTime?
   image         String?
   hashedPassword String?
-  role          Role      @default(USER)
+  role          Role       @default(USER)
   status        UserStatus @default(ACTIVE)
-  lockedAt      DateTime?
-  lockedReason  String?
-  archivedAt    DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  lastLogin     DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
   accounts      Account[]
   sessions      Session[]
   favorites     Favorite[]
@@ -73,8 +71,8 @@ enum Role {
 
 enum UserStatus {
   ACTIVE
-  LOCKED
-  ARCHIVED
+  SUSPENDED
+  PENDING
 }
 
 model Pattern {
