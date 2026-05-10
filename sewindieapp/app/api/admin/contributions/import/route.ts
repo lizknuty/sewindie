@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { updateContributionStatus } from "@/lib/google-sheets"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import { checkModeratorAccess } from "@/lib/admin-middleware"
 
 export async function POST(request: NextRequest) {

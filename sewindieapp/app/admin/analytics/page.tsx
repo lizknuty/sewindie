@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Heart, TrendingUp, Users, Search, Star } from "lucide-react"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 
 async function getAnalyticsSummary() {
   // Get total favorites count

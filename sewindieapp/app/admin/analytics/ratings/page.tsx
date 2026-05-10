@@ -1,7 +1,7 @@
 import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
 import { Star, TrendingUp, Users, BarChart2 } from "lucide-react"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 
 // Define types to match Prisma schema
 type PatternWithRatings = {

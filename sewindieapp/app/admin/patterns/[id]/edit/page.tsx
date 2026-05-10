@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import PatternForm from "../../components/PatternForm"
 
 export default async function EditPatternPage({ params }: { params: Promise<{ id: string }> }) {

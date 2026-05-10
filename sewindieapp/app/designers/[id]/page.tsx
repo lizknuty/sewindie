@@ -1,5 +1,5 @@
 import Image from "next/image"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import PatternCard from "@/components/PatternCard"
 import PaginationControls from "@/components/PaginationControls"

@@ -1,5 +1,5 @@
 import SizeChartForm from "../components/SizeChartForm"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 
 export default async function NewSizeChartPage() {
   const designers = await prisma.designer.findMany({

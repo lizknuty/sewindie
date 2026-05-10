@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import { checkModeratorAccess } from "@/lib/admin-middleware"
 
 // Define types to match Prisma schema

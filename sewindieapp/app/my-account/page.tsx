@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import { formatDistanceToNow } from "date-fns"
 
 export default async function MyAccountPage() {

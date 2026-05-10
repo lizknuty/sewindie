@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import { checkAdminAccess } from "@/lib/admin-middleware"
 import { Decimal } from "@prisma/client/runtime/library"
 

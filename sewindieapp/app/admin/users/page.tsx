@@ -1,5 +1,5 @@
 import Link from "next/link"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import { Plus } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { getServerSession } from "next-auth/next"

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import { Plus } from "lucide-react"
 
 export default async function CategoriesPage() {

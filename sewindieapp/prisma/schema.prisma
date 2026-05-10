@@ -4,8 +4,6 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL")
-  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 model Attribute {
@@ -141,6 +139,8 @@ model User {
   role              String?           @db.VarChar(50)
   resetToken        String?
   resetTokenExpires DateTime?         @db.Timestamp(6)
+  status            UserStatus        @default(ACTIVE)
+  lastLogin         DateTime?
   favorites         Favorite[]
   ratings           Rating[]
   UserMeasurement   UserMeasurement[]
@@ -267,4 +267,10 @@ model UserMeasurement {
 enum MeasurementUnit {
   inches
   cm
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING
 }

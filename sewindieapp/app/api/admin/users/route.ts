@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import bcryptjs from "bcryptjs"
 import { checkAdminAccess } from "@/lib/admin-middleware"
 

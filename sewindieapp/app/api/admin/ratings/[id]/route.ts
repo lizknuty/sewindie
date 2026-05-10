@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import { checkModeratorAccess } from "@/lib/admin-middleware"
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

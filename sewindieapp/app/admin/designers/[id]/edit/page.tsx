@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import DesignerForm from "../../components/DesignerForm"
 
 export default async function EditDesignerPage({ params }: { params: Promise<{ id: string }> }) {

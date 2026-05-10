@@ -8,6 +8,35 @@
   padding: 0 40px;
 }
 
+/* Fix for Swiper v12 with Bootstrap - ensure proper container and slide sizing */
+.carouselWrapper :global(.swiper) {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  list-style: none;
+  padding: 0;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.carouselWrapper :global(.swiper-wrapper) {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  display: flex;
+  transition-property: transform;
+  box-sizing: content-box;
+}
+
+.carouselWrapper :global(.swiper-slide) {
+  flex-shrink: 0;
+  height: 100%;
+  position: relative;
+  transition-property: transform;
+  /* Width is set dynamically by Swiper based on slidesPerView */
+}
+
 .card {
   background-color: white;
   border-radius: 0.5rem;
@@ -58,11 +87,11 @@
 }
 
 .swiperButtonPrev {
-  left: 0;
+  left: -20px;
 }
 
 .swiperButtonNext {
-  right: 0;
+  right: -20px;
 }
 
 .swiperButtonPrev::after,

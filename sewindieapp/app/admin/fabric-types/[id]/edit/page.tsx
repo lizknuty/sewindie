@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import SimpleEntityForm from "../../../components/SimpleEntityForm"
 
 export default async function EditFabricTypePage({ params }: { params: Promise<{ id: string }> }) {

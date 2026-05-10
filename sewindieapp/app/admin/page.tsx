@@ -1,5 +1,5 @@
 import Link from "next/link"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import { Users, Scissors, Tag, PodcastIcon as Audience } from "lucide-react"
 
 export default async function AdminDashboard() {

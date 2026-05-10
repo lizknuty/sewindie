@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import UserForm from "../../components/UserForm"
 
 export default async function EditUserPage({ params }: { params: Promise<{ id: string }> }) {

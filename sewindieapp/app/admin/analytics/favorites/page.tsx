@@ -1,7 +1,7 @@
 import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
 import { Heart, TrendingUp, Users } from "lucide-react"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 
 async function getFavoritesAnalytics() {
   // Get top favorited patterns
