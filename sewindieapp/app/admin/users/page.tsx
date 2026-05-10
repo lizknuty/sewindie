@@ -1,10 +1,10 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { Plus } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import { redirect } from "next/navigation"
+import UsersTable from "./components/UsersTable"
 
 export default async function UsersPage() {
   // Check if user is admin
@@ -19,12 +19,21 @@ export default async function UsersPage() {
       name: true,
       email: true,
       role: true,
+      status: true,
+      lastLogin: true,
       createdAt: true,
     },
     orderBy: {
       createdAt: "desc",
     },
   })
+
+  // Serialize dates to strings for client component
+  const serializedUsers = users.map((user) => ({
+    ...user,
+    lastLogin: user.lastLogin?.toISOString() || null,
+    createdAt: user.createdAt.toISOString(),
+  }))
 
   return (
     <div>
@@ -36,44 +45,10 @@ export default async function UsersPage() {
         </Link>
       </div>
 
-      <div className="table-responsive">
-        <table className="table table-striped table-hover">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Joined</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id}>
-                <td>{user.name}</td>
-                <td>{user.email}</td>
-                <td>
-                  <span
-                    className={`badge ${
-                      user.role === "ADMIN" ? "bg-danger" : user.role === "MODERATOR" ? "bg-warning" : "bg-secondary"
-                    }`}
-                  >
-                    {user.role}
-                  </span>
-                </td>
-                <td>{formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}</td>
-                <td>
-                  <div className="btn-group">
-                    <Link href={`/admin/users/${user.id}/edit`} className="btn btn-sm btn-outline-secondary">
-                      Edit
-                    </Link>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <UsersTable 
+        initialUsers={serializedUsers} 
+        currentUserEmail={session.user.email!} 
+      />
     </div>
   )
 }
