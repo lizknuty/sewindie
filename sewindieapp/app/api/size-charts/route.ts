@@ -1,15 +1,19 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { checkAdminAccess } from "@/lib/admin-middleware"
-import { Decimal } from "@prisma/client/runtime/library"
 
 // Helper function to convert string to Decimal or null
-const toDecimal = (value: string | number | null | undefined): Decimal | null => {
+const toDecimal = (
+  value: string | number | null | undefined
+): Prisma.Decimal | null => {
   if (value === null || value === undefined || value === "") {
     return null
   }
+
   const num = Number(value)
-  return isNaN(num) ? null : new Decimal(num)
+
+  return isNaN(num) ? null : new Prisma.Decimal(num)
 }
 
 export async function GET(request: NextRequest) {
