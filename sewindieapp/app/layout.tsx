@@ -49,7 +49,7 @@ export default function RootLayout({
           <main>{children}</main>
           <footer className="footer text-center">
             <div className="container">
-              <p>&copy; 2025 SewIndie App. All rights reserved.</p>
+              <p>&copy; 2026 SewIndie LLC. All rights reserved.</p>
             </div>
           </footer>
         </Providers>
