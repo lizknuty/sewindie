@@ -52,6 +52,10 @@
   height: 0;
   padding-bottom: 100%;
   overflow: hidden;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 1rem;
+  box-sizing: border-box;
 }
 
 .content {
