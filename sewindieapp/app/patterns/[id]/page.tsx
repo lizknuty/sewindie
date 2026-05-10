@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import prisma from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 import FavoritesAndRatings from '@/components/FavoritesAndRatings'
 
 type Pattern = {

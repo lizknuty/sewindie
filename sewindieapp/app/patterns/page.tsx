@@ -1,7 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import prisma from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 import PatternSorter from '../components/PatternSorter'
 import PatternFilters from '../components/PatternFilters'
 import PatternSearch from '../components/PatternSearch'
