@@ -49,9 +49,14 @@
 
 .imageContainer {
   position: relative;
-  height: 0;
-  padding-bottom: 100%;
   overflow: hidden;
+  padding: 1rem 1rem 0 1rem;
+}
+
+.imageWrapper {
+  position: relative;
+  width: 100%;
+  padding-bottom: 100%;
 }
 
 .content {
@@ -108,11 +113,12 @@
 }
 
 /* Styles for Swiper pagination */
-.carouselWrapper :global(.swiper-pagination-designers),
-.carouselWrapper :global(.swiper-pagination-patterns) {
-  position: static;
+.carouselWrapper :global(.swiper-pagination) {
+  position: relative;
+  bottom: auto;
   text-align: center;
-  margin-top: 20px;
+  margin-top: 1.5rem;
+  padding-bottom: 0.5rem;
 }
 
 .carouselWrapper :global(.swiper-pagination-bullet) {

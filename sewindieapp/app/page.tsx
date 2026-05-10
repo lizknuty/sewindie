@@ -1,7 +1,4 @@
-import Link from 'next/link'
 import Image from 'next/image'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/api/auth/[...nextauth]/options'
 import { prisma }from '@/lib/prisma'
 import FeaturedCarousel from './components/FeaturedCarousel'
 
@@ -10,7 +7,6 @@ import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 
 export default async function Home() {
-  const session = await getServerSession(authOptions)
 
   const featuredDesigners = await prisma.designer.findMany({
     take: 6,
@@ -48,18 +44,6 @@ export default async function Home() {
           style={{ objectFit: 'cover' }}
           className="z-1"
         />
-        <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center z-2">
-          {!session && (
-            <div className="d-flex flex-column flex-sm-row align-items-center justify-content-center">
-              <Link href="/login" className="btn btn-primary btn-lg hero-btn mb-3 mb-sm-0 me-sm-4">
-                Login
-              </Link>
-              <Link href="/create-account" className="btn btn-outline-primary btn-lg hero-btn">
-                Create Account
-              </Link>
-            </div>
-          )}
-        </div>
       </div>
 
       <main className="flex-grow-1">
