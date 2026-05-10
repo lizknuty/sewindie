@@ -1,8 +1,6 @@
-import { PrismaClient } from "@prisma/client"
+import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import SizeChartForm from "../../components/SizeChartForm"
-
-const prisma = new PrismaClient()
 
 // Helper function to convert Decimal to string for serialization
 function toDecimal(value: any): string | null {
@@ -15,9 +13,9 @@ function toDecimal(value: any): string | null {
 export default async function EditSizeChartPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: { id: string }
 }) {
-  const { id } = await params
+  const { id } = params
 
   try {
     // Fetch the size chart with its rows and designer
