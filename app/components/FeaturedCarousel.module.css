@@ -1,0 +1,102 @@
+.carouselContainer {
+  margin: 2rem 0;
+  padding: 0 2rem;
+}
+
+.carouselWrapper {
+  position: relative;
+  padding: 0 40px;
+}
+
+.card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.imageContainer {
+  position: relative;
+  height: 0;
+  padding-bottom: 100%;
+  overflow: hidden;
+}
+
+.content {
+  padding: 1rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.swiperButtonPrev,
+.swiperButtonNext {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background-color: white;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.swiperButtonPrev {
+  left: 0;
+}
+
+.swiperButtonNext {
+  right: 0;
+}
+
+.swiperButtonPrev::after,
+.swiperButtonNext::after {
+  content: none;
+}
+
+/* Hide navigation buttons on small screens */
+@media (max-width: 640px) {
+  .swiperButtonPrev,
+  .swiperButtonNext {
+    display: none;
+  }
+}
+
+/* Styles for Swiper pagination */
+.carouselWrapper :global(.swiper-pagination-designers),
+.carouselWrapper :global(.swiper-pagination-patterns) {
+  position: static;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.carouselWrapper :global(.swiper-pagination-bullet) {
+  display: inline-block;
+  background-color: var(--color-primary);
+  opacity: 0.5;
+  width: 10px;
+  height: 10px;
+  margin: 0 5px;
+  border-radius: 50%;
+}
+
+.carouselWrapper :global(.swiper-pagination-bullet-active) {
+  background-color: var(--color-primary);
+  opacity: 1;
+}
