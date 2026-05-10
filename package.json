@@ -70,6 +70,7 @@
     "recharts": "2.15.4",
     "resend": "6.5.2",
     "sonner": "^1.7.4",
+    "swiper": "^12.1.4",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
     "use-debounce": "10.0.6",
