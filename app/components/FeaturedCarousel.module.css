@@ -58,11 +58,11 @@
 }
 
 .swiperButtonPrev {
-  left: 0;
+  left: -20px;
 }
 
 .swiperButtonNext {
-  right: 0;
+  right: -20px;
 }
 
 .swiperButtonPrev::after,

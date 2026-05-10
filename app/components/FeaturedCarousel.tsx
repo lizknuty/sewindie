@@ -76,14 +76,14 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ designers, patterns
               </Link>
             </SwiperSlide>
           ))}
+          <div className={`swiper-button-prev-designers ${styles.swiperButtonPrev}`}>
+            <ChevronLeft className="h-6 w-6" />
+          </div>
+          <div className={`swiper-button-next-designers ${styles.swiperButtonNext}`}>
+            <ChevronRight className="h-6 w-6" />
+          </div>
           <div className="swiper-pagination-designers"></div>
         </Swiper>
-        <div className={`swiper-button-prev-designers ${styles.swiperButtonPrev}`}>
-          <ChevronLeft className="h-6 w-6" />
-        </div>
-        <div className={`swiper-button-next-designers ${styles.swiperButtonNext}`}>
-          <ChevronRight className="h-6 w-6" />
-        </div>
       </div>
 
       <h2 className="text-3xl font-bold mb-6 mt-12">Featured Patterns</h2>
@@ -119,14 +119,14 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ designers, patterns
               </Link>
             </SwiperSlide>
           ))}
+          <div className={`swiper-button-prev-patterns ${styles.swiperButtonPrev}`}>
+            <ChevronLeft className="h-6 w-6" />
+          </div>
+          <div className={`swiper-button-next-patterns ${styles.swiperButtonNext}`}>
+            <ChevronRight className="h-6 w-6" />
+          </div>
           <div className="swiper-pagination-patterns"></div>
         </Swiper>
-        <div className={`swiper-button-prev-patterns ${styles.swiperButtonPrev}`}>
-          <ChevronLeft className="h-6 w-6" />
-        </div>
-        <div className={`swiper-button-next-patterns ${styles.swiperButtonNext}`}>
-          <ChevronRight className="h-6 w-6" />
-        </div>
       </div>
     </div>
   )
