@@ -84,13 +84,15 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ designers, patterns
               <Link href={`/designers/${designer.id}`}>
                 <div className={styles.card}>
                   <div className={styles.imageContainer}>
-                    <Image
-                      src={designer.imageUrl}
-                      alt={designer.name}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
-                      style={{ objectFit: 'contain' }}
-                    />
+                    <div className={styles.imageWrapper}>
+                      <Image
+                        src={designer.imageUrl}
+                        alt={designer.name}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
+                        style={{ objectFit: 'contain' }}
+                      />
+                    </div>
                   </div>
                   <div className={styles.content}>
                     <h3 className={styles.title}>{designer.name}</h3>
@@ -131,13 +133,15 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ designers, patterns
               <Link href={`/patterns/${pattern.id}`}>
                 <div className={styles.card}>
                   <div className={styles.imageContainer}>
-                    <Image
-                      src={pattern.imageUrl}
-                      alt={pattern.name}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
-                      style={{ objectFit: 'contain' }}
-                    />
+                    <div className={styles.imageWrapper}>
+                      <Image
+                        src={pattern.imageUrl}
+                        alt={pattern.name}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
+                        style={{ objectFit: 'contain' }}
+                      />
+                    </div>
                   </div>
                   <div className={styles.content}>
                     <h3 className={styles.title}>{pattern.name}</h3>

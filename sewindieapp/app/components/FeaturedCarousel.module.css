@@ -52,10 +52,14 @@
   height: 0;
   padding-bottom: 100%;
   overflow: hidden;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  padding-top: 1rem;
-  box-sizing: border-box;
+}
+
+.imageWrapper {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  right: 1rem;
+  bottom: 0;
 }
 
 .content {
