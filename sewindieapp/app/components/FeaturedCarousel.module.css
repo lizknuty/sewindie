@@ -117,7 +117,8 @@
 .carouselWrapper :global(.swiper-pagination-patterns) {
   position: static;
   text-align: center;
-  margin-top: 20px;
+  margin-top: 1.5rem;
+  padding-bottom: 0.5rem;
 }
 
 .carouselWrapper :global(.swiper-pagination-bullet) {
