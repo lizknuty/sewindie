@@ -37,8 +37,8 @@ function LoginForm() {
       <div className="row justify-content-center">
         <div className="col-md-6">
           <h2 className="mb-4">Login</h2>
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3">
+          <form onSubmit={handleSubmit} suppressHydrationWarning>
+            <div className="mb-3" suppressHydrationWarning>
               <label htmlFor="email" className="form-label">Email address</label>
               <input
                 type="email"
@@ -49,7 +49,7 @@ function LoginForm() {
                 required
               />
             </div>
-            <div className="mb-3">
+            <div className="mb-3" suppressHydrationWarning>
               <label htmlFor="password" className="form-label">Password</label>
               <input
                 type="password"
