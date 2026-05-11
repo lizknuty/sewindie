@@ -10,7 +10,7 @@ interface User {
   id: number
   name: string | null
   email: string
-  role: string
+  role: string | null
   status: string
   lastLogin: string | null
   createdAt: string
