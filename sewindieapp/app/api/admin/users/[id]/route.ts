@@ -32,6 +32,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         name: true,
         email: true,
         role: true,
+        status: true,
+        lastLogin: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -67,7 +69,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // Get request body
-    const { name, email, password, role } = await request.json()
+    const { name, email, password, role, status } = await request.json()
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
@@ -80,12 +82,24 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
+    // Prevent modifying admin accounts' status (except by themselves)
+    if (status && existingUser.role === "ADMIN") {
+      const currentUser = await prisma.user.findUnique({
+        where: { email: session.user.email! },
+        select: { id: true }
+      })
+      if (currentUser?.id !== userId) {
+        return NextResponse.json({ error: "Cannot modify another admin's status" }, { status: 403 })
+      }
+    }
+
     // Prepare update data
     const updateData: any = {}
     if (name) updateData.name = name
     if (email) updateData.email = email
     if (password) updateData.password = await bcryptjs.hash(password, 10)
     if (role) updateData.role = role
+    if (status) updateData.status = status
 
     // Update user
     const user = await prisma.user.update({
@@ -98,6 +112,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         name: true,
         email: true,
         role: true,
+        status: true,
+        lastLogin: true,
         createdAt: true,
         updatedAt: true,
       },
