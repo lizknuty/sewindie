@@ -17,6 +17,7 @@
     "@vercel/analytics": "^1.5.0",
     "bcryptjs": "^3.0.3",
     "bootstrap": "^5.3.3",
+    "date-fns": "^3.6.0",
     "glob": "^11.0.0",
     "googleapis": "^144.0.0",
     "lucide-react": "^0.454.0",
