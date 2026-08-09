@@ -1,0 +1,19 @@
+{
+  "name": "sewindie",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22",
+      "nvmVersion": "latest"
+    }
+  },
+  "onCreateCommand": "bash -lc 'nvm install 22 && nvm alias default 22 && nvm use 22'",
+  "postCreateCommand": "bash -lc 'cd sewindieapp && nvm use && npm install'",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  }
+}
