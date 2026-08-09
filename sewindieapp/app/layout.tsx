@@ -4,6 +4,7 @@ import { Open_Sans, Inter, Poiret_One } from "next/font/google"
 import "bootstrap/dist/css/bootstrap.min.css"
 import "./styles.css"
 import Navbar from "@/components/Navbar"
+import Footer from "@/components/Footer"
 import { Providers } from "@/providers"
 import { Analytics } from "@vercel/analytics/next"
 
@@ -47,11 +48,7 @@ export default function RootLayout({
             <Navbar />
           </header>
           <main>{children}</main>
-          <footer className="footer text-center">
-            <div className="container">
-              <p>&copy; 2026 SewIndie LLC. All rights reserved.</p>
-            </div>
-          </footer>
+          <Footer />
         </Providers>
       </body>
     </html>
