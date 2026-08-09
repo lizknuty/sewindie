@@ -44,7 +44,7 @@ export default async function FavoritesPage() {
         <div className="alert alert-info">You haven't favorited any patterns yet.</div>
       ) : (
         <div className="row">
-          {favorites.map((favorite) => (
+          {favorites.map((favorite: (typeof favorites)[number]) => (
             <div key={`${favorite.patternId}-${favorite.userId}`} className="col-md-4 mb-4">
               <div className="card h-100">
                 <Image
