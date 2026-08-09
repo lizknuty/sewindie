@@ -2,6 +2,7 @@ const path = require("path")
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  allowedDevOrigins: ["127.0.0.1", "localhost"],
   turbopack: {},
   webpack: (config) => {
     config.resolve.alias["@"] = path.join(__dirname, "./app")
