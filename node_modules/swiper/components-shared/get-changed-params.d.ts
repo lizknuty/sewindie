@@ -1,1 +1,0 @@
-export declare function getChangedParams<T>(swiperParams: Record<string, unknown>, oldParams: Record<string, unknown> | null | undefined, children: T[] | null | undefined, oldChildren: T[] | null | undefined, getKey: (child: T) => unknown): string[];
