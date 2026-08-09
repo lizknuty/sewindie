@@ -45,7 +45,7 @@ export default async function RatingsPage() {
         <div className="alert alert-info">You haven't rated any patterns yet.</div>
       ) : (
         <div className="row">
-          {ratings.map((rating) => (
+          {ratings.map((rating: (typeof ratings)[number]) => (
             <div key={`${rating.patternId}-${rating.userId}`} className="col-md-4 mb-4">
               <div className="card h-100">
                 <Image

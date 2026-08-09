@@ -49,12 +49,12 @@ export default async function Home() {
       <main className="flex-grow-1">
         <div className="container px-4 py-5">
           <FeaturedCarousel
-            designers={featuredDesigners.map(d => ({
+            designers={featuredDesigners.map((d: (typeof featuredDesigners)[number]) => ({
               id: d.id,
               name: d.name,
               imageUrl: d.logo_url || '/placeholder.svg',
             }))}
-            patterns={featuredPatterns.map(p => ({
+            patterns={featuredPatterns.map((p: (typeof featuredPatterns)[number]) => ({
               id: p.id,
               name: p.name,
               imageUrl: p.thumbnail_url || '/placeholder.svg',
