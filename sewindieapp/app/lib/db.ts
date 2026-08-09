@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client'
-import type { 
+import { prisma } from "@/lib/prisma"
+import type {
   Attribute,
   Audience,
   Category,
@@ -11,29 +11,12 @@ import type {
   PatternAudience,
   PatternCategory,
   PatternFabricType,
-  PatternSuggestedFabric
-} from '@prisma/client'
+  PatternSuggestedFabric,
+} from "@prisma/client"
 
-// Declare the global type for PrismaClient
-declare global {
-  var prisma: PrismaClient | undefined
-}
-
-// PrismaClient is attached to the `global` object in development to prevent
-// exhausting your database connection limit.
-// Learn more: https://pris.ly/d/help/next-js-best-practices
-
-let prisma: PrismaClient
-
-if (process.env.NODE_ENV === 'production') {
-  prisma = new PrismaClient()
-} else {
-  if (!global.prisma) {
-    global.prisma = new PrismaClient()
-  }
-  prisma = global.prisma
-}
-
+// Reuse the single, adapter-configured Prisma client defined in lib/prisma.ts.
+// Creating a second `new PrismaClient()` here would bypass the PrismaPg adapter
+// and open a separate connection pool.
 export default prisma
 
 export type {
@@ -48,5 +31,5 @@ export type {
   PatternAudience,
   PatternCategory,
   PatternFabricType,
-  PatternSuggestedFabric
+  PatternSuggestedFabric,
 }
