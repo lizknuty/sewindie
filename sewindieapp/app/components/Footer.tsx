@@ -11,13 +11,13 @@ export default function Footer() {
           </div>
           <nav className="footer-links" aria-label="Footer navigation">
             <Link href="/about" className="footer-link">
-              About
+              About 
             </Link>
             <Link href="/about/privacy" className="footer-link">
-              Privacy Policy
+              Privacy Policy 
             </Link>
             <Link href="/about/terms" className="footer-link">
-              Terms of Service
+              Terms of Service 
             </Link>
             <Link href="/about/dmca" className="footer-link">
               DMCA
