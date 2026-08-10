@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Open_Sans, Inter, Poiret_One } from "next/font/google"
+import { Open_Sans, Inter, Poiret_One, Playfair_Display } from "next/font/google"
 import "bootstrap/dist/css/bootstrap.min.css"
 import "./styles.css"
 import Navbar from "@/components/Navbar"
@@ -27,6 +27,13 @@ const poiretOne = Poiret_One({
   variable: "--font-poiret",
 })
 
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin"],
+  display: "swap",
+  style: ["normal", "italic"],
+  variable: "--font-playfair",
+})
+
 export const metadata: Metadata = {
   title: "SewIndie",
   description: "Explore and share sewing patterns",
@@ -41,7 +48,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${openSans.variable} ${inter.variable} ${poiretOne.variable}`}>
+    <html
+      lang="en"
+      className={`${openSans.variable} ${inter.variable} ${poiretOne.variable} ${playfairDisplay.variable}`}
+    >
       <body className="flex flex-col min-h-screen">
         <Providers>
           <header>
