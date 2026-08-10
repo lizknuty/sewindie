@@ -213,7 +213,7 @@ a:not(.btn):not(.nav-link):focus {
 }
 
   .footer {
-  background-color: var(--charcoal);
+  background-color: var(--plum);
   color: var(--blush);
   padding: 3rem 0 1.5rem;
   }
