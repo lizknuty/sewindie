@@ -117,11 +117,56 @@ a:not(.btn):not(.nav-link):focus {
   font-family: var(--font-heading);
 }
 
-.footer {
+  .footer {
   background-color: var(--color-muted);
   color: var(--color-light);
   padding: 20px 0;
-}
+  }
+
+  .footer-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  }
+
+  .footer-brand-name {
+  color: var(--color-light);
+  font-size: 1.5rem;
+  font-weight: bold;
+  font-family: var(--font-brand);
+  }
+
+  .footer-tagline {
+  color: var(--color-light);
+  opacity: 0.8;
+  margin-top: 0.25rem;
+  margin-bottom: 0;
+  }
+
+  .footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+  }
+
+  .footer-link {
+  color: var(--color-light);
+  text-decoration: none;
+  }
+
+  .footer-link:hover {
+  color: var(--color-secondary);
+  }
+
+  .footer-bottom {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  text-align: center;
+  }
 
 /* Hero banner styles */
 .hero-banner {
