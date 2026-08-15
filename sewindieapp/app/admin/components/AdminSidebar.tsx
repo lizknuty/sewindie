@@ -18,6 +18,7 @@ const AdminSidebar = ({ user }: AdminSidebarProps) => {
     { href: "/admin/users", label: "Users", roles: ["ADMIN"] },
     { href: "/admin/patterns", label: "Patterns", roles: ["ADMIN", "MODERATOR"] },
     { href: "/admin/designers", label: "Designers", roles: ["ADMIN", "MODERATOR"] },
+    { href: "/admin/blog", label: "Blog", roles: ["ADMIN", "MODERATOR"] },
     { href: "/admin/categories", label: "Categories", roles: ["ADMIN"] },
     { href: "/admin/attributes", label: "Attributes", roles: ["ADMIN"] },
     { href: "/admin/audiences", label: "Audiences", roles: ["ADMIN"] },

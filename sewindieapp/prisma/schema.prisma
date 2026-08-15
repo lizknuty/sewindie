@@ -144,8 +144,27 @@ model User {
   favorites         Favorite[]
   ratings           Rating[]
   UserMeasurement   UserMeasurement[]
+  blogPosts         BlogPost[]
 
   @@index([resetToken])
+}
+
+model BlogPost {
+  id            Int       @id @default(autoincrement())
+  title         String    @db.VarChar(255)
+  slug          String    @unique @db.VarChar(255)
+  excerpt       String?   @db.VarChar(500)
+  content       String    @db.Text
+  coverImageUrl String?
+  published     Boolean   @default(false)
+  publishedAt   DateTime? @db.Timestamp(6)
+  createdAt     DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime  @updatedAt @db.Timestamp(6)
+  authorId      Int?
+  author        User?     @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@index([slug])
+  @@index([published, publishedAt])
 }
 
 model Favorite {
