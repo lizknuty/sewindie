@@ -72,6 +72,7 @@ interface PatternFormProps {
     language?: string | null
     difficulty?: string | null
     release_date?: Date | null
+    status?: "PUBLISHED" | "IN_TESTING" | "DISCONTINUED" | null
     PatternCategory?: Array<{
       category: Category
     }>
@@ -118,6 +119,7 @@ export default function PatternForm({ pattern }: PatternFormProps) {
     language: pattern?.language || "",
     difficulty: pattern?.difficulty || "",
     release_date: pattern?.release_date ? new Date(pattern.release_date) : null,
+    status: pattern?.status || "PUBLISHED",
     categories: pattern?.PatternCategory?.map((pc) => pc.category.id.toString()) || [],
     audiences: pattern?.PatternAudience?.map((pa) => pa.audience.id.toString()) || [],
     fabricTypes: pattern?.PatternFabricType?.map((pf) => pf.fabricType.id.toString()) || [],
@@ -219,6 +221,7 @@ export default function PatternForm({ pattern }: PatternFormProps) {
         language: formData.language,
         difficulty: formData.difficulty,
         release_date: formData.release_date,
+        status: formData.status,
         categories: formData.categories.map((id) => Number.parseInt(id)),
         audiences: formData.audiences.map((id) => Number.parseInt(id)),
         fabricTypes: formData.fabricTypes.map((id) => Number.parseInt(id)),
@@ -539,6 +542,25 @@ export default function PatternForm({ pattern }: PatternFormProps) {
             value={formData.difficulty || ""}
             onChange={handleChange}
           />
+        </div>
+      </div>
+
+      <div className="row">
+        <div className="col-md-6 mb-3">
+          <label htmlFor="status" className="form-label">
+            Status
+          </label>
+          <select
+            className="form-select"
+            id="status"
+            name="status"
+            value={formData.status}
+            onChange={handleChange}
+          >
+            <option value="PUBLISHED">Published</option>
+            <option value="IN_TESTING">In Testing</option>
+            <option value="DISCONTINUED">Discontinued</option>
+          </select>
         </div>
       </div>
 
