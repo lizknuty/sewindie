@@ -275,7 +275,7 @@ model BlogPost {
   published     Boolean   @default(false)
   publishedAt   DateTime? @db.Timestamp(6)
   createdAt     DateTime  @default(now()) @db.Timestamp(6)
-  updatedAt     DateTime  @db.Timestamp(6)
+  updatedAt     DateTime  @default(now()) @db.Timestamp(6)
   authorId      Int?
   User          User?     @relation(fields: [authorId], references: [id], onUpdate: NoAction)
 
