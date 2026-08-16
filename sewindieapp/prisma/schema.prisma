@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 model Attribute {
@@ -141,6 +141,7 @@ model User {
   resetTokenExpires DateTime?         @db.Timestamp(6)
   status            UserStatus        @default(ACTIVE)
   lastLogin         DateTime?
+  BlogPost          BlogPost[]
   favorites         Favorite[]
   ratings           Rating[]
   UserMeasurement   UserMeasurement[]
@@ -262,6 +263,24 @@ model UserMeasurement {
   User       User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([user_id])
+}
+
+model BlogPost {
+  id            Int       @id @default(autoincrement())
+  title         String    @db.VarChar(255)
+  slug          String    @unique @db.VarChar(255)
+  excerpt       String?   @db.VarChar(500)
+  content       String
+  coverImageUrl String?
+  published     Boolean   @default(false)
+  publishedAt   DateTime? @db.Timestamp(6)
+  createdAt     DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime  @db.Timestamp(6)
+  authorId      Int?
+  User          User?     @relation(fields: [authorId], references: [id], onUpdate: NoAction)
+
+  @@index([published, publishedAt])
+  @@index([slug])
 }
 
 enum MeasurementUnit {
