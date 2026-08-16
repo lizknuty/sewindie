@@ -1,113 +1,45 @@
-import Link from "next/link"
-import { prisma } from "@/lib/prisma"
-import { Users, Scissors, Tag, PodcastIcon as Audience, FileText } from "lucide-react"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/api/auth/[...nextauth]/options"
+import { Users, Scissors, FileText, Sprout, Palette, Calendar } from "lucide-react"
+import { getDashboardData } from "@/admin/lib/dashboard-data"
+import MetricCard from "@/admin/components/dashboard/MetricCard"
+import RecentActivity from "@/admin/components/dashboard/RecentActivity"
+import TopContent from "@/admin/components/dashboard/TopContent"
+import QuickActions from "@/admin/components/dashboard/QuickActions"
 
 export default async function AdminDashboard() {
-  // Get counts for dashboard
-  const [designerCount, patternCount, categoryCount, audienceCount, userCount, blogPostCount] = await Promise.all([
-    prisma.designer.count(),
-    prisma.pattern.count(),
-    prisma.category.count(),
-    prisma.audience.count(),
-    prisma.user.count(),
-    prisma.blogPost.count(),
-  ])
+  const [session, data] = await Promise.all([getServerSession(authOptions), getDashboardData()])
+
+  const firstName = session?.user?.name?.split(" ")[0] || "there"
+  const { metrics, activity, topPatterns, topDesigners } = data
 
   return (
-    <div>
-      <h1 className="mb-4">Admin Dashboard</h1>
-
-      <div className="row">
-        <div className="col-md-6 col-lg-4 mb-4">
-          <div className="card h-100">
-            <div className="card-body">
-              <h5 className="card-title">Users</h5>
-              <div className="d-flex align-items-center">
-                <Users size={24} className="me-2 text-primary" />
-                <p className="card-text display-4 mb-0">{userCount}</p>
-              </div>
-              <Link href="/admin/users" className="btn btn-primary mt-3">
-                Manage Users
-              </Link>
-            </div>
-          </div>
+    <div className="admin-dashboard">
+      <div className="admin-page-head">
+        <div>
+          <h1 className="admin-page-title">Dashboard</h1>
+          <p className="admin-page-sub">Welcome back, {firstName}! Here&apos;s what&apos;s happening with SewIndie.</p>
         </div>
-
-        <div className="col-md-6 col-lg-4 mb-4">
-          <div className="card h-100">
-            <div className="card-body">
-              <h5 className="card-title">Designers</h5>
-              <div className="d-flex align-items-center">
-                <Users size={24} className="me-2 text-success" />
-                <p className="card-text display-4 mb-0">{designerCount}</p>
-              </div>
-              <Link href="/admin/designers" className="btn btn-primary mt-3">
-                Manage Designers
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-6 col-lg-4 mb-4">
-          <div className="card h-100">
-            <div className="card-body">
-              <h5 className="card-title">Patterns</h5>
-              <div className="d-flex align-items-center">
-                <Scissors size={24} className="me-2 text-danger" />
-                <p className="card-text display-4 mb-0">{patternCount}</p>
-              </div>
-              <Link href="/admin/patterns" className="btn btn-primary mt-3">
-                Manage Patterns
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-6 col-lg-4 mb-4">
-          <div className="card h-100">
-            <div className="card-body">
-              <h5 className="card-title">Categories</h5>
-              <div className="d-flex align-items-center">
-                <Tag size={24} className="me-2 text-info" />
-                <p className="card-text display-4 mb-0">{categoryCount}</p>
-              </div>
-              <Link href="/admin/categories" className="btn btn-primary mt-3">
-                Manage Categories
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-6 col-lg-4 mb-4">
-          <div className="card h-100">
-            <div className="card-body">
-              <h5 className="card-title">Audiences</h5>
-              <div className="d-flex align-items-center">
-                <Audience size={24} className="me-2 text-warning" />
-                <p className="card-text display-4 mb-0">{audienceCount}</p>
-              </div>
-              <Link href="/admin/audiences" className="btn btn-primary mt-3">
-                Manage Audiences
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-6 col-lg-4 mb-4">
-          <div className="card h-100">
-            <div className="card-body">
-              <h5 className="card-title">Blog Posts</h5>
-              <div className="d-flex align-items-center">
-                <FileText size={24} className="me-2 text-secondary" />
-                <p className="card-text display-4 mb-0">{blogPostCount}</p>
-              </div>
-              <Link href="/admin/blog" className="btn btn-primary mt-3">
-                Manage Blog Posts
-              </Link>
-            </div>
-          </div>
-        </div>
+        <span className="admin-daterange">
+          <Calendar size={15} strokeWidth={1.75} />
+          Last 7 days
+        </span>
       </div>
+
+      <div className="admin-metrics">
+        <MetricCard label="Users" value={metrics.users.value} icon={Users} href="/admin/users" trend={metrics.users.trend} />
+        <MetricCard label="Designers" value={metrics.designers.value} icon={Palette} href="/admin/designers" subtitle="Total designers" />
+        <MetricCard label="Patterns" value={metrics.patterns.value} icon={Scissors} href="/admin/patterns" subtitle="Total patterns" />
+        <MetricCard label="Blog Posts" value={metrics.blogPosts.value} icon={FileText} href="/admin/blog" trend={metrics.blogPosts.trend} />
+        <MetricCard label="Contributions" value={metrics.contributions.value} icon={Sprout} href="/admin/contributions" subtitle="Submissions" />
+      </div>
+
+      <div className="admin-grid-2">
+        <RecentActivity items={activity} />
+        <TopContent patterns={topPatterns} designers={topDesigners} />
+      </div>
+
+      <QuickActions />
     </div>
   )
 }

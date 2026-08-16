@@ -4,6 +4,7 @@ import { authOptions } from "@/api/auth/[...nextauth]/options"
 import { redirect } from "next/navigation"
 import AdminSidebar from "@/admin/components/AdminSidebar"
 import SidebarToggle from "@/admin/components/SidebarToggle"
+import "./admin.css"
 
 export default async function AdminLayout({
   children,
@@ -20,16 +21,15 @@ export default async function AdminLayout({
   const user = session!.user
 
   return (
-    <div className="layout-container">
+    <div className="layout-container admin-shell">
       <div id="admin-sidebar" className="sidebar-column">
         <AdminSidebar user={user} />
       </div>
       <div className="content-wrapper">
-        <header className="content-header relative z-50 flex items-center justify-between">
+        <header className="content-header">
           <SidebarToggle targetId="admin-sidebar" />
-          <h1 className="d-none d-md-block">Admin Dashboard</h1>
         </header>
-        <main className="content-main p-4">{children}</main>
+        <main className="content-main">{children}</main>
       </div>
     </div>
   )
