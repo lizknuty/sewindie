@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const post = await prisma.blogPost.findUnique({
       where: { id: postId },
-      include: { author: { select: { id: true, name: true } } },
+      include: { User: { select: { id: true, name: true } } },
     })
 
     if (!post) {

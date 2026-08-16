@@ -55,7 +55,7 @@ export default async function AdminBlogPage() {
                       <span className="badge bg-secondary">Draft</span>
                     )}
                   </td>
-                  <td>{post.author?.name || "—"}</td>
+                  <td>{post.User?.name || "—"}</td>
                   <td>{formatDate(post.publishedAt)}</td>
                   <td>{formatDate(post.updatedAt)}</td>
                   <td>

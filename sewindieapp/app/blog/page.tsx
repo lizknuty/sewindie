@@ -22,7 +22,7 @@ export default async function BlogPage() {
   const posts = await prisma.blogPost.findMany({
     where: { published: true },
     orderBy: { publishedAt: "desc" },
-    include: { author: { select: { name: true } } },
+    include: { User: { select: { name: true } } },
   })
 
   const [featured, ...rest] = posts
@@ -62,8 +62,8 @@ export default async function BlogPage() {
                 </h2>
                 {featured.excerpt && <p className="mb-4">{featured.excerpt}</p>}
                 <div className="d-flex flex-wrap align-items-center gap-2 text-muted small">
-                  {featured.author?.name && <span>{featured.author.name}</span>}
-                  {featured.author?.name && featured.publishedAt && <span aria-hidden="true">&middot;</span>}
+                  {featured.User?.name && <span>{featured.User.name}</span>}
+                  {featured.User?.name && featured.publishedAt && <span aria-hidden="true">&middot;</span>}
                   {featured.publishedAt && (
                     <time dateTime={new Date(featured.publishedAt).toISOString()}>
                       {formatDate(featured.publishedAt)}
@@ -97,8 +97,8 @@ export default async function BlogPage() {
                         </h3>
                         {post.excerpt && <p className="mb-4 flex-grow-1">{post.excerpt}</p>}
                         <div className="d-flex flex-wrap align-items-center gap-2 text-muted small mt-auto">
-                          {post.author?.name && <span>{post.author.name}</span>}
-                          {post.author?.name && post.publishedAt && <span aria-hidden="true">&middot;</span>}
+                          {post.User?.name && <span>{post.User.name}</span>}
+                          {post.User?.name && post.publishedAt && <span aria-hidden="true">&middot;</span>}
                           {post.publishedAt && (
                             <time dateTime={new Date(post.publishedAt).toISOString()}>
                               {formatDate(post.publishedAt)}

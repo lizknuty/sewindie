@@ -12,7 +12,7 @@ export async function GET() {
     const posts = await prisma.blogPost.findMany({
       orderBy: [{ createdAt: "desc" }],
       include: {
-        author: { select: { id: true, name: true } },
+        User: { select: { id: true, name: true } },
       },
     })
 
