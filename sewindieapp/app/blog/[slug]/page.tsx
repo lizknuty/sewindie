@@ -34,7 +34,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   const post = await prisma.blogPost.findFirst({
     where: { slug, published: true },
-    include: { author: { select: { name: true } } },
+    include: { User: { select: { name: true } } },
   })
 
   if (!post) {
@@ -53,8 +53,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             <header className="mb-4">
               <h1 className="mb-3">{post.title}</h1>
               <div className="d-flex flex-wrap align-items-center gap-2 text-muted small">
-                {post.author?.name && <span>{post.author.name}</span>}
-                {post.author?.name && post.publishedAt && <span aria-hidden="true">&middot;</span>}
+                {post.User?.name && <span>{post.User.name}</span>}
+                {post.User?.name && post.publishedAt && <span aria-hidden="true">&middot;</span>}
                 {post.publishedAt && (
                   <time dateTime={new Date(post.publishedAt).toISOString()}>{formatDate(post.publishedAt)}</time>
                 )}
