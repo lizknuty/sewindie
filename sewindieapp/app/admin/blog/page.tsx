@@ -16,7 +16,7 @@ function formatDate(date: Date | null) {
 export default async function AdminBlogPage() {
   const posts = await prisma.blogPost.findMany({
     orderBy: { createdAt: "desc" },
-    include: { author: { select: { id: true, name: true } } },
+    include: { User: { select: { id: true, name: true } } },
   })
 
   return (
