@@ -1,15 +1,16 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
-import { Users, Scissors, Tag, PodcastIcon as Audience } from "lucide-react"
+import { Users, Scissors, Tag, PodcastIcon as Audience, FileText } from "lucide-react"
 
 export default async function AdminDashboard() {
   // Get counts for dashboard
-  const [designerCount, patternCount, categoryCount, audienceCount, userCount] = await Promise.all([
+  const [designerCount, patternCount, categoryCount, audienceCount, userCount, blogPostCount] = await Promise.all([
     prisma.designer.count(),
     prisma.pattern.count(),
     prisma.category.count(),
     prisma.audience.count(),
     prisma.user.count(),
+    prisma.blogPost.count(),
   ])
 
   return (
@@ -87,6 +88,21 @@ export default async function AdminDashboard() {
               </div>
               <Link href="/admin/audiences" className="btn btn-primary mt-3">
                 Manage Audiences
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-6 col-lg-4 mb-4">
+          <div className="card h-100">
+            <div className="card-body">
+              <h5 className="card-title">Blog Posts</h5>
+              <div className="d-flex align-items-center">
+                <FileText size={24} className="me-2 text-secondary" />
+                <p className="card-text display-4 mb-0">{blogPostCount}</p>
+              </div>
+              <Link href="/admin/blog" className="btn btn-primary mt-3">
+                Manage Blog Posts
               </Link>
             </div>
           </div>
