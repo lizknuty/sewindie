@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     const audienceIds = searchParams.getAll("audience").map(Number)
     const fabricTypeIds = searchParams.getAll("fabricType").map(Number)
     const designerIds = searchParams.getAll("designer").map(Number)
+    const statusValues = searchParams.getAll("status")
     const whereClause: Prisma.PatternWhereInput = {}
     const orderByClause: Prisma.PatternOrderByWithRelationInput = {}
 
@@ -87,6 +88,12 @@ export async function GET(request: NextRequest) {
         in: designerIds,
       }
     }
+    const validStatuses = statusValues.filter((s): s is "PUBLISHED" | "IN_TESTING" | "DISCONTINUED" =>
+      ["PUBLISHED", "IN_TESTING", "DISCONTINUED"].includes(s),
+    )
+    if (validStatuses.length > 0) {
+      whereClause.status = { in: validStatuses }
+    }
 
     switch (sortQuery) {
       case "name_asc":
@@ -111,6 +118,7 @@ export async function GET(request: NextRequest) {
       orderBy: orderByClause,
       include: {
         designer: { select: { id: true, name: true } },
+        PatternCategory: { include: { category: { select: { id: true, name: true } } } },
       },
     })
     return NextResponse.json({ success: true, patterns })
@@ -142,6 +150,7 @@ export async function POST(request: NextRequest) {
         language: body.language || null,
         difficulty: body.difficulty || null,
         release_date: body.release_date ? new Date(body.release_date) : null,
+        status: body.status || "PUBLISHED",
       },
     })
 

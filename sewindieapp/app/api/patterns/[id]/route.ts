@@ -61,6 +61,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       language,
       difficulty,
       release_date,
+      status,
       categories,
       audiences,
       fabricTypes,
@@ -89,6 +90,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           language: language || null,
           difficulty: difficulty || null,
           release_date: release_date ? new Date(release_date) : null,
+          ...(status ? { status } : {}),
         },
       })
 

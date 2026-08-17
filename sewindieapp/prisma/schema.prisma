@@ -61,6 +61,7 @@ model Pattern {
   language               String?                  @db.VarChar(255)
   difficulty             String?                  @db.VarChar(25)
   release_date           DateTime?                @db.Date
+  status                 PatternStatus            @default(PUBLISHED)
   favorites              Favorite[]
   designer               Designer                 @relation(fields: [designer_id], references: [id])
   PatternAttribute       PatternAttribute[]
@@ -292,4 +293,10 @@ enum UserStatus {
   ACTIVE
   SUSPENDED
   PENDING
+}
+
+enum PatternStatus {
+  PUBLISHED
+  IN_TESTING
+  DISCONTINUED
 }
