@@ -3,7 +3,7 @@ import Image from "next/image"
 import { Pencil } from "lucide-react"
 import PatternStatusBadge from "./PatternStatusBadge"
 import DifficultyIndicator from "./DifficultyIndicator"
-import type { AdminPattern } from "../types"
+import type { AdminPattern } from "@/admin/patterns/types"
 
 export default function PatternsGrid({ patterns }: { patterns: AdminPattern[] }) {
   return (
