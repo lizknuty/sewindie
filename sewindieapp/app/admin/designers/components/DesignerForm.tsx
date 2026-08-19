@@ -18,6 +18,7 @@ interface DesignerFormProps {
     instagram?: string | null
     pinterest?: string | null
     youtube?: string | null
+    status?: "PUBLISHED" | "INACTIVE" | null
   }
 }
 
@@ -34,9 +35,10 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
     instagram: designer?.instagram || "",
     pinterest: designer?.pinterest || "",
     youtube: designer?.youtube || "",
+    status: designer?.status || "PUBLISHED",
   })
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
@@ -130,6 +132,22 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
           onChange={handleChange}
           required
         />
+      </div>
+
+      <div className="mb-3">
+        <label htmlFor="status" className="form-label">
+          Status
+        </label>
+        <select
+          className="form-select"
+          id="status"
+          name="status"
+          value={formData.status}
+          onChange={handleChange}
+        >
+          <option value="PUBLISHED">Published</option>
+          <option value="INACTIVE">Inactive</option>
+        </select>
       </div>
 
       <div className="mb-3">

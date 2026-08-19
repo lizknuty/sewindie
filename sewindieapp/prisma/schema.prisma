@@ -25,16 +25,17 @@ model Category {
 }
 
 model Designer {
-  id        Int         @id @default(autoincrement())
-  name      String      @db.VarChar(255)
+  id        Int            @id @default(autoincrement())
+  name      String         @db.VarChar(255)
   url       String
   logo_url  String?
-  email     String?     @db.VarChar(255)
-  address   String?     @db.VarChar(255)
+  email     String?        @db.VarChar(255)
+  address   String?        @db.VarChar(255)
   facebook  String?
   instagram String?
   pinterest String?
   youtube   String?
+  status    DesignerStatus @default(PUBLISHED)
   patterns  Pattern[]
   SizeChart SizeChart[]
 }
@@ -299,4 +300,9 @@ enum PatternStatus {
   PUBLISHED
   IN_TESTING
   DISCONTINUED
+}
+
+enum DesignerStatus {
+  PUBLISHED
+  INACTIVE
 }

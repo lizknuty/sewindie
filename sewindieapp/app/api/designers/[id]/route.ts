@@ -60,6 +60,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         instagram: data.instagram || null,
         pinterest: data.pinterest || null,
         youtube: data.youtube || null,
+        ...(data.status ? { status: data.status } : {}),
       },
     })
 

@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const searchQuery = searchParams.get("search")
+    const statusValues = searchParams.getAll("status")
 
     const whereClause: Prisma.DesignerWhereInput = {}
 
@@ -21,9 +22,19 @@ export async function GET(request: NextRequest) {
       ]
     }
 
+    const validStatuses = statusValues.filter((s): s is "PUBLISHED" | "INACTIVE" =>
+      ["PUBLISHED", "INACTIVE"].includes(s),
+    )
+    if (validStatuses.length > 0) {
+      whereClause.status = { in: validStatuses }
+    }
+
     const designers = await prisma.designer.findMany({
       where: whereClause,
       orderBy: { name: "asc" },
+      include: {
+        _count: { select: { patterns: true } },
+      },
     })
     return NextResponse.json({ success: true, designers })
   } catch (error) {
@@ -38,7 +49,7 @@ export async function POST(request: NextRequest) {
     if (!authorized) return response
 
     const body = await request.json()
-    const { name, url, logo_url, email, address, facebook, instagram, pinterest, youtube } = body
+    const { name, url, logo_url, email, address, facebook, instagram, pinterest, youtube, status } = body
 
     if (!name || !url) {
       return NextResponse.json({ error: "Name and URL are required" }, { status: 400 })
@@ -55,6 +66,7 @@ export async function POST(request: NextRequest) {
         instagram: instagram || null,
         pinterest: pinterest || null,
         youtube: youtube || null,
+        status: status || "PUBLISHED",
       },
     })
 
