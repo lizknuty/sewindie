@@ -35,6 +35,7 @@ model Designer {
   instagram String?
   pinterest String?
   youtube   String?
+  status    DesignerStatus @default(PUBLISHED)
   patterns  Pattern[]
   SizeChart SizeChart[]
 }
@@ -299,4 +300,9 @@ enum PatternStatus {
   PUBLISHED
   IN_TESTING
   DISCONTINUED
+}
+
+enum DesignerStatus {
+  PUBLISHED
+  INACTIVE
 }
