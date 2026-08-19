@@ -1,124 +1,268 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import type React from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
-import Image from "next/image"
-import { Plus } from "lucide-react"
-import { useSearchParams } from "next/navigation"
-import DesignerSearch from "@/components/DesignerSearch" // Import the new DesignerSearch component
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
+import { Plus, Search, SlidersHorizontal, List, LayoutGrid, ChevronLeft, ChevronRight } from "lucide-react"
+import AdminDesignerFilters from "./components/AdminDesignerFilters"
+import DesignersTable from "./components/DesignersTable"
+import DesignersGrid from "./components/DesignersGrid"
+import type { AdminDesigner } from "./types"
 
-// Define a type for the designer data
-type Designer = {
-  id: number
-  name: string
-  logo_url: string | null
-  url: string | null
-}
+const FILTER_KEYS = ["status"]
+const ROWS_PER_PAGE_OPTIONS = [25, 50, 100]
 
 export default function DesignersPage() {
+  const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
-  const initialSearchQuery = searchParams.get("search") || ""
 
-  const [designers, setDesigners] = useState<Designer[]>([])
+  const [designers, setDesigners] = useState<AdminDesigner[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchDesigners = async (search: string) => {
-    setLoading(true)
-    setError(null)
-    try {
-      const params = new URLSearchParams()
-      if (search) {
-        params.set("search", search)
-      }
-      const response = await fetch(`/api/designers?${params.toString()}`)
-      if (!response.ok) {
-        throw new Error("Failed to fetch designers")
-      }
-      const data = await response.json()
-      setDesigners(data.designers) // Assuming the API returns an object with a 'designers' array
-    } catch (err) {
-      setError((err as Error).message)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const [searchInput, setSearchInput] = useState(searchParams.get("search") || "")
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list")
+  const [showFilters, setShowFilters] = useState(true)
+  const [page, setPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(25)
+
+  const sortValue = searchParams.get("sort") || "name_asc"
 
   useEffect(() => {
-    fetchDesigners(initialSearchQuery)
-  }, [initialSearchQuery])
+    setSearchInput(searchParams.get("search") || "")
+    setPage(1)
+  }, [searchParams])
 
-  if (loading) return <div className="p-4">Loading designers...</div>
-  if (error) return <div className="p-4 text-danger">Error: {error}</div>
+  useEffect(() => {
+    const fetchDesigners = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const params = new URLSearchParams(searchParams.toString())
+        params.delete("sort")
+        const response = await fetch(`/api/designers?${params.toString()}`)
+        if (!response.ok) throw new Error("Failed to fetch designers")
+        const data = await response.json()
+        setDesigners(data.designers || [])
+      } catch (err) {
+        setError((err as Error).message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchDesigners()
+  }, [searchParams])
+
+  const updateParam = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (value) params.set(key, value)
+    else params.delete(key)
+    router.push(`${pathname}?${params.toString()}`)
+  }
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    updateParam("search", searchInput.trim())
+  }
+
+  const activeFilterCount = FILTER_KEYS.filter((k) => searchParams.has(k)).length
+
+  const sortedDesigners = useMemo(() => {
+    const copy = [...designers]
+    switch (sortValue) {
+      case "name_desc":
+        return copy.sort((a, b) => (b.name ?? "").localeCompare(a.name ?? ""))
+      case "patterns_desc":
+        return copy.sort((a, b) => (b._count?.patterns ?? 0) - (a._count?.patterns ?? 0))
+      case "patterns_asc":
+        return copy.sort((a, b) => (a._count?.patterns ?? 0) - (b._count?.patterns ?? 0))
+      case "name_asc":
+      default:
+        return copy.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""))
+    }
+  }, [designers, sortValue])
+
+  const totalDesigners = sortedDesigners.length
+  const totalPages = Math.max(1, Math.ceil(totalDesigners / rowsPerPage))
+  const currentPage = Math.min(page, totalPages)
+
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * rowsPerPage
+    return sortedDesigners.slice(start, start + rowsPerPage)
+  }, [sortedDesigners, currentPage, rowsPerPage])
+
+  const rangeStart = totalDesigners === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1
+  const rangeEnd = Math.min(currentPage * rowsPerPage, totalDesigners)
+
+  const pageNumbers = useMemo(() => {
+    const pages: (number | "ellipsis")[] = []
+    const maxToShow = 3
+    if (totalPages <= maxToShow + 2) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i)
+    } else {
+      for (let i = 1; i <= Math.min(maxToShow, totalPages - 1); i++) pages.push(i)
+      if (currentPage > maxToShow && currentPage < totalPages) {
+        pages.push("ellipsis", currentPage)
+      } else {
+        pages.push("ellipsis")
+      }
+      pages.push(totalPages)
+    }
+    return pages
+  }, [totalPages, currentPage])
 
   return (
-    <div className="container-fluid admin-designers-page">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1>Designers</h1>
-        <Link href="/admin/designers/new" className="btn btn-primary">
-          <Plus size={18} className="me-2" />
+    <div className="admin-patterns-page">
+      <header className="patterns-page-header">
+        <div>
+          <h1 className="patterns-title">Designers</h1>
+          <p className="patterns-subtitle">Browse, search, and manage all designers in the directory.</p>
+        </div>
+        <Link href="/admin/designers/new" className="btn-add-pattern">
+          <Plus size={18} />
           Add Designer
         </Link>
+      </header>
+
+      <div className="patterns-toolbar">
+        <form className="patterns-search" onSubmit={handleSearchSubmit}>
+          <Search size={18} className="patterns-search-icon" />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search designers by name or keyword..."
+            aria-label="Search designers"
+          />
+        </form>
+
+        <button
+          type="button"
+          className={`filters-toggle-btn ${showFilters ? "is-active" : ""}`}
+          onClick={() => setShowFilters((v) => !v)}
+        >
+          <SlidersHorizontal size={16} />
+          Filters
+          <span className="filters-count">{activeFilterCount}</span>
+        </button>
+
+        <div className="patterns-sort">
+          <label htmlFor="sort-select">Sort by:</label>
+          <select id="sort-select" value={sortValue} onChange={(e) => updateParam("sort", e.target.value)}>
+            <option value="name_asc">Designer Name (A–Z)</option>
+            <option value="name_desc">Designer Name (Z–A)</option>
+            <option value="patterns_desc">Most Patterns</option>
+            <option value="patterns_asc">Fewest Patterns</option>
+          </select>
+        </div>
+
+        <div className="view-toggle" role="group" aria-label="View mode">
+          <button
+            type="button"
+            className={viewMode === "list" ? "is-active" : ""}
+            onClick={() => setViewMode("list")}
+            aria-label="List view"
+            aria-pressed={viewMode === "list"}
+          >
+            <List size={18} />
+          </button>
+          <button
+            type="button"
+            className={viewMode === "grid" ? "is-active" : ""}
+            onClick={() => setViewMode("grid")}
+            aria-label="Grid view"
+            aria-pressed={viewMode === "grid"}
+          >
+            <LayoutGrid size={18} />
+          </button>
+        </div>
       </div>
 
-      {/* Use the new DesignerSearch component */}
-      <DesignerSearch initialSearch={initialSearchQuery} />
+      <div className="patterns-resultbar">
+        <span className="patterns-count">
+          {loading
+            ? "Loading designers..."
+            : `Showing ${rangeStart}–${rangeEnd} of ${totalDesigners.toLocaleString()} designers`}
+        </span>
+      </div>
 
-      <div className="table-responsive">
-        <table className="table table-striped table-hover">
-          <thead>
-            <tr>
-              <th>Logo</th>
-              <th>Name</th>
-              <th>Website</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {designers.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="text-center py-4">
-                  No designers found.
-                </td>
-              </tr>
-            ) : (
-              designers.map((designer) => (
-                <tr key={designer.id}>
-                  <td>
-                    {designer.logo_url ? (
-                      <Image
-                        src={designer.logo_url || "/placeholder.svg"}
-                        alt={designer.name}
-                        width={50}
-                        height={50}
-                        className="rounded"
-                      />
-                    ) : (
-                      <div className="bg-secondary rounded" style={{ width: 50, height: 50 }}></div>
-                    )}
-                  </td>
-                  <td>{designer.name}</td>
-                  <td>
-                    {designer.url ? (
-                      <a href={designer.url} target="_blank" rel="noopener noreferrer" className="text-primary">
-                        {designer.url}
-                      </a>
-                    ) : (
-                      "-"
-                    )}
-                  </td>
-                  <td>
-                    <div className="btn-group">
-                      <Link href={`/admin/designers/${designer.id}/edit`} className="btn btn-sm btn-outline-secondary">
-                        Edit
-                      </Link>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      <div className={`patterns-layout ${showFilters ? "" : "filters-hidden"}`}>
+        {showFilters && <AdminDesignerFilters />}
+
+        <div className="patterns-content">
+          {error ? (
+            <div className="patterns-empty text-danger">Error: {error}</div>
+          ) : loading ? (
+            <div className="patterns-empty">Loading designers...</div>
+          ) : totalDesigners === 0 ? (
+            <div className="patterns-empty">No designers found.</div>
+          ) : viewMode === "list" ? (
+            <DesignersTable designers={paginated} />
+          ) : (
+            <DesignersGrid designers={paginated} />
+          )}
+
+          {!loading && !error && totalDesigners > 0 && (
+            <div className="patterns-footer">
+              <div className="rows-per-page">
+                <label htmlFor="rows-select">Rows per page:</label>
+                <select
+                  id="rows-select"
+                  value={rowsPerPage}
+                  onChange={(e) => {
+                    setRowsPerPage(Number(e.target.value))
+                    setPage(1)
+                  }}
+                >
+                  {ROWS_PER_PAGE_OPTIONS.map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <nav className="pagination" aria-label="Designer pages">
+                <button
+                  type="button"
+                  className="page-arrow"
+                  disabled={currentPage <= 1}
+                  onClick={() => setPage(currentPage - 1)}
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                {pageNumbers.map((p, i) =>
+                  p === "ellipsis" ? (
+                    <span key={`e-${i}`} className="page-ellipsis">
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      key={p}
+                      className={`page-num ${p === currentPage ? "is-active" : ""}`}
+                      onClick={() => setPage(p)}
+                    >
+                      {p}
+                    </button>
+                  ),
+                )}
+                <button
+                  type="button"
+                  className="page-arrow"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setPage(currentPage + 1)}
+                  aria-label="Next page"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </nav>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
