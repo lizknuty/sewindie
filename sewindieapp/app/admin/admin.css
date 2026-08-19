@@ -1278,3 +1278,241 @@
   font-size: 0.82rem;
   color: var(--admin-muted);
 }
+
+/* =========================================================
+   Users admin page (extends patterns page styles)
+   ========================================================= */
+/* Status tabs */
+.user-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+.user-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  padding: 0.55rem 0.95rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--admin-text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.user-tab:hover {
+  border-color: var(--admin-rose);
+}
+.user-tab.is-active {
+  background: var(--admin-rose-tint);
+  border-color: var(--admin-rose);
+  color: var(--admin-rose);
+}
+.user-tab-icon {
+  color: var(--admin-muted);
+}
+.user-tab.is-active .user-tab-icon {
+  color: var(--admin-rose);
+}
+.user-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--admin-bg);
+  color: var(--admin-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.user-tab.is-active .user-tab-count {
+  background: var(--admin-surface);
+  color: var(--admin-rose);
+}
+
+/* Status dots */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--admin-muted);
+  flex-shrink: 0;
+}
+.status-dot-active {
+  background: #3fa66a;
+}
+.status-dot-suspended {
+  background: #d15b64;
+}
+.status-dot-pending {
+  background: #e0a92e;
+}
+.status-dot-published {
+  background: #3fa66a;
+}
+.status-dot-discontinued {
+  background: #d15b64;
+}
+.status-dot-testing {
+  background: #e0a92e;
+}
+
+.user-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  color: var(--admin-text);
+  white-space: nowrap;
+}
+
+/* Filter panel spacing when opened above table */
+.user-filter-panel {
+  margin-bottom: 1rem;
+}
+
+/* User cell (avatar + name) */
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+.user-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: var(--admin-rose-tint);
+  color: var(--admin-rose);
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.user-avatar-lg {
+  width: 44px;
+  height: 44px;
+  font-size: 0.9rem;
+}
+.user-name {
+  font-weight: 600;
+  color: var(--admin-text);
+}
+.user-never {
+  font-style: italic;
+  color: var(--admin-muted);
+}
+
+/* Role pill */
+.role-pill {
+  display: inline-flex;
+  align-items: center;
+  background: var(--admin-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--admin-text);
+  text-transform: capitalize;
+}
+
+/* Bulk action bar */
+.user-bulk-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  background: var(--admin-rose-tint);
+  border: 1px solid var(--admin-rose);
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: var(--admin-text);
+}
+.user-bulk-actions {
+  display: inline-flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.bulk-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface);
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--admin-text);
+  cursor: pointer;
+}
+.bulk-btn:hover {
+  filter: brightness(0.97);
+}
+.bulk-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.bulk-btn-warning {
+  color: #a9791a;
+  border-color: rgba(224, 169, 46, 0.4);
+}
+.bulk-btn-success {
+  color: #2f8354;
+  border-color: rgba(63, 166, 106, 0.4);
+}
+.bulk-btn-danger {
+  color: #b0454e;
+  border-color: rgba(209, 91, 100, 0.4);
+}
+
+/* User grid card */
+.user-card-body {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.user-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.user-card-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0.25rem 0 0;
+  color: var(--admin-text);
+}
+.user-card-email {
+  font-size: 0.82rem;
+  color: var(--admin-muted);
+  margin: 0;
+  word-break: break-word;
+}
+.user-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.35rem;
+}
+.user-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--admin-border);
+  font-size: 0.78rem;
+}

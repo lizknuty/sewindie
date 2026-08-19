@@ -36,14 +36,17 @@ export default async function UsersPage() {
   }))
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1>Users</h1>
-        <Link href="/admin/users/new" className="btn btn-primary">
-          <Plus size={18} className="me-2" />
+    <div className="admin-patterns-page admin-users-page">
+      <header className="patterns-page-header">
+        <div>
+          <h1 className="patterns-title">Users</h1>
+          <p className="patterns-subtitle">Manage registered users and their accounts.</p>
+        </div>
+        <Link href="/admin/users/new" className="btn-add-pattern">
+          <Plus size={18} />
           Add User
         </Link>
-      </div>
+      </header>
 
       <UsersTable 
         initialUsers={serializedUsers} 
