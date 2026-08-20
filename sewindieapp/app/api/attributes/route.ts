@@ -4,10 +4,13 @@ import { checkModeratorAccess } from "@/lib/admin-middleware"
 
 export async function GET() {
   try {
-    // Keep the existing implementation for GET
     const attributes = await prisma.attribute.findMany({
       orderBy: { name: "asc" },
-      select: { id: true, name: true },
+      select: {
+        id: true,
+        name: true,
+        _count: { select: { PatternAttribute: true } },
+      },
     })
     return NextResponse.json(attributes)
   } catch (error) {
