@@ -5,10 +5,14 @@ import { prisma } from "@/lib/prisma"
 
 export async function GET() {
   try {
-    // Keep the existing implementation for GET
     const audiences = await prisma.audience.findMany({
       orderBy: {
         name: "asc",
+      },
+      select: {
+        id: true,
+        name: true,
+        _count: { select: { PatternAudience: true } },
       },
     })
     return NextResponse.json(audiences)
