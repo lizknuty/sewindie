@@ -4,9 +4,13 @@ import { checkModeratorAccess } from "@/lib/admin-middleware"
 
 export async function GET() {
   try {
-    // Get all fabric types
     const fabricTypes = await prisma.fabricType.findMany({
       orderBy: { name: "asc" },
+      select: {
+        id: true,
+        name: true,
+        _count: { select: { PatternFabricType: true } },
+      },
     })
     return NextResponse.json(fabricTypes)
   } catch (error) {
