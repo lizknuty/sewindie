@@ -1,122 +1,245 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import type React from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
-import { PlusCircle, Edit, Trash2 } from "lucide-react"
+import { Plus, Search, List, LayoutGrid, ChevronLeft, ChevronRight } from "lucide-react"
+import SizeChartsTable from "./components/SizeChartsTable"
+import SizeChartsGrid from "./components/SizeChartsGrid"
+import type { AdminSizeChart } from "./types"
 
-interface SizeChart {
-  id: number
-  label: string
-  measurement_unit: string
-  Designer: {
-    name: string
-  }
-}
+const ROWS_PER_PAGE_OPTIONS = [25, 50, 100]
 
-export default function AdminSizeChartsPage() {
-  const [sizeCharts, setSizeCharts] = useState<SizeChart[]>([])
+export default function SizeChartsPage() {
+  const [sizeCharts, setSizeCharts] = useState<AdminSizeChart[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchSizeCharts = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const response = await fetch("/api/size-charts")
-      if (!response.ok) {
-        throw new Error("Failed to fetch size charts")
-      }
-      const data = await response.json()
-      setSizeCharts(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred")
-    } finally {
-      setLoading(false)
-    }
-  }
+  const [searchInput, setSearchInput] = useState("")
+  const [query, setQuery] = useState("")
+  const [sortValue, setSortValue] = useState("label_asc")
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list")
+  const [page, setPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(25)
 
   useEffect(() => {
+    const fetchSizeCharts = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const response = await fetch("/api/size-charts")
+        if (!response.ok) throw new Error("Failed to fetch size charts")
+        const data = await response.json()
+        setSizeCharts(Array.isArray(data) ? data : [])
+      } catch (err) {
+        setError((err as Error).message)
+      } finally {
+        setLoading(false)
+      }
+    }
     fetchSizeCharts()
   }, [])
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this size chart? This action cannot be undone.")) {
-      return
-    }
-
-    try {
-      const response = await fetch(`/api/size-charts/${id}`, {
-        method: "DELETE",
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to delete size chart")
-      }
-
-      fetchSizeCharts() // Refresh the list
-    } catch (err) {
-      console.error("Error deleting size chart:", err)
-      alert(`Failed to delete size chart: ${err instanceof Error ? err.message : "Unknown error"}`)
-    }
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setQuery(searchInput.trim())
+    setPage(1)
   }
 
-  if (loading) return <div className="p-4">Loading size charts...</div>
-  if (error)
-    return (
-      <div className="p-4 alert alert-danger" role="alert">
-        Error: {error}
-      </div>
-    )
+  const filteredSorted = useMemo(() => {
+    const q = query.toLowerCase()
+    const filtered = q
+      ? sizeCharts.filter(
+          (c) => c.label.toLowerCase().includes(q) || (c.Designer?.name ?? "").toLowerCase().includes(q),
+        )
+      : [...sizeCharts]
+    switch (sortValue) {
+      case "label_desc":
+        return filtered.sort((a, b) => b.label.localeCompare(a.label))
+      case "designer_asc":
+        return filtered.sort((a, b) => (a.Designer?.name ?? "").localeCompare(b.Designer?.name ?? ""))
+      case "patterns_desc":
+        return filtered.sort((a, b) => (b._count?.PatternSizeChart ?? 0) - (a._count?.PatternSizeChart ?? 0))
+      case "label_asc":
+      default:
+        return filtered.sort((a, b) => a.label.localeCompare(b.label))
+    }
+  }, [sizeCharts, query, sortValue])
+
+  const totalCharts = filteredSorted.length
+  const totalPages = Math.max(1, Math.ceil(totalCharts / rowsPerPage))
+  const currentPage = Math.min(page, totalPages)
+
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * rowsPerPage
+    return filteredSorted.slice(start, start + rowsPerPage)
+  }, [filteredSorted, currentPage, rowsPerPage])
+
+  const rangeStart = totalCharts === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1
+  const rangeEnd = Math.min(currentPage * rowsPerPage, totalCharts)
+
+  const pageNumbers = useMemo(() => {
+    const pages: (number | "ellipsis")[] = []
+    const maxToShow = 3
+    if (totalPages <= maxToShow + 2) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i)
+    } else {
+      for (let i = 1; i <= Math.min(maxToShow, totalPages - 1); i++) pages.push(i)
+      if (currentPage > maxToShow && currentPage < totalPages) {
+        pages.push("ellipsis", currentPage)
+      } else {
+        pages.push("ellipsis")
+      }
+      pages.push(totalPages)
+    }
+    return pages
+  }, [totalPages, currentPage])
 
   return (
-    <div className="container-fluid py-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h3 mb-0">Size Charts</h1>
-        <Link href="/admin/size-charts/new" className="btn btn-primary">
-          <PlusCircle className="inline-block me-2" size={18} />
-          Add New Size Chart
+    <div className="admin-patterns-page">
+      <header className="patterns-page-header">
+        <div>
+          <h1 className="patterns-title">Size Charts</h1>
+          <p className="patterns-subtitle">Manage designer size charts and their measurements.</p>
+        </div>
+        <Link href="/admin/size-charts/new" className="btn-add-pattern">
+          <Plus size={18} />
+          Add Size Chart
         </Link>
+      </header>
+
+      <div className="patterns-toolbar">
+        <form className="patterns-search" onSubmit={handleSearchSubmit}>
+          <Search size={18} className="patterns-search-icon" />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search size charts by label or designer..."
+            aria-label="Search size charts"
+          />
+        </form>
+
+        <div className="patterns-sort">
+          <label htmlFor="sort-select">Sort by:</label>
+          <select
+            id="sort-select"
+            value={sortValue}
+            onChange={(e) => {
+              setSortValue(e.target.value)
+              setPage(1)
+            }}
+          >
+            <option value="label_asc">Label (A–Z)</option>
+            <option value="label_desc">Label (Z–A)</option>
+            <option value="designer_asc">Designer (A–Z)</option>
+            <option value="patterns_desc">Most Patterns</option>
+          </select>
+        </div>
+
+        <div className="view-toggle" role="group" aria-label="View mode">
+          <button
+            type="button"
+            className={viewMode === "list" ? "is-active" : ""}
+            onClick={() => setViewMode("list")}
+            aria-label="List view"
+            aria-pressed={viewMode === "list"}
+          >
+            <List size={18} />
+          </button>
+          <button
+            type="button"
+            className={viewMode === "grid" ? "is-active" : ""}
+            onClick={() => setViewMode("grid")}
+            aria-label="Grid view"
+            aria-pressed={viewMode === "grid"}
+          >
+            <LayoutGrid size={18} />
+          </button>
+        </div>
       </div>
 
-      <div className="table-responsive">
-        <table className="table table-striped table-hover">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Label</th>
-              <th>Designer</th>
-              <th>Unit</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sizeCharts.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="text-center py-4">
-                  No size charts found.
-                </td>
-              </tr>
-            ) : (
-              sizeCharts.map((chart) => (
-                <tr key={chart.id}>
-                  <td>{chart.id}</td>
-                  <td>{chart.label}</td>
-                  <td>{chart.Designer.name}</td>
-                  <td>{chart.measurement_unit}</td>
-                  <td>
-                    <Link href={`/admin/size-charts/${chart.id}/edit`} className="btn btn-sm btn-info me-2">
-                      <Edit size={16} />
-                    </Link>
-                    <button className="btn btn-sm btn-danger" onClick={() => handleDelete(chart.id)}>
-                      <Trash2 size={16} />
+      <div className="patterns-resultbar">
+        <span className="patterns-count">
+          {loading
+            ? "Loading size charts..."
+            : `Showing ${rangeStart}–${rangeEnd} of ${totalCharts.toLocaleString()} size charts`}
+        </span>
+      </div>
+
+      <div className="patterns-layout filters-hidden">
+        <div className="patterns-content">
+          {error ? (
+            <div className="patterns-empty text-danger">Error: {error}</div>
+          ) : loading ? (
+            <div className="patterns-empty">Loading size charts...</div>
+          ) : totalCharts === 0 ? (
+            <div className="patterns-empty">No size charts found.</div>
+          ) : viewMode === "list" ? (
+            <SizeChartsTable sizeCharts={paginated} />
+          ) : (
+            <SizeChartsGrid sizeCharts={paginated} />
+          )}
+
+          {!loading && !error && totalCharts > 0 && (
+            <div className="patterns-footer">
+              <div className="rows-per-page">
+                <label htmlFor="rows-select">Rows per page:</label>
+                <select
+                  id="rows-select"
+                  value={rowsPerPage}
+                  onChange={(e) => {
+                    setRowsPerPage(Number(e.target.value))
+                    setPage(1)
+                  }}
+                >
+                  {ROWS_PER_PAGE_OPTIONS.map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <nav className="pagination" aria-label="Size chart pages">
+                <button
+                  type="button"
+                  className="page-arrow"
+                  disabled={currentPage <= 1}
+                  onClick={() => setPage(currentPage - 1)}
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                {pageNumbers.map((p, i) =>
+                  p === "ellipsis" ? (
+                    <span key={`e-${i}`} className="page-ellipsis">
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      key={p}
+                      className={`page-num ${p === currentPage ? "is-active" : ""}`}
+                      onClick={() => setPage(p)}
+                    >
+                      {p}
                     </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+                  ),
+                )}
+                <button
+                  type="button"
+                  className="page-arrow"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setPage(currentPage + 1)}
+                  aria-label="Next page"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </nav>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
