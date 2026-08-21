@@ -1683,3 +1683,25 @@
   display: inline-flex;
   margin-top: 1.25rem;
 }
+
+/* =========================================================
+   Blog posts admin page (extends patterns page styles)
+   ========================================================= */
+.status-draft {
+  background: var(--admin-bg);
+  color: var(--admin-muted);
+}
+.status-dot-draft {
+  background: var(--admin-muted);
+}
+.blog-excerpt {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  color: var(--admin-muted);
+  line-height: 1.4;
+  max-width: 46ch;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
