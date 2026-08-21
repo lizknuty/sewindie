@@ -9,6 +9,11 @@ export async function GET() {
       orderBy: {
         name: "asc",
       },
+      select: {
+        id: true,
+        name: true,
+        _count: { select: { PatternSuggestedFabric: true } },
+      },
     })
 
     return NextResponse.json({ success: true, suggestedFabrics })
