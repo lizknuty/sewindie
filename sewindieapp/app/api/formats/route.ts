@@ -4,10 +4,13 @@ import { checkModeratorAccess } from "@/lib/admin-middleware"
 
 export async function GET() {
   try {
-    // Keep the existing implementation for GET
     const formats = await prisma.format.findMany({
       orderBy: { name: "asc" },
-      select: { id: true, name: true },
+      select: {
+        id: true,
+        name: true,
+        _count: { select: { PatternFormat: true } },
+      },
     })
     return NextResponse.json(formats)
   } catch (error) {
