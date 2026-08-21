@@ -1,17 +1,10 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { Plus } from "lucide-react"
+import BlogPostsView from "./components/BlogPostsView"
+import type { AdminBlogPost } from "./types"
 
 export const dynamic = "force-dynamic"
-
-function formatDate(date: Date | null) {
-  if (!date) return "—"
-  return new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })
-}
 
 export default async function AdminBlogPage() {
   const posts = await prisma.blogPost.findMany({
@@ -19,67 +12,33 @@ export default async function AdminBlogPage() {
     include: { User: { select: { id: true, name: true } } },
   })
 
+  const serialized: AdminBlogPost[] = posts.map((post) => ({
+    id: post.id,
+    title: post.title,
+    slug: post.slug,
+    excerpt: post.excerpt,
+    coverImageUrl: post.coverImageUrl,
+    published: post.published,
+    publishedAt: post.publishedAt ? post.publishedAt.toISOString() : null,
+    createdAt: post.createdAt.toISOString(),
+    updatedAt: post.updatedAt.toISOString(),
+    User: post.User ? { id: post.User.id, name: post.User.name } : null,
+  }))
+
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1>Blog</h1>
-        <Link href="/admin/blog/new" className="btn btn-primary">
-          <Plus size={18} className="me-2" />
+    <div className="admin-patterns-page">
+      <header className="patterns-page-header">
+        <div>
+          <h1 className="patterns-title">Blog Posts</h1>
+          <p className="patterns-subtitle">Write and publish articles for the SewIndie blog.</p>
+        </div>
+        <Link href="/admin/blog/new" className="btn-add-pattern">
+          <Plus size={18} />
           New Post
         </Link>
-      </div>
+      </header>
 
-      {posts.length === 0 ? (
-        <div className="alert alert-secondary">No blog posts yet. Create your first post to get started.</div>
-      ) : (
-        <div className="table-responsive">
-          <table className="table table-striped table-hover align-middle">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Status</th>
-                <th>Author</th>
-                <th>Published</th>
-                <th>Updated</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {posts.map((post) => (
-                <tr key={post.id}>
-                  <td>{post.title}</td>
-                  <td>
-                    {post.published ? (
-                      <span className="badge bg-success">Published</span>
-                    ) : (
-                      <span className="badge bg-secondary">Draft</span>
-                    )}
-                  </td>
-                  <td>{post.User?.name || "—"}</td>
-                  <td>{formatDate(post.publishedAt)}</td>
-                  <td>{formatDate(post.updatedAt)}</td>
-                  <td>
-                    <div className="btn-group">
-                      <Link href={`/admin/blog/${post.id}/edit`} className="btn btn-sm btn-outline-secondary">
-                        Edit
-                      </Link>
-                      {post.published && (
-                        <Link
-                          href={`/blog/${post.slug}`}
-                          className="btn btn-sm btn-outline-secondary"
-                          target="_blank"
-                        >
-                          View
-                        </Link>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <BlogPostsView posts={serialized} />
     </div>
   )
 }
