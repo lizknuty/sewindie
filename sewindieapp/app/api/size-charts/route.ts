@@ -31,6 +31,12 @@ export async function GET(request: NextRequest) {
             name: true,
           },
         },
+        _count: {
+          select: {
+            PatternSizeChart: true,
+            SizeChartRow: true,
+          },
+        },
       },
       orderBy: {
         label: "asc",
