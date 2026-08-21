@@ -1705,3 +1705,134 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* =========================================================
+   Pattern Metadata admin page (extends patterns page styles)
+   ========================================================= */
+.metadata-tabs {
+  display: flex;
+  align-items: stretch;
+  overflow-x: auto;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+  scrollbar-width: thin;
+}
+.metadata-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex: 1 0 auto;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-right: 1px solid var(--admin-border);
+  border-bottom: 3px solid transparent;
+  padding: 0.85rem 1.1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--admin-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.metadata-tab:last-child {
+  border-right: none;
+}
+.metadata-tab:hover {
+  color: var(--admin-text);
+  background: var(--admin-bg);
+}
+.metadata-tab.is-active {
+  color: var(--admin-rose);
+  border-bottom-color: var(--admin-rose);
+  background: var(--admin-surface);
+  font-weight: 600;
+}
+.metadata-tab-icon {
+  color: var(--admin-muted);
+  flex-shrink: 0;
+}
+.metadata-tab.is-active .metadata-tab-icon {
+  color: var(--admin-rose);
+}
+.metadata-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.4rem;
+  padding: 0 0.4rem;
+  border-radius: 7px;
+  background: var(--admin-bg);
+  color: var(--admin-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.metadata-tab.is-active .metadata-tab-count {
+  background: var(--admin-rose-tint);
+  color: var(--admin-rose);
+}
+
+/* Split "Add" button with type dropdown */
+.metadata-add {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  flex-shrink: 0;
+}
+.metadata-add-main {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.metadata-add-caret {
+  padding-left: 0.6rem;
+  padding-right: 0.6rem;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: 1px solid rgba(255, 255, 255, 0.28);
+}
+.metadata-add-caret svg {
+  transition: transform 0.15s ease;
+}
+.metadata-add-caret svg.is-open {
+  transform: rotate(180deg);
+}
+.metadata-add-menu {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  min-width: 13rem;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(38, 26, 30, 0.15);
+  padding: 0.35rem;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+}
+.metadata-add-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 7px;
+  font-size: 0.88rem;
+  color: var(--admin-text);
+  text-decoration: none;
+}
+.metadata-add-menu-item:hover {
+  background: var(--admin-rose-tint);
+  color: var(--admin-rose);
+}
+
+@media (max-width: 900px) {
+  .metadata-tab-label {
+    display: none;
+  }
+  .metadata-tab {
+    padding: 0.85rem 0.9rem;
+  }
+}
