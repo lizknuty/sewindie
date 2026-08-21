@@ -5,12 +5,15 @@ export default async function ContributionsPage() {
   const contributions = await getPatternContributions()
 
   return (
-    <div>
-      <h1 className="mb-4">Pattern Contributions</h1>
-      <p className="mb-4">
-        Review and manage pattern contributions submitted by users. You can approve, reject, or import contributions as
-        patterns.
-      </p>
+    <div className="admin-patterns-page">
+      <header className="patterns-page-header">
+        <div>
+          <h1 className="patterns-title">Contributions</h1>
+          <p className="patterns-subtitle">
+            Review pattern contributions submitted by the community, then approve, reject, or import them.
+          </p>
+        </div>
+      </header>
 
       <ContributionsTable initialContributions={contributions} />
     </div>
