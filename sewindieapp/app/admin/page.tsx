@@ -1,45 +1,118 @@
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/api/auth/[...nextauth]/options"
-import { Users, Scissors, FileText, Sprout, Palette, Calendar } from "lucide-react"
-import { getDashboardData } from "@/admin/lib/dashboard-data"
-import MetricCard from "@/admin/components/dashboard/MetricCard"
-import RecentActivity from "@/admin/components/dashboard/RecentActivity"
-import TopContent from "@/admin/components/dashboard/TopContent"
-import QuickActions from "@/admin/components/dashboard/QuickActions"
+"use client"
 
-export default async function AdminDashboard() {
-  const [session, data] = await Promise.all([getServerSession(authOptions), getDashboardData()])
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
+import { useCallback } from "react"
 
-  const firstName = session?.user?.name?.split(" ")[0] || "there"
-  const { metrics, activity, topPatterns, topDesigners } = data
+type FilterOption = {
+  id: number
+  name: string
+}
+
+type AdminPatternFiltersProps = {
+  categories: FilterOption[]
+  attributes: FilterOption[]
+  formats: FilterOption[]
+  audiences: FilterOption[]
+  fabricTypes: FilterOption[]
+  designers: FilterOption[]
+}
+
+const STATUS_OPTIONS = [
+  { value: "PUBLISHED", label: "Published" },
+  { value: "IN_TESTING", label: "In Testing" },
+  { value: "DISCONTINUED", label: "Discontinued" },
+]
+
+const FILTER_KEYS = ["category", "attribute", "format", "audience", "fabricType", "designer", "status"]
+
+export default function AdminPatternFilters({
+  categories,
+  attributes,
+  formats,
+  audiences,
+  fabricTypes,
+  designers,
+}: AdminPatternFiltersProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+
+  const setSingleParam = useCallback(
+    (key: string, value: string) => {
+      const params = new URLSearchParams(searchParams.toString())
+      params.delete(key)
+      if (value) params.set(key, value)
+      params.delete("page")
+      router.push(`${pathname}?${params.toString()}`)
+    },
+    [router, searchParams, pathname],
+  )
+
+  const clearAll = useCallback(() => {
+    const params = new URLSearchParams(searchParams.toString())
+    FILTER_KEYS.forEach((k) => params.delete(k))
+    router.push(`${pathname}?${params.toString()}`)
+  }, [router, searchParams, pathname])
+
+  const activeCount = FILTER_KEYS.filter((k) => searchParams.has(k)).length
+
+  const renderSelect = (label: string, key: string, options: FilterOption[], allLabel: string) => (
+    <div className="apf-field">
+      <label className="apf-label" htmlFor={`apf-${key}`}>
+        {label}
+      </label>
+      <select
+        id={`apf-${key}`}
+        className="apf-select"
+        value={searchParams.get(key) ?? ""}
+        onChange={(e) => setSingleParam(key, e.target.value)}
+      >
+        <option value="">{allLabel}</option>
+        {options.map((o) => (
+          <option key={o.id} value={o.id.toString()}>
+            {o.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
 
   return (
-    <div className="admin-dashboard">
-      <div className="admin-page-head">
-        <div>
-          <h1 className="admin-page-title">Dashboard</h1>
-          <p className="admin-page-sub">Welcome back, {firstName}! Here&apos;s what&apos;s happening with SewIndie.</p>
-        </div>
-        <span className="admin-daterange">
-          <Calendar size={15} strokeWidth={1.75} />
-          Last 7 days
-        </span>
+    <aside className="apf-panel">
+      <div className="apf-header">
+        <h2 className="apf-title">Filters</h2>
+        {activeCount > 0 && (
+          <button type="button" className="apf-clear" onClick={clearAll}>
+            Clear all
+          </button>
+        )}
       </div>
 
-      <div className="admin-metrics">
-        <MetricCard label="Users" value={metrics.users.value} icon={Users} href="/admin/users" trend={metrics.users.trend} />
-        <MetricCard label="Designers" value={metrics.designers.value} icon={Palette} href="/admin/designers" subtitle="Total designers" />
-        <MetricCard label="Patterns" value={metrics.patterns.value} icon={Scissors} href="/admin/patterns" subtitle="Total patterns" />
-        <MetricCard label="Blog Posts" value={metrics.blogPosts.value} icon={FileText} href="/admin/blog" trend={metrics.blogPosts.trend} />
-        <MetricCard label="Contributions" value={metrics.contributions.value} icon={Sprout} href="/admin/contributions" subtitle="Submissions" />
-      </div>
+      {renderSelect("Category", "category", categories, "All categories")}
+      {renderSelect("Attribute", "attribute", attributes, "All attributes")}
+      {renderSelect("Format", "format", formats, "All formats")}
+      {renderSelect("Audience", "audience", audiences, "All audiences")}
+      {renderSelect("Fabric Type", "fabricType", fabricTypes, "All fabric types")}
+      {renderSelect("Designer", "designer", designers, "All designers")}
 
-      <div className="admin-grid-2">
-        <RecentActivity items={activity} />
-        <TopContent patterns={topPatterns} designers={topDesigners} />
+      <div className="apf-field">
+        <label className="apf-label" htmlFor="apf-status">
+          Status
+        </label>
+        <select
+          id="apf-status"
+          className="apf-select"
+          value={searchParams.get("status") ?? ""}
+          onChange={(e) => setSingleParam("status", e.target.value)}
+        >
+          <option value="">All statuses</option>
+          {STATUS_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
       </div>
-
-      <QuickActions />
-    </div>
+    </aside>
   )
 }
