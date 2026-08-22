@@ -10,7 +10,11 @@
   --admin-surface: #ffffff;
   --admin-border: #efe3e6;
   --admin-rose: var(--color-primary);
-  --admin-rose-soft: rgba(234, 78, 76, 0);
+  /* Deep mauve rose for solid filled surfaces (active nav, avatar).
+     Intentionally NOT var(--color-primary): the bright brand pink is too
+     hot as a large fill and fails contrast against white label text. */
+  --admin-rose-deep: #8a3f5c;
+  --admin-rose-deep-hover: #74334c;
   --admin-rose-tint: rgba(234, 78, 118, 0.09);
   --admin-text: #2b2426;
   --admin-muted: #8f7a7c;
@@ -120,11 +124,13 @@
 }
 
 .admin-nav-link.active {
-  background-color: var(--admin-rose);
+  background-color: var(--admin-rose-deep);
   color: #fff;
+  font-weight: 500;
 }
 
 .admin-nav-link.active:hover {
+  background-color: var(--admin-rose-deep-hover);
   color: #fff;
 }
 
@@ -164,7 +170,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background-color: var(--admin-rose);
+  background-color: var(--admin-rose-deep);
   color: #fff;
   font-size: 0.8rem;
   font-weight: 600;
