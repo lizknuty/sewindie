@@ -109,7 +109,12 @@
   padding: 0;
 }
 
-.admin-nav-link {
+/* These nav rules are written as `.admin-sidebar a.admin-nav-link` rather
+   than `.admin-nav-link` on purpose. The global rule in styles.css,
+   `a:not(.btn):not(.nav-link) { color: var(--color-primary) }`, scores
+   (0,2,1) and would otherwise win over a plain single class selector and
+   repaint every sidebar label brand pink. */
+.admin-sidebar a.admin-nav-link {
   display: flex;
   align-items: center;
   gap: 0.65rem;
@@ -121,21 +126,25 @@
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.admin-nav-link:hover {
+.admin-sidebar a.admin-nav-link:hover,
+.admin-sidebar a.admin-nav-link:focus {
   background-color: var(--admin-rose-tint);
   color: var(--admin-text);
   text-decoration: none;
 }
 
-.admin-nav-link.active {
+.admin-sidebar a.admin-nav-link.active,
+.admin-sidebar a.admin-nav-link.active:hover,
+.admin-sidebar a.admin-nav-link.active:focus {
   background-color: var(--admin-rose-deep);
   color: #fff;
   font-weight: 500;
+  text-decoration: none;
 }
 
-.admin-nav-link.active:hover {
+.admin-sidebar a.admin-nav-link.active:hover,
+.admin-sidebar a.admin-nav-link.active:focus {
   background-color: var(--admin-rose-deep-hover);
-  color: #fff;
 }
 
 .admin-nav-icon {
@@ -241,11 +250,19 @@
   cursor: pointer;
 }
 
-.admin-profile-menu-item:hover {
-  background-color: var(--admin-rose-tint);
-  color: var(--admin-rose);
+  /* Same specificity guard as the nav links: "My Account" is an anchor and
+     would otherwise be repainted by the global a:not(.btn):not(.nav-link). */
+  .admin-sidebar a.admin-profile-menu-item {
+  color: var(--admin-text);
   text-decoration: none;
-}
+  }
+
+  .admin-profile-menu-item:hover,
+  .admin-sidebar a.admin-profile-menu-item:hover {
+  background-color: var(--admin-rose-tint);
+  color: var(--admin-text);
+  text-decoration: none;
+  }
 
 /* =========================================================
    Dashboard content
