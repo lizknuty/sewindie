@@ -755,6 +755,20 @@
   text-decoration: none;
   transition: filter 0.15s ease;
 }
+
+/* These "Add ..." buttons are Next.js <Link>s, i.e. anchors. The global rule
+   in styles.css, `a:not(.btn):not(.nav-link) { color: var(--color-primary) }`,
+   scores (0,2,1) and beats the single class above, repainting the label the
+   same pink as the button fill and making it unreadable. Scoping through
+   .admin-shell reaches (0,3,1) so white text wins on every admin page. */
+.admin-shell a.btn-add-pattern,
+.admin-shell a.btn-add-pattern:hover,
+.admin-shell a.btn-add-pattern:focus,
+.admin-shell a.btn-add-pattern:visited {
+  color: #fff;
+  text-decoration: none;
+}
+
 .btn-add-pattern:hover {
   filter: brightness(0.94);
   color: #fff;
@@ -1851,10 +1865,19 @@
   color: var(--admin-text);
   text-decoration: none;
 }
-.metadata-add-menu-item:hover {
+  /* Same anchor-specificity guard as .btn-add-pattern above. */
+  .admin-shell a.metadata-add-menu-item,
+  .admin-shell a.metadata-add-menu-item:visited {
+  color: var(--admin-text);
+  text-decoration: none;
+  }
+
+  .metadata-add-menu-item:hover,
+  .admin-shell a.metadata-add-menu-item:hover,
+  .admin-shell a.metadata-add-menu-item:focus {
   background: var(--admin-rose-tint);
-  color: var(--admin-rose);
-}
+  color: var(--admin-text);
+  }
 
 @media (max-width: 900px) {
   .metadata-tab-label {
