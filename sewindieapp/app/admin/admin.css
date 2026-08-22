@@ -52,6 +52,10 @@
   flex-direction: column;
   height: 100%;
   padding: 1.25rem 0.75rem;
+  /* Sidebar-scoped text overrides: true black for labels here, while the
+     rest of the admin area keeps the softer warm near-black. */
+  --admin-text: #000000;
+  --admin-muted: #4a4446;
   color: var(--admin-text);
 }
 
@@ -119,7 +123,7 @@
 
 .admin-nav-link:hover {
   background-color: var(--admin-rose-tint);
-  color: var(--admin-rose);
+  color: var(--admin-text);
   text-decoration: none;
 }
 
