@@ -6,6 +6,37 @@ datasource db {
   provider = "postgresql"
 }
 
+/// Result of probing one external URL. Keyed by the URL itself rather than by
+/// pattern/designer id: the catalogue reuses URLs heavily (8.7k patterns share
+/// ~17k distinct links), so this de-duplicates work and lets one probe answer
+/// for every row referencing that URL.
+model LinkCheck {
+  id         Int             @id @default(autoincrement())
+  url        String          @unique
+  host       String          @db.VarChar(255)
+  kind       LinkKind
+  status     LinkStatus
+  statusCode Int?
+  error      String?         @db.VarChar(500)
+  checkedAt  DateTime        @default(now())
+
+  @@index([status])
+  @@index([kind, status])
+  @@index([host])
+  @@index([checkedAt])
+}
+
+enum LinkKind {
+  PATTERN_THUMBNAIL
+  PATTERN_PAGE
+}
+
+enum LinkStatus {
+  OK
+  BROKEN
+  UNREACHABLE
+}
+
 model Attribute {
   id               Int                @id @default(autoincrement())
   name             String             @db.VarChar(255)
