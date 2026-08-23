@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-import { LinkKind, LinkStatus } from "@prisma/client"
+import { LinkKind, LinkStatus, Prisma } from "@prisma/client"
 
 /**
  * Shared link-checking core, used by both scripts/check-links.mjs (bulk, via
@@ -118,7 +118,17 @@ export async function probe({ url, kind }: Probe): Promise<ProbeResult> {
 export async function probeAll(
   probes: Probe[],
   onResult?: (r: ProbeResult, done: number, total: number) => void,
+  /**
+   * Optional wall-clock budget. When exceeded, lanes stop picking up new work
+   * and whatever finished is returned. The route needs this: a batch landing on
+   * one dead host costs TIMEOUT_MS each and would otherwise blow maxDuration
+   * and 500. Anything skipped stays unchecked and is picked up next run, since
+   * collectProbes orders by checkedAt NULLS FIRST.
+   */
+  deadlineMs?: number,
 ): Promise<ProbeResult[]> {
+  const startedAt = Date.now()
+  const outOfTime = () => deadlineMs !== undefined && Date.now() - startedAt > deadlineMs
   const byHost = new Map<string, Probe[]>()
   for (const p of probes) {
     const h = hostOf(p.url)
@@ -139,6 +149,7 @@ export async function probeAll(
     let cursor = 0
     async function worker() {
       while (cursor < items.length) {
+        if (outOfTime()) return
         const item = items[cursor++]
         const r = await probe(item)
         results.push(r)
@@ -153,6 +164,7 @@ export async function probeAll(
 
   async function lane() {
     while (hostQueue.length > 0) {
+      if (outOfTime()) return
       const next = hostQueue.shift()
       if (!next) return
       await drainHost(next[1])
@@ -163,35 +175,41 @@ export async function probeAll(
   return results
 }
 
-/** Upsert probe results, keyed on the unique url column, in one transaction. */
+/**
+ * Upsert probe results, keyed on the unique url column.
+ *
+ * This is deliberately a bulk INSERT ... ON CONFLICT rather than a
+ * $transaction of per-row upserts. 150 sequential upserts took >5s and blew
+ * Prisma's default 5000ms transaction timeout (P2028), which surfaced as a 500
+ * from the re-check route. One statement per chunk is a single round trip, and
+ * these rows are independent idempotent writes, so no cross-row atomicity is
+ * needed: a partial save just means the rest get picked up on the next run.
+ */
 export async function saveResults(results: ProbeResult[]): Promise<void> {
   if (results.length === 0) return
 
   const now = new Date()
-  await prisma.$transaction(
-    results.map((r) =>
-      prisma.linkCheck.upsert({
-        where: { url: r.url },
-        create: {
-          url: r.url,
-          host: r.host,
-          kind: r.kind,
-          status: r.status,
-          statusCode: r.statusCode,
-          error: r.error,
-          checkedAt: now,
-        },
-        update: {
-          host: r.host,
-          kind: r.kind,
-          status: r.status,
-          statusCode: r.statusCode,
-          error: r.error,
-          checkedAt: now,
-        },
-      }),
-    ),
-  )
+  const CHUNK = 100
+
+  for (let i = 0; i < results.length; i += CHUNK) {
+    const chunk = results.slice(i, i + CHUNK)
+    const values = chunk.map(
+      (r) =>
+        Prisma.sql`(${r.url}, ${r.host}, ${r.kind}::"LinkKind", ${r.status}::"LinkStatus", ${r.statusCode}, ${r.error}, ${now})`,
+    )
+
+    await prisma.$executeRaw`
+      INSERT INTO "LinkCheck" ("url", "host", "kind", "status", "statusCode", "error", "checkedAt")
+      VALUES ${Prisma.join(values)}
+      ON CONFLICT ("url") DO UPDATE SET
+        "host" = EXCLUDED."host",
+        "kind" = EXCLUDED."kind",
+        "status" = EXCLUDED."status",
+        "statusCode" = EXCLUDED."statusCode",
+        "error" = EXCLUDED."error",
+        "checkedAt" = EXCLUDED."checkedAt"
+    `
+  }
 }
 
 /**

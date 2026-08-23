@@ -9,6 +9,9 @@ const MAX_BATCH = 150
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
+/** Wall-clock budget for probing, leaving room to save results and respond. */
+const PROBE_BUDGET_MS = 45_000
+
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions)
   const role = session?.user?.role?.toUpperCase()
@@ -30,7 +33,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ checked: 0, remaining: 0, message: "Everything has been checked recently." })
     }
 
-    const results = await probeAll(probes)
+    // Leave headroom inside maxDuration for the save and the response.
+    const results = await probeAll(probes, undefined, PROBE_BUDGET_MS)
     await saveResults(results)
 
     const tally = results.reduce<Record<string, number>>((acc, r) => {
@@ -42,6 +46,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       checked: results.length,
+      // >0 when the time budget cut the run short; those URLs stay unchecked.
+      skipped: probes.length - results.length,
       tally,
       hasMore: remaining > 0,
     })

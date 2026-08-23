@@ -4,7 +4,13 @@ import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { RefreshCw } from "lucide-react"
 
-type Result = { checked: number; tally?: Record<string, number>; hasMore?: boolean; message?: string }
+type Result = {
+  checked: number
+  skipped?: number
+  tally?: Record<string, number>
+  hasMore?: boolean
+  message?: string
+}
 
 export default function RecheckLinksButton({ unchecked }: { unchecked: number }) {
   const router = useRouter()
@@ -23,7 +29,12 @@ export default function RecheckLinksButton({ unchecked }: { unchecked: number })
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ limit: 150 }),
       })
-      if (!res.ok) throw new Error(`Request failed (${res.status})`)
+      if (!res.ok) {
+        // Prefer the server's message so a real failure isn't hidden behind a
+        // bare status code.
+        const detail = await res.json().catch(() => null)
+        throw new Error(detail?.error ? `${detail.error} (${res.status})` : `Request failed (${res.status})`)
+      }
       const data: Result = await res.json()
       setResult(data)
       // Pull fresh server-rendered numbers into the page.
@@ -54,6 +65,7 @@ export default function RecheckLinksButton({ unchecked }: { unchecked: number })
             <>
               {`Checked ${result.checked}: `}
               {`${result.tally?.OK ?? 0} ok, ${result.tally?.BROKEN ?? 0} broken, ${result.tally?.UNREACHABLE ?? 0} unreachable.`}
+              {result.skipped ? ` ${result.skipped} skipped (time limit).` : null}
               {result.hasMore ? " More remain." : " All caught up."}
             </>
           )
