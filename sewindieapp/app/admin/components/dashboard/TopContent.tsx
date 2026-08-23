@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Scissors, Users } from "lucide-react"
+import PatternThumbnail from "@/components/PatternThumbnail"
 import type { TopPattern, TopDesigner } from "@/admin/lib/dashboard-data"
 
 type Tab = "patterns" | "designers"
@@ -57,8 +58,7 @@ export default function TopContent({ patterns, designers }: TopContentProps) {
                   <div className="admin-row-item">
                     <span className="admin-thumb">
                       {p.thumbnail_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.thumbnail_url || "/placeholder.svg"} alt="" />
+                        <PatternThumbnail raw src={p.thumbnail_url} alt="" />
                       ) : (
                         <Scissors size={16} strokeWidth={1.5} />
                       )}

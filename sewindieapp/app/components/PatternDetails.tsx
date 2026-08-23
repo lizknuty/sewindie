@@ -1,4 +1,5 @@
 import Link from "next/link"
+import PatternThumbnail from "./PatternThumbnail"
 
 type Pattern = {
   id: number
@@ -27,8 +28,9 @@ export default function PatternDetails({ pattern }: { pattern: Pattern }) {
         </Link>
       </p>
       {pattern.thumbnail_url && (
-        <img
-          src={pattern.thumbnail_url || "/placeholder.svg"}
+        <PatternThumbnail
+          raw
+          src={pattern.thumbnail_url}
           alt={pattern.name}
           className="w-full max-w-2xl h-auto mb-6 rounded"
         />

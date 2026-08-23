@@ -57,7 +57,8 @@ export default async function Home() {
             patterns={featuredPatterns.map((p: (typeof featuredPatterns)[number]) => ({
               id: p.id,
               name: p.name,
-              imageUrl: p.thumbnail_url || '/placeholder.svg',
+              // PatternThumbnail resolves null and dead links to the fallback.
+              imageUrl: p.thumbnail_url,
             }))}
           />
         </div>

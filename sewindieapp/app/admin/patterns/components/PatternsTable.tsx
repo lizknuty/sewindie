@@ -1,5 +1,5 @@
 import Link from "next/link"
-import Image from "next/image"
+import PatternThumbnail from "@/components/PatternThumbnail"
 import { Pencil } from "lucide-react"
 import PatternStatusBadge from "./PatternStatusBadge"
 import DifficultyIndicator from "./DifficultyIndicator"
@@ -27,8 +27,8 @@ export default function PatternsTable({ patterns }: { patterns: AdminPattern[] }
                 <div className="pattern-cell">
                   <div className="pattern-thumb">
                     {pattern.thumbnail_url ? (
-                      <Image
-                        src={pattern.thumbnail_url || "/placeholder.svg"}
+                      <PatternThumbnail
+                        src={pattern.thumbnail_url}
                         alt={pattern.name}
                         width={44}
                         height={44}

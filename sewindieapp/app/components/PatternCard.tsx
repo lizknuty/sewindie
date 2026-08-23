@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import PatternThumbnail from './PatternThumbnail'
 
 type PatternCardProps = {
   id: number;
@@ -29,7 +29,7 @@ export default function PatternCard({ id, name, thumbnail_url, designer, pattern
       <div className="card-body d-flex flex-column">
         <div className="mb-3" style={{ height: '200px', position: 'relative' }}>
           {thumbnail_url ? (
-            <Image
+            <PatternThumbnail
               src={thumbnail_url}
               alt={`${name} thumbnail`}
               fill

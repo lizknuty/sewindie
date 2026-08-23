@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
+import PatternThumbnail from '@/components/PatternThumbnail'
 import { prisma } from '@/lib/prisma'
 import FavoritesAndRatings from '@/components/FavoritesAndRatings'
 
@@ -61,7 +61,7 @@ export default async function PatternPage({ params }: PageProps) {
               {pattern.thumbnail_url && (
                 <>
                   <div className="position-relative" style={{ paddingBottom: '125%' }}>
-                    <Image
+                    <PatternThumbnail
                       src={pattern.thumbnail_url}
                       alt={pattern.name}
                       fill

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import Image from "next/image"
+import PatternThumbnail from "@/components/PatternThumbnail"
 import { Pencil } from "lucide-react"
 import PatternStatusBadge from "./PatternStatusBadge"
 import DifficultyIndicator from "./DifficultyIndicator"
@@ -12,8 +12,8 @@ export default function PatternsGrid({ patterns }: { patterns: AdminPattern[] })
         <div key={pattern.id} className="pattern-card">
           <div className="pattern-card-media">
             {pattern.thumbnail_url ? (
-              <Image
-                src={pattern.thumbnail_url || "/placeholder.svg"}
+              <PatternThumbnail
+                src={pattern.thumbnail_url}
                 alt={pattern.name}
                 width={220}
                 height={220}

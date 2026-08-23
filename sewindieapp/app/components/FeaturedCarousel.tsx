@@ -3,6 +3,7 @@
 import React, { useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import PatternThumbnail from './PatternThumbnail'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination } from 'swiper/modules'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -16,7 +17,8 @@ import styles from './FeaturedCarousel.module.css'
 type FeaturedItem = {
   id: number
   name: string
-  imageUrl: string
+  /** Null for patterns with no thumbnail; PatternThumbnail resolves it. */
+  imageUrl: string | null
 }
 
 type FeaturedCarouselProps = {
@@ -25,8 +27,6 @@ type FeaturedCarouselProps = {
 }
 
 const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ designers, patterns }) => {
-  console.log("[v0] FeaturedCarousel rendering with", designers.length, "designers and", patterns.length, "patterns")
-  
   // Refs for navigation buttons
   const designersPrevRef = useRef<HTMLDivElement>(null)
   const designersNextRef = useRef<HTMLDivElement>(null)
@@ -86,7 +86,7 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ designers, patterns
                   <div className={styles.imageContainer}>
                     <div className={styles.imageWrapper}>
                       <Image
-                        src={designer.imageUrl}
+                        src={designer.imageUrl ?? '/placeholder.svg'}
                         alt={designer.name}
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
@@ -134,7 +134,7 @@ const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ designers, patterns
                 <div className={styles.card}>
                   <div className={styles.imageContainer}>
                     <div className={styles.imageWrapper}>
-                      <Image
+                      <PatternThumbnail
                         src={pattern.imageUrl}
                         alt={pattern.name}
                         fill
