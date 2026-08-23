@@ -37,12 +37,11 @@ const LINK_GROUPS: { heading: string; links: { href: string; label: string }[] }
   },
 ]
 
-// TODO: swap the YouTube and Pinterest `href`s once those accounts exist.
-const SOCIALS = [
+const SOCIALS: { label: string; href: string; Icon: () => React.JSX.Element }[] = [
   { label: "Instagram", href: "https://instagram.com/sewindie", Icon: InstagramIcon },
-  { label: "Pinterest", href: null, Icon: PinterestIcon },
+  { label: "Pinterest", href: "https://pinterest.com/sewindie", Icon: PinterestIcon },
   { label: "Facebook", href: "https://facebook.com/sewindieapp", Icon: FacebookIcon },
-  { label: "YouTube", href: null, Icon: YoutubeIcon },
+  { label: "YouTube", href: "https://www.youtube.com/@SewIndieApp", Icon: YoutubeIcon },
 ]
 
 export default function Footer() {
@@ -80,29 +79,15 @@ export default function Footer() {
               <ul className="site-footer-socials" aria-labelledby="footer-social">
                 {SOCIALS.map(({ label, href, Icon }) => (
                   <li key={label}>
-                    {/* Accounts without a URL yet render as a disabled control
-                        rather than a href="#" anchor, which would look like a
-                        link but navigate nowhere for keyboard/screen-reader
-                        users. */}
-                    {href ? (
-                      <a
-                        href={href}
-                        className="site-footer-social"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={`SewIndie on ${label} (opens in a new tab)`}
-                      >
-                        <Icon />
-                      </a>
-                    ) : (
-                      <span
-                        className="site-footer-social is-pending"
-                        role="img"
-                        aria-label={`${label} — coming soon`}
-                      >
-                        <Icon />
-                      </span>
-                    )}
+                    <a
+                      href={href}
+                      className="site-footer-social"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`SewIndie on ${label} (opens in a new tab)`}
+                    >
+                      <Icon />
+                    </a>
                   </li>
                 ))}
               </ul>

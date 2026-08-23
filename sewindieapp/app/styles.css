@@ -494,12 +494,6 @@ a:not(.btn):not(.nav-link):focus {
   text-decoration: none;
 }
 
-/* Accounts that don't have a URL yet — visibly present but inert. */
-.site-footer .site-footer-social.is-pending {
-  opacity: 0.45;
-  cursor: default;
-}
-
 .site-footer-bottom {
   margin-top: 2.5rem;
   padding-top: 1.25rem;
