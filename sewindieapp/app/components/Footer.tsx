@@ -39,8 +39,8 @@ const LINK_GROUPS: { heading: string; links: { href: string; label: string }[] }
 ]
 
 const SOCIALS: { label: string; href: string; Icon: ComponentType<IconProps> }[] = [
-  { label: "Instagram", href: "https://instagram.com/sewindie", Icon: InstagramIcon },
-  { label: "Pinterest", href: "https://pinterest.com/sewindie", Icon: PinterestIcon },
+  { label: "Instagram", href: "https://instagram.com/sewindieapp", Icon: InstagramIcon },
+  { label: "Pinterest", href: "https://pinterest.com/sewindieapp", Icon: PinterestIcon },
   { label: "Facebook", href: "https://facebook.com/sewindieapp", Icon: FacebookIcon },
   { label: "YouTube", href: "https://www.youtube.com/@SewIndieApp", Icon: YoutubeIcon },
 ]
