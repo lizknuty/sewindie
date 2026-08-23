@@ -1,5 +1,6 @@
+import type { ComponentType } from "react"
 import Link from "next/link"
-import { FacebookIcon, InstagramIcon, PinterestIcon, YoutubeIcon } from "./SocialIcons"
+import { FacebookIcon, InstagramIcon, PinterestIcon, YoutubeIcon, type IconProps } from "./SocialIcons"
 
 /**
  * Every route below was verified to exist in app/ before being linked, so the
@@ -37,7 +38,7 @@ const LINK_GROUPS: { heading: string; links: { href: string; label: string }[] }
   },
 ]
 
-const SOCIALS: { label: string; href: string; Icon: () => React.JSX.Element }[] = [
+const SOCIALS: { label: string; href: string; Icon: ComponentType<IconProps> }[] = [
   { label: "Instagram", href: "https://instagram.com/sewindie", Icon: InstagramIcon },
   { label: "Pinterest", href: "https://pinterest.com/sewindie", Icon: PinterestIcon },
   { label: "Facebook", href: "https://facebook.com/sewindieapp", Icon: FacebookIcon },

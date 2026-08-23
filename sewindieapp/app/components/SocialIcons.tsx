@@ -7,7 +7,7 @@
  * footer needs so they render white on the plum background.
  */
 
-type IconProps = {
+export type IconProps = {
   size?: number
   className?: string
 }
