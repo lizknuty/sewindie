@@ -20,7 +20,10 @@ export default function NewNoteworthyPatterns({ patterns }: { patterns: Notewort
           New &amp; Noteworthy Patterns
         </h2>
         <Link href="/patterns" className="home-view-all">
-          View all patterns
+          {/* "patterns" is hidden on narrow screens so this link can't push the
+              (nowrap) heading off-screen. It stays in the DOM, so the accessible
+              name remains "View all patterns" at every width. */}
+          View all<span className="home-view-all-suffix"> patterns</span>
         </Link>
       </div>
 

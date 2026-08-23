@@ -1,9 +1,9 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import DesignerAvatar from "./DesignerAvatar"
 
 export type FeaturedDesigner = {
   id: number
@@ -91,15 +91,7 @@ export default function FeaturedDesigners({ designers }: { designers: FeaturedDe
         {designers.map((designer) => (
           <li key={designer.id} className="home-designer-item">
             <Link href={`/designers/${designer.id}`} className="home-designer-link">
-              <span className="home-designer-avatar">
-                <Image
-                  src={designer.logoUrl || "/placeholder.svg"}
-                  alt=""
-                  fill
-                  sizes="112px"
-                  className="home-designer-logo"
-                />
-              </span>
+              <DesignerAvatar name={designer.name} logoUrl={designer.logoUrl} />
               <span className="home-designer-name">{designer.name}</span>
             </Link>
           </li>
