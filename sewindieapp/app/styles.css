@@ -10,6 +10,17 @@
   --font-body: var(--font-inter);
   --font-brand: var(--font-poiret);
   --sidebar-width: 280px; /* Added for sidebar layout */
+
+  /* Header / footer chrome.
+     --site-plum is the same value as admin.css's --admin-rose-deep, which is
+     what the admin sidebar uses to highlight the current page. Duplicated as a
+     literal rather than referenced because --admin-rose-deep is scoped to
+     .admin-shell and is not in scope out here. */
+  --site-header-bg: #fbf3f3;
+  --site-header-text: #1f1f1f;
+  --site-plum: #8a3f5c;
+  --site-plum-hover: #74334c;
+  --site-blush: #f7e6e6;
 }
 
 body {
@@ -38,25 +49,283 @@ h6,
   font-family: var(--font-old-standard);
 }
 
-.navbar {
-  background-color: var(--color-muted);
+/* =========================================================
+   Site header  (.site-header)
+   Deliberately does NOT reuse Bootstrap's .navbar/.nav-link
+   classes: styles.css sets `.nav-link { color: ... !important }`
+   for the /my-account sidebar, and that !important would win
+   against any header rule here.
+   ========================================================= */
+.site-header {
+  background-color: var(--site-header-bg);
+  border-bottom: 1px solid #f0e2e2;
 }
 
-.navbar-brand {
+.site-header-inner {
   display: flex;
   align-items: center;
+  gap: 1.5rem;
+  min-height: 68px;
+  flex-wrap: wrap;
 }
 
-.navbar-brand img {
-  height: 40px;
-  margin-right: 10px;
+.site-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-right: auto;
+  text-decoration: none;
 }
 
-.navbar-brand span {
-  color: var(--color-light);
-  font-size: 1.5rem;
-  font-weight: bold;
+.site-brand-name {
+  color: var(--site-header-text);
+  font-size: 1.6rem;
+  line-height: 1;
   font-family: var(--font-brand);
+}
+
+/* Mobile toggle — hidden once the row fits on one line. */
+.site-nav-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #e6d3d3;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--site-header-text);
+  cursor: pointer;
+}
+
+.site-nav {
+  display: none;
+  width: 100%;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+}
+
+.site-nav.is-open {
+  display: flex;
+}
+
+.site-nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* (0,3,1) so it outranks the global `a:not(.btn):not(.nav-link)`
+   brand-pink rule further down this file. The :not(.nav-link) never
+   changes what matches — it only raises specificity. */
+.site-header a.site-nav-link:not(.nav-link) {
+  display: block;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  color: var(--site-header-text);
+  font-family: var(--font-heading);
+  font-size: 0.98rem;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.site-header a.site-nav-link:not(.nav-link):hover,
+.site-header a.site-nav-link:not(.nav-link):focus {
+  background-color: rgba(138, 63, 92, 0.08);
+  color: var(--site-plum);
+  text-decoration: none;
+}
+
+.site-header a.site-nav-link.is-current:not(.nav-link) {
+  color: var(--site-plum);
+  font-weight: 600;
+}
+
+.site-nav-auth {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* ---- Header buttons ---- */
+.site-header a.site-btn:not(.nav-link) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1.15rem;
+  border-radius: 8px;
+  font-family: var(--font-heading);
+  font-size: 0.94rem;
+  font-weight: 500;
+  line-height: 1.4;
+  text-decoration: none;
+  border: 1px solid var(--site-plum);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.site-header a.site-btn-light:not(.nav-link) {
+  background-color: #fff;
+  color: var(--site-plum);
+}
+
+.site-header a.site-btn-light:not(.nav-link):hover,
+.site-header a.site-btn-light:not(.nav-link):focus {
+  background-color: var(--site-blush);
+  color: var(--site-plum);
+  text-decoration: none;
+}
+
+.site-header a.site-btn-dark:not(.nav-link) {
+  background-color: var(--site-plum);
+  color: #fff;
+}
+
+.site-header a.site-btn-dark:not(.nav-link):hover,
+.site-header a.site-btn-dark:not(.nav-link):focus {
+  background-color: var(--site-plum-hover);
+  border-color: var(--site-plum-hover);
+  color: #fff;
+  text-decoration: none;
+}
+
+/* ---- Account avatar + dropdown ---- */
+.site-account {
+  position: relative;
+}
+
+.site-account-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--site-header-text);
+}
+
+/* Matches .admin-profile-avatar so the two read as the same control. */
+.site-account-avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--site-plum);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: var(--font-heading);
+  flex-shrink: 0;
+}
+
+.site-account-caret {
+  transition: transform 0.15s ease;
+}
+
+.site-account-caret.open {
+  transform: rotate(180deg);
+}
+
+/* Reserves the avatar's footprint while the session resolves, so the
+   header doesn't shift when the menu replaces the buttons. */
+.site-account-placeholder {
+  display: block;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: rgba(138, 63, 92, 0.12);
+}
+
+.site-account-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 1050;
+  min-width: 232px;
+  padding: 0.4rem;
+  background-color: #fff;
+  border: 1px solid #efe3e6;
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(43, 36, 38, 0.14);
+}
+
+.site-account-menu-head {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0.6rem 0.6rem;
+  border-bottom: 1px solid #f2e7ea;
+  margin-bottom: 0.35rem;
+}
+
+.site-account-menu-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2b2426;
+}
+
+.site-account-menu-email {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.site-account-menu .site-account-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.55rem 0.6rem;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: #2b2426;
+  font-size: 0.9rem;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.site-account-menu .site-account-menu-item:hover,
+.site-account-menu .site-account-menu-item:focus {
+  background-color: rgba(138, 63, 92, 0.08);
+  color: var(--site-plum);
+  text-decoration: none;
+}
+
+.site-account-menu-sep {
+  height: 1px;
+  margin: 0.35rem 0.25rem;
+  background-color: #f2e7ea;
+}
+
+@media (min-width: 992px) {
+  .site-nav-toggle {
+    display: none;
+  }
+
+  .site-nav {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1.75rem;
+    width: auto;
+    padding-bottom: 0;
+  }
+
+  .site-nav-links {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+  }
 }
 
 .nav-link {
@@ -117,56 +386,131 @@ a:not(.btn):not(.nav-link):focus {
   font-family: var(--font-heading);
 }
 
-  .footer {
-  background-color: var(--color-muted);
-  color: var(--color-light);
-  padding: 20px 0;
-  }
+/* =========================================================
+   Site footer  (.site-footer)
+   ========================================================= */
+.site-footer {
+  background-color: var(--site-plum);
+  color: #fff;
+  margin-top: auto;
+  padding: 3rem 0 1.5rem;
+}
 
-  .footer-content {
+.site-footer-top {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 1.5rem;
-  }
+  gap: 2.5rem;
+}
 
-  .footer-brand-name {
-  color: var(--color-light);
-  font-size: 1.5rem;
-  font-weight: bold;
+.site-footer-brand {
+  max-width: 260px;
+}
+
+.site-footer-brand-name {
+  display: block;
+  color: #fff;
+  font-size: 1.7rem;
+  line-height: 1.1;
   font-family: var(--font-brand);
-  }
+}
 
-  .footer-tagline {
-  color: var(--color-light);
-  opacity: 0.8;
-  margin-top: 0.25rem;
-  margin-bottom: 0;
-  }
+.site-footer-tagline {
+  margin: 0.5rem 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
 
-  .footer-links {
+.site-footer-groups {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 1.5rem;
-  }
+  gap: 2rem 3rem;
+}
 
-  .footer-link {
-  color: var(--color-light);
+.site-footer-group {
+  min-width: 120px;
+}
+
+.site-footer-heading {
+  margin: 0 0 0.85rem;
+  color: #fff;
+  font-family: var(--font-heading);
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.site-footer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* (0,3,1) to outrank the global `a:not(.btn):not(.nav-link)` rule, which
+   would otherwise repaint these links brand pink on the plum background. */
+.site-footer a.site-footer-link:not(.nav-link) {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.88rem;
   text-decoration: none;
-  }
+  transition: color 0.15s ease;
+}
 
-  .footer-link:hover {
-  color: var(--color-secondary);
-  }
+.site-footer a.site-footer-link:not(.nav-link):hover,
+.site-footer a.site-footer-link:not(.nav-link):focus {
+  color: #fff;
+  text-decoration: underline;
+}
 
-  .footer-bottom {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-  text-align: center;
-  }
+/* ---- Social icons ---- */
+.site-footer-socials {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.site-footer .site-footer-social {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.site-footer a.site-footer-social:not(.nav-link):hover,
+.site-footer a.site-footer-social:not(.nav-link):focus {
+  background-color: #fff;
+  color: var(--site-plum);
+  text-decoration: none;
+}
+
+/* Accounts that don't have a URL yet — visibly present but inert. */
+.site-footer .site-footer-social.is-pending {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.site-footer-bottom {
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.site-footer-bottom p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 0.82rem;
+}
 
 /* Hero banner styles */
 .hero-banner {
