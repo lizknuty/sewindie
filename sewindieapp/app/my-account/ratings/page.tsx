@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import { prisma } from "@/lib/prisma"
-import Image from "next/image"
+import PatternThumbnail from "@/components/PatternThumbnail"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 import { Star } from "lucide-react"
@@ -48,8 +48,8 @@ export default async function RatingsPage() {
           {ratings.map((rating: (typeof ratings)[number]) => (
             <div key={`${rating.patternId}-${rating.userId}`} className="col-md-4 mb-4">
               <div className="card h-100">
-                <Image
-                  src={rating.pattern.thumbnail_url || "/placeholder.svg"}
+                <PatternThumbnail
+                  src={rating.pattern.thumbnail_url}
                   alt={rating.pattern.name}
                   width={300}
                   height={300}

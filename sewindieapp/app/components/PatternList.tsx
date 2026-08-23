@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import PatternThumbnail from './PatternThumbnail'
 
 interface Pattern {
   id: number
@@ -23,8 +23,8 @@ export default function PatternList({ patterns }: PatternListProps) {
         <div key={pattern.id} className="bg-white rounded-lg shadow-md overflow-hidden">
           <Link href={`/patterns/${pattern.id}`}>
             <div className="relative h-48">
-              <Image
-                src={pattern.thumbnail_url || '/placeholder.svg'}
+              <PatternThumbnail
+                src={pattern.thumbnail_url}
                 alt={pattern.name}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

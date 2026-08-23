@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import { prisma } from "@/lib/prisma"
-import Image from "next/image"
+import PatternThumbnail from "@/components/PatternThumbnail"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 
@@ -47,8 +47,8 @@ export default async function FavoritesPage() {
           {favorites.map((favorite: (typeof favorites)[number]) => (
             <div key={`${favorite.patternId}-${favorite.userId}`} className="col-md-4 mb-4">
               <div className="card h-100">
-                <Image
-                  src={favorite.pattern.thumbnail_url || "/placeholder.svg"}
+                <PatternThumbnail
+                  src={favorite.pattern.thumbnail_url}
                   alt={favorite.pattern.name}
                   width={300}
                   height={300}
