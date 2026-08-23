@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Heart, Users, Search, Star, Scissors, Palette, ArrowRight, BarChart3 } from "lucide-react"
+import { Heart, Users, ClipboardCheck, Star, Scissors, Palette, ArrowRight, BarChart3 } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import MetricCard from "@/admin/components/dashboard/MetricCard"
 
@@ -29,16 +29,16 @@ const REPORTS = [
     sub: "Score distribution, highest-rated patterns, and your most active raters.",
   },
   {
-    href: null,
+    href: "/admin/analytics/users",
     icon: Users,
     title: "Users",
-    sub: "Registrations over time, engagement, and retention cohorts.",
+    sub: "Signups over time, account status, and your most engaged members.",
   },
   {
-    href: null,
-    icon: Search,
-    title: "Search",
-    sub: "Popular queries, zero-result searches, and click-through rates.",
+    href: "/admin/analytics/content",
+    icon: ClipboardCheck,
+    title: "Content Coverage",
+    sub: "Catalogue gaps by field and the patterns that need attention first.",
   },
 ]
 
