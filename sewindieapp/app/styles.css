@@ -1301,19 +1301,31 @@ a:not(.btn):not(.nav-link):focus {
     align-items: stretch;
   }
 
+  /* Copy takes a third, collage takes two thirds. min-width: 0 lets the copy
+     column shrink below its content's intrinsic width so the basis is
+     honoured instead of being pushed wider by the headline. */
   .home-hero-copy {
-    flex: 1 1 50%;
+    flex: 1 1 33.333%;
+    min-width: 0;
     align-items: center;
-    padding: 4rem 2.5rem;
+    padding: 4rem 1.75rem;
   }
 
   .home-hero-copy-inner {
     margin: 0 0 0 auto;
-    padding-right: 1rem;
+    padding-right: 0.5rem;
+  }
+
+  /* The base clamp scales on 6vw, which is tuned for a full-width/half-width
+     hero. In a one-third column that overshoots and breaks the headline into
+     three ragged lines, so re-scale it against the narrower measure. */
+  .home-hero-title {
+    font-size: clamp(1.9rem, 3.1vw, 2.6rem);
   }
 
   .home-hero-media {
-    flex: 1 1 50%;
+    flex: 1 1 66.667%;
+    min-width: 0;
     /* Let the flex row set the height so both halves stay flush. */
     aspect-ratio: auto;
     min-height: 30rem;
