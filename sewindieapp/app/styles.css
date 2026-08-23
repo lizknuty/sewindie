@@ -922,11 +922,14 @@ a:not(.btn):not(.nav-link):focus {
   line-height: 1.6;
 }
 
+/* Wraps by default: at 320px the pair needs 319px of a 288px column, so
+   forcing one line here pushed the second button off-screen and gave the page
+   a horizontal scrollbar. Desktop pins them side by side (see breakpoint). */
 .home-hero-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 2rem;
+  gap: 0.625rem;
+  margin-top: 1.5rem;
 }
 
 .home-hero-media {
@@ -959,6 +962,15 @@ a:not(.btn):not(.nav-link):focus {
   font-weight: 500;
   text-decoration: none;
   transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* Hero-only sizing. Scoped to .home-hero-actions so the community CTA, which
+   shares .home-btn, keeps its original size. nowrap stops "Browse Patterns"
+   from breaking across two lines once the pair sits side by side. */
+.home-hero-actions a.home-btn:not(.nav-link) {
+  padding: 0.6rem 1.1rem;
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 .home-page a.home-btn-dark:not(.nav-link) {
@@ -996,11 +1008,15 @@ a:not(.btn):not(.nav-link):focus {
   margin-top: 3rem;
 }
 
+/* wrap: the title is nowrap, so on a 320px screen the title + View all + both
+   arrows can't share a line and used to push the page into horizontal scroll.
+   Wrapping lets the tools drop below the title only when they don't fit. */
 .home-section-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.5rem 1rem;
   margin-bottom: 1.25rem;
 }
 
@@ -1301,34 +1317,49 @@ a:not(.btn):not(.nav-link):focus {
     align-items: stretch;
   }
 
-  /* Copy takes a third, collage takes two thirds. min-width: 0 lets the copy
-     column shrink below its content's intrinsic width so the basis is
-     honoured instead of being pushed wider by the headline. */
+  /* 42/58 — between an even split and a third, giving the copy a little more
+     room while the collage stays dominant. min-width: 0 lets the copy column
+     shrink below its content's intrinsic width so the basis is honoured
+     instead of being pushed wider by the headline. */
   .home-hero-copy {
-    flex: 1 1 33.333%;
+    flex: 1 1 42%;
     min-width: 0;
     align-items: center;
-    padding: 4rem 1.75rem;
+    /* Trimmed from 4rem so the band hugs the collage instead of adding empty
+       blush above and below it. */
+    padding: 2.25rem 2rem;
   }
 
   .home-hero-copy-inner {
     margin: 0 0 0 auto;
-    padding-right: 0.5rem;
+    padding-right: 0.75rem;
   }
 
   /* The base clamp scales on 6vw, which is tuned for a full-width/half-width
-     hero. In a one-third column that overshoots and breaks the headline into
+     hero. In this narrower column that overshoots and breaks the headline into
      three ragged lines, so re-scale it against the narrower measure. */
   .home-hero-title {
-    font-size: clamp(1.9rem, 3.1vw, 2.6rem);
+    font-size: clamp(1.9rem, 3.4vw, 2.8rem);
+  }
+
+  /* Force the break after "Track." on desktop. Inline on mobile so the
+     headline still flows naturally in the stacked layout. */
+  .home-hero-title-line {
+    display: block;
+  }
+
+  /* The copy column is wide enough here to guarantee both buttons fit. */
+  .home-hero-actions {
+    flex-wrap: nowrap;
   }
 
   .home-hero-media {
-    flex: 1 1 66.667%;
+    flex: 1 1 58%;
     min-width: 0;
-    /* Let the flex row set the height so both halves stay flush. */
-    aspect-ratio: auto;
-    min-height: 30rem;
+    /* Keep the 3:2 box rather than a fixed min-height: the panel then matches
+       the collage's own ratio exactly, so `contain` has no leftover strip to
+       letterbox and the image meets the top and bottom of the band. */
+    min-height: 0;
   }
 
   .home-pattern-grid {

@@ -12,8 +12,13 @@ export default function HomeHero() {
     <section className="home-hero" aria-labelledby="home-hero-title">
       <div className="home-hero-copy">
         <div className="home-hero-copy-inner">
-          <h1 id="home-hero-title" className="home-hero-title text-balance">
-            Discover. Track. Sew Your Style.
+          {/* Split into two phrases so the line break lands after "Track." as
+              in the design, rather than wherever the column happens to wrap.
+              The spans are inline on mobile (one flowing line) and become
+              blocks at the desktop breakpoint. */}
+          <h1 id="home-hero-title" className="home-hero-title">
+            <span className="home-hero-title-line">Discover. Track. </span>
+            <span className="home-hero-title-line">Sew Your Style.</span>
           </h1>
           <p className="home-hero-lede text-pretty">
             SewIndie is a social catalog of indie sewing patterns. Find patterns you love, track your makes, and connect
@@ -38,7 +43,7 @@ export default function HomeHero() {
           alt="A linen dress, wool trousers, and a sewist hand-stitching fabric on a dress form"
           fill
           priority
-          sizes="(max-width: 900px) 100vw, 50vw"
+          sizes="(max-width: 900px) 100vw, 58vw"
           className="home-hero-image"
         />
       </div>
