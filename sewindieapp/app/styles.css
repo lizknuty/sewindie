@@ -21,6 +21,12 @@
   --site-plum: #8a3f5c;
   --site-plum-hover: #74334c;
   --site-blush: #f7e6e6;
+
+  /* Homepage. --home-hero-bg matches the blush backdrop baked into hero.png so
+     the copy panel and the image read as one continuous band. */
+  --home-hero-bg: #fdede7;
+  --home-ink: #1f1f1f;
+  --home-ink-soft: #5c5153;
 }
 
 body {
@@ -866,5 +872,400 @@ a:not(.btn):not(.nav-link):focus {
   .col-md-6 {
     flex: 0 0 auto;
     width: 50%;
+  }
+}
+
+/* =========================================================
+   Homepage
+   Several rules below carry a redundant `:not(.nav-link)` on an
+   `a` selector. It never changes what matches — it only lifts
+   specificity above the global `a:not(.btn):not(.nav-link)` rule
+   that would otherwise repaint every link brand pink.
+   ========================================================= */
+.home-page {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Hero ---- */
+.home-hero {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--home-hero-bg);
+}
+
+.home-hero-copy {
+  display: flex;
+  padding: 3rem 1.5rem;
+}
+
+.home-hero-copy-inner {
+  max-width: 34rem;
+  margin: 0 auto;
+}
+
+.home-hero-title {
+  margin: 0;
+  color: var(--home-ink);
+  font-family: var(--font-heading);
+  font-size: clamp(2.1rem, 6vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.home-hero-lede {
+  margin: 1.25rem 0 0;
+  max-width: 30rem;
+  color: var(--home-ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.6;
+}
+
+.home-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.home-hero-media {
+  position: relative;
+  /* The collage is ~3:2; the aspect box keeps it from collapsing since the
+     image is absolutely positioned by next/image's fill. */
+  aspect-ratio: 3 / 2;
+  width: 100%;
+}
+
+.home-hero-image {
+  object-fit: cover;
+  object-position: center;
+}
+
+/* ---- Shared buttons (hero + community CTA) ---- */
+.home-page a.home-btn:not(.nav-link) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--site-plum);
+  font-family: var(--font-heading);
+  font-size: 0.96rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.home-page a.home-btn-dark:not(.nav-link) {
+  background-color: var(--site-plum);
+  color: #fff;
+}
+
+.home-page a.home-btn-dark:not(.nav-link):hover,
+.home-page a.home-btn-dark:not(.nav-link):focus {
+  background-color: var(--site-plum-hover);
+  border-color: var(--site-plum-hover);
+  color: #fff;
+  text-decoration: none;
+}
+
+.home-page a.home-btn-light:not(.nav-link) {
+  background-color: #fff;
+  color: var(--site-plum);
+}
+
+.home-page a.home-btn-light:not(.nav-link):hover,
+.home-page a.home-btn-light:not(.nav-link):focus {
+  background-color: var(--site-blush);
+  color: var(--site-plum);
+  text-decoration: none;
+}
+
+/* ---- White body ---- */
+.home-body {
+  background-color: #fff;
+  padding: 2.5rem 0 3.5rem;
+}
+
+.home-section + .home-section {
+  margin-top: 3rem;
+}
+
+.home-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.home-section-title {
+  margin: 0;
+  color: var(--home-ink);
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.home-section-tools {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.home-body a.home-view-all:not(.nav-link) {
+  color: var(--site-plum);
+  font-size: 0.88rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.home-body a.home-view-all:not(.nav-link):hover,
+.home-body a.home-view-all:not(.nav-link):focus {
+  color: var(--site-plum-hover);
+  text-decoration: underline;
+}
+
+/* ---- Designer rail ---- */
+.home-rail-nav {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.home-rail-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e4d9dc;
+  border-radius: 50%;
+  background-color: #fff;
+  color: var(--home-ink);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.home-rail-btn:hover:not(:disabled),
+.home-rail-btn:focus-visible:not(:disabled) {
+  background-color: var(--site-blush);
+  border-color: var(--site-plum);
+}
+
+.home-rail-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.home-designer-rail {
+  display: flex;
+  gap: 1.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  /* Firefox / standards thin scrollbar; the row is arrow- and swipe-driven so
+     the bar itself is visual noise. */
+  scrollbar-width: none;
+}
+
+.home-designer-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.home-designer-item {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  width: 112px;
+}
+
+.home-body a.home-designer-link:not(.nav-link) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+}
+
+.home-designer-avatar {
+  position: relative;
+  display: block;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: var(--site-blush);
+  transition: box-shadow 0.15s ease;
+}
+
+.home-body a.home-designer-link:not(.nav-link):hover .home-designer-avatar,
+.home-body a.home-designer-link:not(.nav-link):focus-visible .home-designer-avatar {
+  box-shadow: 0 0 0 2px var(--site-plum);
+}
+
+/* contain, not cover: these are logos, and cropping them cuts off wordmarks. */
+.home-designer-logo {
+  object-fit: contain;
+  padding: 0.5rem;
+}
+
+.home-designer-name {
+  color: var(--home-ink);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.home-body a.home-designer-link:not(.nav-link):hover .home-designer-name {
+  text-decoration: underline;
+}
+
+/* ---- Pattern grid ---- */
+.home-pattern-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem 1.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.home-body a.home-pattern-link:not(.nav-link) {
+  display: block;
+  text-decoration: none;
+}
+
+.home-pattern-media {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 4;
+  width: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: var(--site-blush);
+}
+
+.home-pattern-name {
+  display: block;
+  margin-top: 0.6rem;
+  color: var(--home-ink);
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.home-body a.home-pattern-link:not(.nav-link):hover .home-pattern-name {
+  text-decoration: underline;
+}
+
+.home-pattern-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
+}
+
+.home-pattern-designer {
+  color: var(--home-ink);
+  font-size: 0.82rem;
+  opacity: 0.75;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-pattern-faves {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  color: var(--site-plum);
+  font-size: 0.8rem;
+}
+
+/* ---- Community callout ---- */
+.home-community {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 3rem;
+  padding: 2.25rem 1.5rem;
+  border-radius: 12px;
+  background-color: var(--home-hero-bg);
+  text-align: center;
+}
+
+.home-community-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #fff;
+  color: var(--site-plum);
+}
+
+.home-community-title {
+  margin: 0.25rem 0 0;
+  color: var(--home-ink);
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.home-community-copy {
+  margin: 0;
+  max-width: 30rem;
+  color: var(--home-ink-soft);
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+
+.home-community-cta {
+  margin-top: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .home-pattern-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  /* Hero becomes a true split band: copy left, collage right. */
+  .home-hero {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .home-hero-copy {
+    flex: 1 1 50%;
+    align-items: center;
+    padding: 4rem 2.5rem;
+  }
+
+  .home-hero-copy-inner {
+    margin: 0 0 0 auto;
+    padding-right: 1rem;
+  }
+
+  .home-hero-media {
+    flex: 1 1 50%;
+    /* Let the flex row set the height so both halves stay flush. */
+    aspect-ratio: auto;
+    min-height: 30rem;
+  }
+
+  .home-pattern-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .home-community {
+    padding: 2.5rem;
   }
 }
