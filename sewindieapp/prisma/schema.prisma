@@ -285,6 +285,22 @@ model BlogPost {
   @@index([slug])
 }
 
+model LinkCheck {
+  id         Int        @id @default(autoincrement())
+  url        String     @unique
+  host       String     @db.VarChar(255)
+  kind       LinkKind
+  status     LinkStatus
+  statusCode Int?
+  error      String?    @db.VarChar(500)
+  checkedAt  DateTime   @default(now())
+
+  @@index([checkedAt])
+  @@index([host])
+  @@index([kind, status])
+  @@index([status])
+}
+
 enum MeasurementUnit {
   inches
   cm
@@ -305,4 +321,15 @@ enum PatternStatus {
 enum DesignerStatus {
   PUBLISHED
   INACTIVE
+}
+
+enum LinkKind {
+  PATTERN_THUMBNAIL
+  PATTERN_PAGE
+}
+
+enum LinkStatus {
+  OK
+  BROKEN
+  UNREACHABLE
 }

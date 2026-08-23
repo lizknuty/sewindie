@@ -341,6 +341,10 @@
   grid-template-columns: repeat(3, 1fr);
 }
 
+.admin-metrics--4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
 /* .admin-metric is normally a <Link>, so it lifts on hover. Analytics reports
    render read-only metric tiles as <div>s — suppress the hover affordance so
    they don't look clickable. */
@@ -653,6 +657,17 @@
 
 .admin-panel-foot {
   margin-top: 1rem;
+}
+
+/* Opt-in row layout. Kept separate from .admin-panel-foot because that class is
+   also used on <p> elements containing inline markup, and flex would blockify
+   those inline children into separate items and break the sentence. */
+.admin-panel-foot--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .admin-ghost-btn,
@@ -2096,4 +2111,170 @@
   gap: 0.3rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+}
+
+/* Back link on analytics sub-reports. Written with .admin-shell a... so it
+   outranks the global a:not(.btn):not(.nav-link) pink rule. */
+.admin-shell a.admin-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--admin-muted);
+  text-decoration: none;
+}
+.admin-shell a.admin-back-link:hover {
+  color: var(--admin-rose);
+  text-decoration: none;
+}
+
+/* Vertical column chart for time series (signups per month). Horizontal bars
+   read poorly for dates, so this is a separate primitive from .admin-bars. */
+.admin-columns {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+  height: 190px;
+}
+.admin-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.35rem;
+  height: 100%;
+  min-width: 0;
+}
+.admin-column-value {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  font-variant-numeric: tabular-nums;
+}
+.admin-column-bar {
+  width: 100%;
+  min-height: 3px;
+  border-radius: 6px 6px 0 0;
+  background-color: var(--admin-rose);
+  transition: height 0.3s ease;
+}
+.admin-column-bar.is-empty {
+  background-color: var(--admin-border);
+}
+.admin-column-label {
+  font-size: 0.68rem;
+  color: var(--admin-muted);
+  white-space: nowrap;
+}
+
+/* Coverage-aware fills for the horizontal bars on the content report */
+.admin-bar-fill--good {
+  background-color: #3fa66a;
+}
+.admin-bar-fill--warn {
+  background-color: #e0a92e;
+}
+.admin-bar-fill--bad {
+  background-color: #d15b64;
+}
+
+/* Filter tabs rendered as links (URL-driven, no client JS). Written as
+   `.admin-shell a.admin-tab-link` so it outranks the global anchor rule. */
+.admin-shell a.admin-tab-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--admin-muted);
+  border-bottom: 2px solid transparent;
+  text-decoration: none;
+}
+.admin-shell a.admin-tab-link:hover {
+  color: var(--admin-text);
+  text-decoration: none;
+}
+.admin-shell a.admin-tab-link.active {
+  color: var(--admin-rose);
+  border-bottom-color: var(--admin-rose);
+}
+.admin-tab-count {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--admin-muted);
+  background: var(--admin-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: 999px;
+  padding: 0 0.35rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Re-check control row */
+.admin-recheck {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+}
+.admin-recheck .admin-ghost-btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.admin-recheck-note {
+  font-size: 0.8rem;
+  color: var(--admin-muted);
+}
+.admin-recheck-error {
+  color: #b04750;
+  font-weight: 600;
+}
+.admin-spin {
+  animation: admin-spin 0.9s linear infinite;
+}
+@keyframes admin-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-spin {
+    animation: none;
+  }
+}
+
+/* Chips listing the fields a pattern is missing */
+.admin-gap-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.admin-gap-tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.12rem 0.5rem;
+  background: rgba(209, 91, 100, 0.13);
+  color: #b04750;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.admin-gap-none {
+  color: #2f8354;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .admin-columns {
+    height: 150px;
+  }
+  .admin-column-value {
+    display: none;
+  }
 }
