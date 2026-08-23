@@ -937,8 +937,12 @@ a:not(.btn):not(.nav-link):focus {
   width: 100%;
 }
 
+/* contain, not cover: hero.png is a 3:2 collage whose edge content (leaf art,
+   the right-hand photo) gets clipped by cover once the panel is narrower than
+   3:2. The image's own backdrop samples #fcece7-#fdede8, which matches
+   --home-hero-bg, so the letterboxing contain introduces is invisible. */
 .home-hero-image {
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
 }
 
