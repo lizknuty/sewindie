@@ -1,128 +1,141 @@
+import type { Prisma } from "@prisma/client"
 import Link from "next/link"
-import { ArrowLeft, ClipboardCheck, AlertTriangle, Scissors, Palette, ImageOff } from "lucide-react"
+import { ArrowLeft, ClipboardCheck, AlertTriangle, Scissors, Palette, ImageOff, Archive } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 
-// Each field we audit: how to count patterns that HAVE it, and the chip label
-// used when a pattern is missing it.
+// A field counts as "in use" once at least this share of the catalogue has it.
+// Anything below is reported separately as unused rather than being folded into
+// the completeness score, where it would swamp the real gaps.
+const IN_USE_THRESHOLD = 5
+
+// Each audited field paired with the `where` clause that matches patterns
+// MISSING it. Declared once so the counts, the score, and the attention list
+// can't drift apart.
 const FIELDS = [
-  { key: "thumbnail", label: "Image" },
-  { key: "category", label: "Category" },
-  { key: "audience", label: "Audience" },
-  { key: "format", label: "Format" },
-  { key: "attribute", label: "Attribute" },
-  { key: "fabricType", label: "Fabric type" },
-  { key: "sizeChart", label: "Size chart" },
-  { key: "difficulty", label: "Difficulty" },
-  { key: "yardage", label: "Yardage" },
-] as const
+  { key: "thumbnail", label: "Image", missing: { OR: [{ thumbnail_url: null }, { thumbnail_url: "" }] } },
+  { key: "format", label: "Format", missing: { PatternFormat: { none: {} } } },
+  { key: "audience", label: "Audience", missing: { PatternAudience: { none: {} } } },
+  { key: "category", label: "Category", missing: { PatternCategory: { none: {} } } },
+  { key: "fabricType", label: "Fabric type", missing: { PatternFabricType: { none: {} } } },
+  { key: "attribute", label: "Attribute", missing: { PatternAttribute: { none: {} } } },
+  { key: "sizeChart", label: "Size chart", missing: { PatternSizeChart: { none: {} } } },
+  { key: "suggestedFabric", label: "Suggested fabric", missing: { PatternSuggestedFabric: { none: {} } } },
+  { key: "difficulty", label: "Difficulty", missing: { OR: [{ difficulty: null }, { difficulty: "" }] } },
+  { key: "yardage", label: "Yardage", missing: { OR: [{ yardage: null }, { yardage: "" }] } },
+] as const satisfies ReadonlyArray<{ key: string; label: string; missing: Prisma.PatternWhereInput }>
 
 type FieldKey = (typeof FIELDS)[number]["key"]
 
 async function getContentAudit() {
-  const [totalPatterns, totalDesigners, patterns, designersMissingLogo, designersNoPatterns] = await Promise.all([
+  // One indexed COUNT per field instead of loading all ~8.7k patterns and
+  // counting relations in JS.
+  const [totalPatterns, designersMissingLogo, designersNoPatterns, ...missingCounts] = await Promise.all([
     prisma.pattern.count(),
-    prisma.designer.count(),
-    // Only the relation counts are needed to decide presence/absence, so
-    // select _count instead of hydrating every join row.
-    prisma.pattern.findMany({
-      select: {
-        id: true,
-        name: true,
-        thumbnail_url: true,
-        difficulty: true,
-        yardage: true,
-        status: true,
-        designer: { select: { id: true, name: true } },
-        _count: {
-          select: {
-            PatternCategory: true,
-            PatternAudience: true,
-            PatternFormat: true,
-            PatternAttribute: true,
-            PatternFabricType: true,
-            PatternSizeChart: true,
-          },
-        },
-      },
-    }),
     prisma.designer.count({ where: { OR: [{ logo_url: null }, { logo_url: "" }] } }),
     prisma.designer.count({ where: { patterns: { none: {} } } }),
+    ...FIELDS.map((f) => prisma.pattern.count({ where: f.missing })),
   ])
 
-  const missingCounts: Record<FieldKey, number> = {
-    thumbnail: 0,
-    category: 0,
-    audience: 0,
-    format: 0,
-    attribute: 0,
-    fabricType: 0,
-    sizeChart: 0,
-    difficulty: 0,
-    yardage: 0,
-  }
+  const fields = FIELDS.map((f, i) => {
+    const missing = missingCounts[i]
+    const coverage = totalPatterns > 0 ? ((totalPatterns - missing) / totalPatterns) * 100 : 100
+    return { key: f.key as FieldKey, label: f.label, missing, coverage }
+  })
 
-  const rows = patterns.map((p) => {
-    const missing: FieldKey[] = []
+  const tracked = fields.filter((f) => f.coverage >= IN_USE_THRESHOLD)
+  const unused = fields.filter((f) => f.coverage < IN_USE_THRESHOLD)
 
-    if (!p.thumbnail_url?.trim()) missing.push("thumbnail")
-    if (p._count.PatternCategory === 0) missing.push("category")
-    if (p._count.PatternAudience === 0) missing.push("audience")
-    if (p._count.PatternFormat === 0) missing.push("format")
-    if (p._count.PatternAttribute === 0) missing.push("attribute")
-    if (p._count.PatternFabricType === 0) missing.push("fabricType")
-    if (p._count.PatternSizeChart === 0) missing.push("sizeChart")
-    if (!p.difficulty?.trim()) missing.push("difficulty")
-    if (!p.yardage?.trim()) missing.push("yardage")
+  // Completeness is scored over tracked fields only, so fields the catalogue
+  // has never used don't drag the number down to something meaningless.
+  const trackedChecks = totalPatterns * tracked.length
+  const trackedMissing = tracked.reduce((sum, f) => sum + f.missing, 0)
+  const overallPct = trackedChecks > 0 ? Math.round(((trackedChecks - trackedMissing) / trackedChecks) * 100) : 100
 
-    for (const key of missing) missingCounts[key] += 1
+  // The attention list only considers tracked fields — otherwise every pattern
+  // would be flagged for the same unused fields and the list would be noise.
+  const trackedKeys = new Set(tracked.map((f) => f.key))
+  const trackedMissingClauses = FIELDS.filter((f) => trackedKeys.has(f.key)).map((f) => f.missing)
 
+  const incompleteTotal = trackedMissingClauses.length
+    ? await prisma.pattern.count({ where: { OR: trackedMissingClauses as Prisma.PatternWhereInput[] } })
+    : 0
+
+  const attention = trackedMissingClauses.length
+    ? await prisma.pattern.findMany({
+        where: { OR: trackedMissingClauses as Prisma.PatternWhereInput[] },
+        take: 50,
+        orderBy: { name: "asc" },
+        select: {
+          id: true,
+          name: true,
+          thumbnail_url: true,
+          designer: { select: { name: true } },
+          _count: {
+            select: {
+              PatternCategory: true,
+              PatternAudience: true,
+              PatternFormat: true,
+              PatternFabricType: true,
+              PatternAttribute: true,
+              PatternSizeChart: true,
+              PatternSuggestedFabric: true,
+            },
+          },
+        },
+      })
+    : []
+
+  // Re-derive which tracked fields each row is missing, for the chips.
+  const rows = attention.map((p) => {
+    const missing: string[] = []
+    const has: Record<FieldKey, boolean> = {
+      thumbnail: !!p.thumbnail_url?.trim(),
+      format: p._count.PatternFormat > 0,
+      audience: p._count.PatternAudience > 0,
+      category: p._count.PatternCategory > 0,
+      fabricType: p._count.PatternFabricType > 0,
+      attribute: p._count.PatternAttribute > 0,
+      sizeChart: p._count.PatternSizeChart > 0,
+      suggestedFabric: p._count.PatternSuggestedFabric > 0,
+      difficulty: false,
+      yardage: false,
+    }
+    for (const f of tracked) {
+      if (f.key === "difficulty" || f.key === "yardage") continue
+      if (!has[f.key]) missing.push(f.label)
+    }
     return { pattern: p, missing }
   })
 
-  // Worst offenders first, then alphabetical so the list is stable between loads.
-  const incomplete = rows
-    .filter((r) => r.missing.length > 0)
-    .sort((a, b) => b.missing.length - a.missing.length || a.pattern.name.localeCompare(b.pattern.name))
-
-  const fullyComplete = totalPatterns - incomplete.length
-
-  // Average completeness across every audited field.
-  const totalChecks = totalPatterns * FIELDS.length
-  const totalMissing = Object.values(missingCounts).reduce((a, b) => a + b, 0)
-  const overallPct = totalChecks > 0 ? Math.round(((totalChecks - totalMissing) / totalChecks) * 100) : 100
-
   return {
     totalPatterns,
-    totalDesigners,
-    missingCounts,
-    incomplete: incomplete.slice(0, 25),
-    incompleteTotal: incomplete.length,
-    fullyComplete,
+    tracked,
+    unused,
     overallPct,
+    incompleteTotal,
+    rows: rows.sort((a, b) => b.missing.length - a.missing.length || a.pattern.name.localeCompare(b.pattern.name)),
     designersMissingLogo,
     designersNoPatterns,
   }
 }
 
 function fillClass(pct: number) {
-  if (pct >= 90) return "admin-bar-fill--good"
-  if (pct >= 60) return "admin-bar-fill--warn"
+  if (pct >= 95) return "admin-bar-fill--good"
+  if (pct >= 70) return "admin-bar-fill--warn"
   return "admin-bar-fill--bad"
 }
 
 export default async function ContentAnalyticsPage() {
   const {
     totalPatterns,
-    missingCounts,
-    incomplete,
-    incompleteTotal,
-    fullyComplete,
+    tracked,
+    unused,
     overallPct,
+    incompleteTotal,
+    rows,
     designersMissingLogo,
     designersNoPatterns,
   } = await getContentAudit()
-
-  const fieldLabel = new Map(FIELDS.map((f) => [f.key, f.label]))
 
   return (
     <div className="admin-dashboard">
@@ -144,11 +157,11 @@ export default async function ContentAnalyticsPage() {
             <span className="admin-metric-icon">
               <ClipboardCheck size={18} strokeWidth={1.75} />
             </span>
-            <span className="admin-metric-label">Overall Completeness</span>
+            <span className="admin-metric-label">Completeness</span>
           </div>
           <div className="admin-metric-value">{overallPct}%</div>
           <div className="admin-metric-trend admin-metric-trend--muted">
-            Across {FIELDS.length} fields on {totalPatterns.toLocaleString()} patterns
+            Across {tracked.length} field{tracked.length === 1 ? "" : "s"} in active use
           </div>
         </div>
 
@@ -157,10 +170,10 @@ export default async function ContentAnalyticsPage() {
             <span className="admin-metric-icon">
               <Scissors size={18} strokeWidth={1.75} />
             </span>
-            <span className="admin-metric-label">Fully Complete</span>
+            <span className="admin-metric-label">Total Patterns</span>
           </div>
-          <div className="admin-metric-value">{fullyComplete.toLocaleString()}</div>
-          <div className="admin-metric-trend admin-metric-trend--muted">Patterns with no gaps</div>
+          <div className="admin-metric-value">{totalPatterns.toLocaleString()}</div>
+          <div className="admin-metric-trend admin-metric-trend--muted">In the catalogue</div>
         </div>
 
         <div className="admin-metric admin-metric--static">
@@ -171,7 +184,7 @@ export default async function ContentAnalyticsPage() {
             <span className="admin-metric-label">Need Attention</span>
           </div>
           <div className="admin-metric-value">{incompleteTotal.toLocaleString()}</div>
-          <div className="admin-metric-trend admin-metric-trend--muted">Missing at least one field</div>
+          <div className="admin-metric-trend admin-metric-trend--muted">Missing an in-use field</div>
         </div>
       </div>
 
@@ -179,27 +192,31 @@ export default async function ContentAnalyticsPage() {
         <section className="admin-panel">
           <div className="admin-panel-head">
             <h2 className="admin-panel-title">Coverage by Field</h2>
+            <span className="admin-row-sub">Fields in active use</span>
           </div>
-          <div className="admin-bars">
-            {FIELDS.map(({ key, label }) => {
-              const missing = missingCounts[key]
-              const present = totalPatterns - missing
-              const pct = totalPatterns > 0 ? Math.round((present / totalPatterns) * 100) : 100
-              return (
-                <div key={key} className="admin-bar-row">
-                  <div className="admin-bar-meta">
-                    <span className="admin-bar-label">{label}</span>
-                    <span className="admin-bar-value">
-                      {pct}% &middot; {missing.toLocaleString()} missing
-                    </span>
+          {tracked.length === 0 ? (
+            <p className="admin-empty">No fields are populated yet.</p>
+          ) : (
+            <div className="admin-bars">
+              {tracked.map((f) => {
+                const pct = Math.round(f.coverage)
+                return (
+                  <div key={f.key} className="admin-bar-row">
+                    <div className="admin-bar-meta">
+                      <span className="admin-bar-label">{f.label}</span>
+                      <span className="admin-bar-value">
+                        {pct}%
+                        {f.missing > 0 ? ` · ${f.missing.toLocaleString()} missing` : ""}
+                      </span>
+                    </div>
+                    <div className="admin-bar-track">
+                      <div className={`admin-bar-fill ${fillClass(pct)}`} style={{ width: `${pct}%` }} />
+                    </div>
                   </div>
-                  <div className="admin-bar-track">
-                    <div className={`admin-bar-fill ${fillClass(pct)}`} style={{ width: `${pct}%` }} />
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+                )
+              })}
+            </div>
+          )}
         </section>
 
         <section className="admin-panel">
@@ -258,18 +275,41 @@ export default async function ContentAnalyticsPage() {
         </section>
       </div>
 
+      {unused.length > 0 && (
+        <section className="admin-panel" style={{ marginBottom: "1.5rem" }}>
+          <div className="admin-panel-head">
+            <h2 className="admin-panel-title">
+              <Archive size={16} strokeWidth={1.75} /> Fields Not In Use
+            </h2>
+            <span className="admin-row-sub">Under {IN_USE_THRESHOLD}% populated</span>
+          </div>
+          <div className="admin-gap-tags">
+            {unused.map((f) => (
+              <span key={f.key} className="admin-gap-tag">
+                {f.label}
+                {f.coverage > 0 ? ` · ${Math.round(f.coverage * 10) / 10}%` : ""}
+              </span>
+            ))}
+          </div>
+          <p className="admin-row-sub" style={{ marginTop: "0.75rem" }}>
+            These are excluded from the completeness score. If any of them should be part of your cataloguing
+            workflow, they represent a much larger backfill than the gaps above.
+          </p>
+        </section>
+      )}
+
       <section className="admin-panel">
         <div className="admin-panel-head">
           <h2 className="admin-panel-title">Patterns Needing Attention</h2>
           <span className="admin-row-sub">
-            {incompleteTotal > incomplete.length
-              ? `Showing worst ${incomplete.length} of ${incompleteTotal.toLocaleString()}`
+            {incompleteTotal > rows.length
+              ? `Showing ${rows.length} of ${incompleteTotal.toLocaleString()}`
               : `${incompleteTotal.toLocaleString()} pattern${incompleteTotal === 1 ? "" : "s"}`}
           </span>
         </div>
-        {incomplete.length === 0 ? (
+        {rows.length === 0 ? (
           <p className="admin-empty">
-            <span className="admin-gap-none">Every pattern has complete data.</span>
+            <span className="admin-gap-none">Every pattern has all in-use fields filled in.</span>
           </p>
         ) : (
           <table className="admin-table">
@@ -281,7 +321,7 @@ export default async function ContentAnalyticsPage() {
               </tr>
             </thead>
             <tbody>
-              {incomplete.map(({ pattern, missing }) => (
+              {rows.map(({ pattern, missing }) => (
                 <tr key={pattern.id}>
                   <td>
                     <div className="admin-row-item">
@@ -295,9 +335,9 @@ export default async function ContentAnalyticsPage() {
                   </td>
                   <td>
                     <div className="admin-gap-tags">
-                      {missing.map((key) => (
-                        <span key={key} className="admin-gap-tag">
-                          {fieldLabel.get(key)}
+                      {missing.map((label) => (
+                        <span key={label} className="admin-gap-tag">
+                          {label}
                         </span>
                       ))}
                     </div>

@@ -1,6 +1,6 @@
 import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
-import { ArrowLeft, Users, UserPlus, Activity, Heart, Star, TrendingUp, Ruler } from "lucide-react"
+import { ArrowLeft, Users, UserPlus, Sparkles, Heart, Star, TrendingUp } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 
 const MONTHS_BACK = 12
@@ -12,60 +12,48 @@ function monthKey(d: Date) {
 async function getUsersAnalytics() {
   const now = new Date()
 
-  // Window start = first day of the month, MONTHS_BACK - 1 months ago (UTC to
-  // match the timestamps Postgres hands back).
+  // Window start = first day of the month MONTHS_BACK-1 months ago, in UTC to
+  // match the timestamps Postgres returns.
   const windowStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (MONTHS_BACK - 1), 1))
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-  const [
-    totalUsers,
-    newLast30,
-    activeLast30,
-    statusGroups,
-    signupRows,
-    withMeasurements,
-    topFavoriters,
-    topRaters,
-    recentSignups,
-  ] = await Promise.all([
-    prisma.user.count(),
-    prisma.user.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
-    prisma.user.count({ where: { lastLogin: { gte: thirtyDaysAgo } } }),
-    prisma.user.groupBy({ by: ["status"], _count: { status: true } }),
-    prisma.user.findMany({
-      where: { createdAt: { gte: windowStart } },
-      select: { createdAt: true },
-    }),
-    prisma.userMeasurement.findMany({ select: { user_id: true }, distinct: ["user_id"] }),
-    prisma.favorite.groupBy({
-      by: ["userId"],
-      _count: { userId: true },
-      orderBy: { _count: { userId: "desc" } },
-      take: 8,
-    }),
-    prisma.rating.groupBy({
-      by: ["userId"],
-      _count: { userId: true },
-      orderBy: { _count: { userId: "desc" } },
-      take: 8,
-    }),
-    prisma.user.findMany({
-      take: 12,
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        status: true,
-        createdAt: true,
-        lastLogin: true,
-        _count: { select: { favorites: true, ratings: true } },
-      },
-    }),
-  ])
+  const [totalUsers, newLast30, statusGroups, signupRows, favoriteGroups, ratingGroups, recentSignups] =
+    await Promise.all([
+      prisma.user.count(),
+      prisma.user.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
+      prisma.user.groupBy({ by: ["status"], _count: { status: true } }),
+      prisma.user.findMany({
+        where: { createdAt: { gte: windowStart } },
+        select: { createdAt: true },
+      }),
+      // Grouping by user gives both the leaderboard and the distinct-user count
+      // for engagement, so no extra queries are needed.
+      prisma.favorite.groupBy({
+        by: ["userId"],
+        _count: { userId: true },
+        orderBy: { _count: { userId: "desc" } },
+      }),
+      prisma.rating.groupBy({
+        by: ["userId"],
+        _count: { userId: true },
+        orderBy: { _count: { userId: "desc" } },
+      }),
+      prisma.user.findMany({
+        take: 12,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          status: true,
+          createdAt: true,
+          _count: { select: { favorites: true, ratings: true } },
+        },
+      }),
+    ])
 
-  // Bucket signups into months in JS rather than with $queryRaw so this stays
-  // portable and avoids hand-written SQL against the pooled connection.
+  // Bucket signups by month in JS to keep this portable instead of hand-writing
+  // date_trunc SQL against the pooled connection.
   const counts = new Map<string, number>()
   for (const row of signupRows) {
     const key = monthKey(new Date(row.createdAt))
@@ -74,26 +62,33 @@ async function getUsersAnalytics() {
 
   const signupsByMonth = Array.from({ length: MONTHS_BACK }, (_, i) => {
     const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (MONTHS_BACK - 1 - i), 1))
+    const key = monthKey(d)
     return {
-      key: monthKey(d),
+      key,
       label: d.toLocaleDateString("en-US", { month: "short", timeZone: "UTC" }),
       year: d.getUTCFullYear(),
-      count: counts.get(monthKey(d)) ?? 0,
+      count: counts.get(key) ?? 0,
     }
   })
 
-  // Resolve the user records behind the engagement leaderboards in one query
-  // each rather than N per row.
-  const engagementIds = Array.from(
-    new Set([...topFavoriters.map((r) => r.userId), ...topRaters.map((r) => r.userId)]),
-  )
-  const engagementUsers = engagementIds.length
+  const topFavoriters = favoriteGroups.slice(0, 8)
+  const topRaters = ratingGroups.slice(0, 8)
+
+  // Engagement = users who have favorited or rated at least once. This is the
+  // real activity signal available; User.lastLogin is never written by the app.
+  const favoriteUserIds = new Set(favoriteGroups.map((r) => r.userId))
+  const ratingUserIds = new Set(ratingGroups.map((r) => r.userId))
+  const engagedIds = new Set([...favoriteUserIds, ...ratingUserIds])
+
+  // Resolve the users behind both leaderboards in a single query.
+  const leaderboardIds = Array.from(new Set([...topFavoriters, ...topRaters].map((r) => r.userId)))
+  const leaderboardUsers = leaderboardIds.length
     ? await prisma.user.findMany({
-        where: { id: { in: engagementIds } },
+        where: { id: { in: leaderboardIds } },
         select: { id: true, name: true, email: true },
       })
     : []
-  const userById = new Map(engagementUsers.map((u) => [u.id, u]))
+  const userById = new Map(leaderboardUsers.map((u) => [u.id, u]))
 
   const statusCounts = statusGroups.reduce<Record<string, number>>((acc, g) => {
     acc[g.status] = g._count.status
@@ -103,10 +98,11 @@ async function getUsersAnalytics() {
   return {
     totalUsers,
     newLast30,
-    activeLast30,
     statusCounts,
     signupsByMonth,
-    measurementUsers: withMeasurements.length,
+    engagedUsers: engagedIds.size,
+    favoritedUsers: favoriteUserIds.size,
+    ratedUsers: ratingUserIds.size,
     topFavoriters: topFavoriters.map((r) => ({ user: userById.get(r.userId), count: r._count.userId })),
     topRaters: topRaters.map((r) => ({ user: userById.get(r.userId), count: r._count.userId })),
     recentSignups,
@@ -123,17 +119,24 @@ export default async function UsersAnalyticsPage() {
   const {
     totalUsers,
     newLast30,
-    activeLast30,
     statusCounts,
     signupsByMonth,
-    measurementUsers,
+    engagedUsers,
+    favoritedUsers,
+    ratedUsers,
     topFavoriters,
     topRaters,
     recentSignups,
   } = await getUsersAnalytics()
 
   const peakSignups = Math.max(...signupsByMonth.map((m) => m.count), 1)
-  const profilePct = totalUsers > 0 ? Math.round((measurementUsers / totalUsers) * 100) : 0
+  const pctOf = (n: number) => (totalUsers > 0 ? Math.round((n / totalUsers) * 100) : 0)
+
+  const engagementRows = [
+    { label: "Favorited a pattern", count: favoritedUsers },
+    { label: "Rated a pattern", count: ratedUsers },
+    { label: "Did either", count: engagedUsers },
+  ]
 
   return (
     <div className="admin-dashboard">
@@ -175,12 +178,14 @@ export default async function UsersAnalyticsPage() {
         <div className="admin-metric admin-metric--static">
           <div className="admin-metric-head">
             <span className="admin-metric-icon">
-              <Activity size={18} strokeWidth={1.75} />
+              <Sparkles size={18} strokeWidth={1.75} />
             </span>
-            <span className="admin-metric-label">Active (30 days)</span>
+            <span className="admin-metric-label">Engaged Users</span>
           </div>
-          <div className="admin-metric-value">{activeLast30.toLocaleString()}</div>
-          <div className="admin-metric-trend admin-metric-trend--muted">Logged in recently</div>
+          <div className="admin-metric-value">{engagedUsers.toLocaleString()}</div>
+          <div className="admin-metric-trend admin-metric-trend--muted">
+            {pctOf(engagedUsers)}% have favorited or rated
+          </div>
         </div>
       </div>
 
@@ -213,7 +218,7 @@ export default async function UsersAnalyticsPage() {
           <div className="admin-bars">
             {Object.entries(STATUS_META).map(([status, meta]) => {
               const count = statusCounts[status] ?? 0
-              const pct = totalUsers > 0 ? Math.round((count / totalUsers) * 100) : 0
+              const pct = pctOf(count)
               return (
                 <div key={status} className="admin-bar-row">
                   <div className="admin-bar-meta">
@@ -241,32 +246,32 @@ export default async function UsersAnalyticsPage() {
 
         <section className="admin-panel">
           <div className="admin-panel-head">
-            <h2 className="admin-panel-title">
-              <Ruler size={16} strokeWidth={1.75} /> Profile Completion
-            </h2>
+            <h2 className="admin-panel-title">Engagement</h2>
+            <span className="admin-row-sub">Share of all users</span>
           </div>
           <div className="admin-bars">
-            <div className="admin-bar-row">
-              <div className="admin-bar-meta">
-                <span className="admin-bar-label">Saved measurements</span>
-                <span className="admin-bar-value">
-                  {measurementUsers.toLocaleString()} of {totalUsers.toLocaleString()} ({profilePct}%)
-                </span>
-              </div>
-              <div className="admin-bar-track">
-                <div
-                  className={`admin-bar-fill ${
-                    profilePct >= 60 ? "admin-bar-fill--good" : profilePct >= 25 ? "admin-bar-fill--warn" : "admin-bar-fill--bad"
-                  }`}
-                  style={{ width: `${profilePct}%` }}
-                />
-              </div>
-            </div>
+            {engagementRows.map((row) => {
+              const pct = pctOf(row.count)
+              return (
+                <div key={row.label} className="admin-bar-row">
+                  <div className="admin-bar-meta">
+                    <span className="admin-bar-label">{row.label}</span>
+                    <span className="admin-bar-value">
+                      {row.count.toLocaleString()} ({pct}%)
+                    </span>
+                  </div>
+                  <div className="admin-bar-track">
+                    <div
+                      className={`admin-bar-fill ${
+                        pct >= 60 ? "admin-bar-fill--good" : pct >= 25 ? "admin-bar-fill--warn" : "admin-bar-fill--bad"
+                      }`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
           </div>
-          <p className="admin-row-sub" style={{ marginTop: "0.75rem" }}>
-            Users with saved body measurements get size recommendations, so this is a useful proxy for how invested
-            your audience is.
-          </p>
         </section>
       </div>
 
@@ -363,7 +368,6 @@ export default async function UsersAnalyticsPage() {
                 <th>Status</th>
                 <th className="admin-num">Favorites</th>
                 <th className="admin-num">Ratings</th>
-                <th className="admin-num">Last login</th>
                 <th className="admin-num">Joined</th>
               </tr>
             </thead>
@@ -388,9 +392,6 @@ export default async function UsersAnalyticsPage() {
                     </td>
                     <td className="admin-num">{user._count.favorites}</td>
                     <td className="admin-num">{user._count.ratings}</td>
-                    <td className="admin-num">
-                      {user.lastLogin ? formatDistanceToNow(new Date(user.lastLogin), { addSuffix: true }) : "Never"}
-                    </td>
                     <td className="admin-num">
                       {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
                     </td>
