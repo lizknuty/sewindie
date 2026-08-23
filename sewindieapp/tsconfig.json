@@ -25,10 +25,9 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".",
     "paths": {
       "@/*": [
-        "app/*"
+        "./app/*"
       ]
     }
   },

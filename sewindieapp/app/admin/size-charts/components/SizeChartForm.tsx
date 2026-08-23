@@ -4,7 +4,11 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Plus, X } from "lucide-react"
-import type { Decimal } from "@prisma/client/runtime/library" // Import Decimal type
+// Prisma 7 removed the `@prisma/client/runtime/library` entry point; Decimal is
+// now re-exported on the generated `Prisma` namespace.
+import type { Prisma } from "@prisma/client"
+
+type Decimal = Prisma.Decimal
 
 interface Designer {
   id: number

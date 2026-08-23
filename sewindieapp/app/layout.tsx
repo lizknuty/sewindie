@@ -47,7 +47,8 @@ export default function RootLayout({
           <header>
             <Navbar />
           </header>
-          <main>{children}</main>
+          {/* flex-1 keeps the footer pinned to the bottom on short pages. */}
+          <main className="flex-1">{children}</main>
           <Footer />
         </Providers>
       </body>
