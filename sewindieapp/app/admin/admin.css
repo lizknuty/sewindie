@@ -21,6 +21,21 @@
   --admin-radius: 14px;
 }
 
+/* ---- Global anchor-colour neutraliser ----
+   styles.css has `a:not(.btn):not(.nav-link) { color: var(--color-primary) }`
+   at specificity (0,2,1), which beats any single-class admin rule and has
+   repeatedly repainted admin links brand pink (sidebar labels, the "Add ..."
+   buttons, dropdown items).
+
+   This targets ONLY anchors carrying no class at all, so it can never clobber
+   a deliberately styled link such as .admin-panel-link or .admin-brand-mark.
+   The trailing :not(.nav-link) never changes what matches — a class-less
+   anchor cannot be .nav-link — it exists purely to raise specificity to
+   (0,3,1) so this reliably outranks the global rule. */
+.admin-shell a:not([class]):not(.nav-link) {
+  color: inherit;
+}
+
 /* ---- Layout overrides (scoped) ---- */
 .admin-shell .sidebar-column {
   background-color: var(--admin-surface);
@@ -319,6 +334,22 @@
   margin-bottom: 1.5rem;
 }
 
+/* The base grid is hard-coded to 5 columns for the dashboard. Analytics
+   sub-reports only have three metrics, which would otherwise leave two dead
+   columns and squash the cards. */
+.admin-metrics--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* .admin-metric is normally a <Link>, so it lifts on hover. Analytics reports
+   render read-only metric tiles as <div>s — suppress the hover affordance so
+   they don't look clickable. */
+.admin-metric--static:hover {
+  box-shadow: none;
+  border-color: var(--admin-border);
+  transform: none;
+}
+
 .admin-metric {
   display: block;
   background-color: var(--admin-surface);
@@ -426,6 +457,11 @@
 }
 
 .admin-panel-title {
+  /* inline-flex so panel titles can carry a leading lucide icon and keep it
+     optically centred against the text instead of sitting on the baseline */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   font-family: var(--font-heading);
   font-size: 1.15rem;
   font-weight: 700;
@@ -1886,4 +1922,178 @@
   .metadata-tab {
     padding: 0.85rem 0.9rem;
   }
+}
+
+/* =========================================================
+   Analytics pages
+   ========================================================= */
+
+/* Back link on sub-reports (the sidebar only has one Analytics entry, so
+   sub-pages need their own way back to the hub). */
+.admin-shell a.admin-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.85rem;
+  color: var(--admin-muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.admin-shell a.admin-back-link:hover {
+  color: var(--admin-rose);
+}
+
+/* Report cards on the analytics hub */
+.admin-report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem;
+}
+.admin-shell a.admin-report-card,
+.admin-report-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 1.15rem;
+  background-color: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  color: var(--admin-text);
+  text-decoration: none;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.admin-shell a.admin-report-card:hover {
+  border-color: var(--admin-rose);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(38, 26, 30, 0.07);
+}
+.admin-report-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 10px;
+  background-color: var(--admin-rose-tint);
+  color: var(--admin-rose);
+}
+.admin-report-title {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+.admin-report-sub {
+  margin: 0;
+  font-size: 0.83rem;
+  line-height: 1.5;
+  color: var(--admin-muted);
+}
+.admin-report-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--admin-rose);
+}
+
+/* Disabled variant for reports that have no route yet */
+.admin-report-card.is-soon {
+  opacity: 0.62;
+  cursor: default;
+}
+.admin-report-card.is-soon:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--admin-border);
+}
+.admin-report-card.is-soon .admin-report-icon {
+  background-color: var(--admin-bg);
+  color: var(--admin-muted);
+}
+.admin-soon-tag {
+  margin-top: auto;
+  padding-top: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--admin-muted);
+}
+
+/* Horizontal distribution bars (rating breakdown) */
+/* No padding: the parent .admin-panel already supplies it */
+.admin-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.admin-bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.admin-bar-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.85rem;
+}
+.admin-bar-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 500;
+  color: var(--admin-text);
+}
+.admin-bar-value {
+  color: var(--admin-muted);
+  font-variant-numeric: tabular-nums;
+}
+.admin-bar-track {
+  height: 8px;
+  border-radius: 999px;
+  background-color: var(--admin-bg);
+  overflow: hidden;
+}
+.admin-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background-color: var(--admin-rose);
+  transition: width 0.3s ease;
+}
+
+/* Count pill used in analytics tables (replaces Bootstrap badges) */
+.admin-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background-color: var(--admin-rose-tint);
+  color: var(--admin-rose);
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Inline star rating display */
+.admin-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  color: #d9a114;
+}
+.admin-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }

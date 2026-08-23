@@ -1,6 +1,6 @@
 import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
-import { Star, TrendingUp, Users, BarChart2 } from "lucide-react"
+import { Star, TrendingUp, Users, BarChart2, ArrowLeft } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 
 // Define types to match Prisma schema
@@ -217,158 +217,215 @@ export default async function RatingsAnalyticsPage() {
   // Calculate total for distribution percentage
   const totalDistribution = Object.values(ratingDistribution).reduce((sum, count) => sum + count, 0)
 
-  return (
-    <div>
-      <h1 className="mb-4">Ratings Analytics</h1>
+  // Weighted mean score across every rating
+  const weightedTotal = Object.entries(ratingDistribution).reduce(
+    (sum, [score, count]) => sum + Number.parseInt(score) * count,
+    0,
+  )
+  const meanScore = totalDistribution > 0 ? (weightedTotal / totalDistribution).toFixed(2) : "—"
 
-      <div className="row mb-4">
-        <div className="col-md-4">
-          <div className="card h-100">
-            <div className="card-body">
-              <h5 className="card-title">Total Ratings</h5>
-              <div className="d-flex align-items-center">
-                <Star size={24} className="me-2 text-warning" />
-                <p className="card-text display-4 mb-0">{totalRatings}</p>
-              </div>
-            </div>
-          </div>
+  return (
+    <div className="admin-dashboard">
+      <Link href="/admin/analytics" className="admin-back-link">
+        <ArrowLeft size={14} strokeWidth={2} />
+        Back to Analytics
+      </Link>
+
+      <div className="admin-page-head">
+        <div>
+          <h1 className="admin-page-title">Ratings</h1>
+          <p className="admin-page-sub">How patterns are scoring, and who is doing the rating.</p>
         </div>
       </div>
 
-      <div className="row mb-4">
-        <div className="col-md-6">
-          <div className="card h-100">
-            <div className="card-header d-flex align-items-center">
-              <TrendingUp size={18} className="me-2" />
-              <h5 className="mb-0">Top Rated Patterns</h5>
-            </div>
-            <div className="card-body">
-              <div className="table-responsive">
-                <table className="table table-hover">
-                  <thead>
-                    <tr>
-                      <th>Pattern</th>
-                      <th>Designer</th>
-                      <th>Rating</th>
-                      <th>Count</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {topRatedPatterns.map((pattern) => (
-                      <tr key={pattern.id}>
-                        <td>
-                          <Link href={`/admin/patterns/${pattern.id}/edit`}>{pattern.name}</Link>
-                        </td>
-                        <td>{pattern.designer?.name}</td>
-                        <td>
-                          <div className="d-flex align-items-center">
-                            <Star size={16} className="text-warning me-1" />
-                            <span>{pattern.averageRating}</span>
-                          </div>
-                        </td>
-                        <td>
-                          <span className="badge bg-secondary">{pattern.ratingCount}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+      <div className="admin-metrics admin-metrics--3">
+        <div className="admin-metric admin-metric--static">
+          <div className="admin-metric-head">
+            <span className="admin-metric-icon">
+              <Star size={18} strokeWidth={1.75} />
+            </span>
+            <span className="admin-metric-label">Total Ratings</span>
           </div>
+          <div className="admin-metric-value">{totalRatings.toLocaleString()}</div>
+          <div className="admin-metric-trend admin-metric-trend--muted">Ratings submitted</div>
         </div>
 
-        <div className="col-md-6">
-          <div className="card h-100">
-            <div className="card-header d-flex align-items-center">
-              <BarChart2 size={18} className="me-2" />
-              <h5 className="mb-0">Rating Distribution</h5>
-            </div>
-            <div className="card-body">
+        <div className="admin-metric admin-metric--static">
+          <div className="admin-metric-head">
+            <span className="admin-metric-icon">
+              <BarChart2 size={18} strokeWidth={1.75} />
+            </span>
+            <span className="admin-metric-label">Average Score</span>
+          </div>
+          <div className="admin-metric-value">{meanScore}</div>
+          <div className="admin-metric-trend admin-metric-trend--muted">Out of 5</div>
+        </div>
+
+        <div className="admin-metric admin-metric--static">
+          <div className="admin-metric-head">
+            <span className="admin-metric-icon">
+              <Users size={18} strokeWidth={1.75} />
+            </span>
+            <span className="admin-metric-label">Top Raters</span>
+          </div>
+          <div className="admin-metric-value">{topRatingUsers.length.toLocaleString()}</div>
+          <div className="admin-metric-trend admin-metric-trend--muted">Most active users</div>
+        </div>
+      </div>
+
+      <div className="admin-grid-2">
+        <section className="admin-panel">
+          <div className="admin-panel-head">
+            <h2 className="admin-panel-title">
+              <TrendingUp size={16} strokeWidth={1.75} /> Top Rated Patterns
+            </h2>
+          </div>
+          {topRatedPatterns.length === 0 ? (
+            <p className="admin-empty">No ratings yet.</p>
+          ) : (
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Pattern</th>
+                  <th className="admin-num">Score</th>
+                  <th className="admin-num">Ratings</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topRatedPatterns.map((pattern) => (
+                  <tr key={pattern.id}>
+                    <td>
+                      <div className="admin-row-item">
+                        <div>
+                          <p className="admin-row-title">
+                            <Link href={`/admin/patterns/${pattern.id}/edit`}>{pattern.name}</Link>
+                          </p>
+                          <p className="admin-row-sub">{pattern.designer?.name ?? "—"}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="admin-num">
+                      <span className="admin-score">
+                        <Star size={14} strokeWidth={2} fill="currentColor" className="admin-stars" />
+                        {pattern.averageRating}
+                      </span>
+                    </td>
+                    <td className="admin-num">
+                      <span className="admin-pill">{pattern.ratingCount}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          <div className="admin-panel-foot">
+            <Link href="/admin/patterns" className="admin-ghost-btn">
+              View all patterns
+            </Link>
+          </div>
+        </section>
+
+        <section className="admin-panel">
+          <div className="admin-panel-head">
+            <h2 className="admin-panel-title">
+              <BarChart2 size={16} strokeWidth={1.75} /> Rating Distribution
+            </h2>
+          </div>
+          {totalDistribution === 0 ? (
+            <p className="admin-empty">No ratings yet.</p>
+          ) : (
+            <div className="admin-bars">
               {Object.entries(ratingDistribution)
                 .sort((a, b) => Number.parseInt(b[0]) - Number.parseInt(a[0]))
                 .map(([score, count]) => {
                   const percentage = totalDistribution > 0 ? (count / totalDistribution) * 100 : 0
                   return (
-                    <div key={score} className="mb-3">
-                      <div className="d-flex justify-content-between mb-1">
-                        <div>
-                          {Array.from({ length: Number.parseInt(score) }).map((_, i) => (
-                            <Star key={i} size={16} className="text-warning me-1" />
-                          ))}
-                          <span className="ms-1">{score} stars</span>
-                        </div>
-                        <div>
-                          {count} ({percentage.toFixed(1)}%)
-                        </div>
+                    <div key={score} className="admin-bar-row">
+                      <div className="admin-bar-meta">
+                        <span className="admin-bar-label">
+                          <span className="admin-stars" aria-hidden="true">
+                            {Array.from({ length: Number.parseInt(score) }).map((_, i) => (
+                              <Star key={i} size={13} strokeWidth={2} fill="currentColor" />
+                            ))}
+                          </span>
+                          {score} {Number.parseInt(score) === 1 ? "star" : "stars"}
+                        </span>
+                        <span className="admin-bar-value">
+                          {count.toLocaleString()} ({percentage.toFixed(1)}%)
+                        </span>
                       </div>
-                      <div className="progress" style={{ height: "10px" }}>
-                        <div
-                          className="progress-bar bg-warning"
-                          role="progressbar"
-                          style={{ width: `${percentage}%` }}
-                          aria-valuenow={percentage}
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                        ></div>
+                      <div
+                        className="admin-bar-track"
+                        role="img"
+                        aria-label={`${score} stars: ${count} ratings, ${percentage.toFixed(1)} percent`}
+                      >
+                        <div className="admin-bar-fill" style={{ width: `${percentage}%` }} />
                       </div>
                     </div>
                   )
                 })}
             </div>
-          </div>
-        </div>
+          )}
+        </section>
       </div>
 
-      <div className="row mb-4">
-        <div className="col-md-6">
-          <div className="card h-100">
-            <div className="card-header d-flex align-items-center">
-              <Users size={18} className="me-2" />
-              <h5 className="mb-0">Top Rating Users</h5>
-            </div>
-            <div className="card-body">
-              <div className="table-responsive">
-                <table className="table table-hover">
-                  <thead>
-                    <tr>
-                      <th>User</th>
-                      <th>Email</th>
-                      <th>Ratings</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {topRatingUsers.map(({ user, ratingCount }) => (
-                      <tr key={user?.id}>
-                        <td>{user?.name}</td>
-                        <td>{user?.email}</td>
-                        <td>
-                          <span className="badge bg-primary">{ratingCount}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+      <div className="admin-grid-2">
+        <section className="admin-panel">
+          <div className="admin-panel-head">
+            <h2 className="admin-panel-title">
+              <Users size={16} strokeWidth={1.75} /> Top Rating Users
+            </h2>
           </div>
-        </div>
-      </div>
+          {topRatingUsers.length === 0 ? (
+            <p className="admin-empty">No ratings yet.</p>
+          ) : (
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th className="admin-num">Ratings</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topRatingUsers.map(({ user, ratingCount }) => (
+                  <tr key={user?.id ?? `missing-${ratingCount}`}>
+                    <td>
+                      <div className="admin-row-item">
+                        <div>
+                          <p className="admin-row-title">{user?.name ?? "Deleted user"}</p>
+                          <p className="admin-row-sub">{user?.email ?? "—"}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="admin-num">
+                      <span className="admin-pill">{ratingCount}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          <div className="admin-panel-foot">
+            <Link href="/admin/users" className="admin-ghost-btn">
+              View all users
+            </Link>
+          </div>
+        </section>
 
-      <div className="card">
-        <div className="card-header">
-          <h5 className="mb-0">Recent Rating Activity</h5>
-        </div>
-        <div className="card-body">
-          <div className="table-responsive">
-            <table className="table table-hover">
+        <section className="admin-panel">
+          <div className="admin-panel-head">
+            <h2 className="admin-panel-title">Recent Rating Activity</h2>
+          </div>
+          {recentRatings.length === 0 ? (
+            <p className="admin-empty">No recent activity.</p>
+          ) : (
+            <table className="admin-table">
               <thead>
                 <tr>
                   <th>User</th>
                   <th>Pattern</th>
-                  <th>Designer</th>
-                  <th>Rating</th>
-                  <th>Time</th>
+                  <th className="admin-num">Score</th>
+                  <th className="admin-num">When</th>
                 </tr>
               </thead>
               <tbody>
@@ -376,23 +433,30 @@ export default async function RatingsAnalyticsPage() {
                   <tr key={rating.id}>
                     <td>{rating.user.name}</td>
                     <td>
-                      <Link href={`/admin/patterns/${rating.pattern.id}/edit`}>{rating.pattern.name}</Link>
-                    </td>
-                    <td>{rating.pattern.designer?.name}</td>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        {Array.from({ length: rating.score }).map((_, i) => (
-                          <Star key={i} size={16} className="text-warning" />
-                        ))}
+                      <div className="admin-row-item">
+                        <div>
+                          <p className="admin-row-title">
+                            <Link href={`/admin/patterns/${rating.pattern.id}/edit`}>{rating.pattern.name}</Link>
+                          </p>
+                          <p className="admin-row-sub">{rating.pattern.designer?.name ?? "—"}</p>
+                        </div>
                       </div>
                     </td>
-                    <td>{formatDistanceToNow(new Date(rating.createdAt), { addSuffix: true })}</td>
+                    <td className="admin-num">
+                      <span className="admin-score">
+                        <Star size={14} strokeWidth={2} fill="currentColor" className="admin-stars" />
+                        {rating.score}
+                      </span>
+                    </td>
+                    <td className="admin-num">
+                      {formatDistanceToNow(new Date(rating.createdAt), { addSuffix: true })}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        </div>
+          )}
+        </section>
       </div>
     </div>
   )

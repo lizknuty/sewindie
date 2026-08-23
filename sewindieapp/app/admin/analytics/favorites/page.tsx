@@ -1,6 +1,6 @@
 import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
-import { Heart, TrendingUp, Users } from "lucide-react"
+import { Heart, TrendingUp, Users, ArrowLeft, Scissors } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 
 async function getFavoritesAnalytics() {
@@ -126,125 +126,182 @@ async function getFavoritesAnalytics() {
 export default async function FavoritesAnalyticsPage() {
   const { topFavoritedPatterns, recentFavorites, totalFavorites, topFavoritingUsers } = await getFavoritesAnalytics()
 
+  const uniqueSavers = topFavoritingUsers.length
+
   return (
-    <div>
-      <h1 className="mb-4">Favorites Analytics</h1>
+    <div className="admin-dashboard">
+      <Link href="/admin/analytics" className="admin-back-link">
+        <ArrowLeft size={14} strokeWidth={2} />
+        Back to Analytics
+      </Link>
 
-      <div className="row mb-4">
-        <div className="col-md-4">
-          <div className="card h-100">
-            <div className="card-body">
-              <h5 className="card-title">Total Favorites</h5>
-              <div className="d-flex align-items-center">
-                <Heart size={24} className="me-2 text-danger" />
-                <p className="card-text display-4 mb-0">{totalFavorites}</p>
-              </div>
-            </div>
-          </div>
+      <div className="admin-page-head">
+        <div>
+          <h1 className="admin-page-title">Favorites</h1>
+          <p className="admin-page-sub">Which patterns people are saving, and who is saving them.</p>
         </div>
       </div>
 
-      <div className="row mb-4">
-        <div className="col-md-6">
-          <div className="card h-100">
-            <div className="card-header d-flex align-items-center">
-              <TrendingUp size={18} className="me-2" />
-              <h5 className="mb-0">Top Favorited Patterns</h5>
-            </div>
-            <div className="card-body">
-              <div className="table-responsive">
-                <table className="table table-hover">
-                  <thead>
-                    <tr>
-                      <th>Pattern</th>
-                      <th>Designer</th>
-                      <th>Favorites</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {topFavoritedPatterns.map(({ pattern, favoriteCount }) => (
-                      <tr key={pattern?.id}>
-                        <td>
-                          <Link href={`/admin/patterns/${pattern?.id}/edit`}>{pattern?.name}</Link>
-                        </td>
-                        <td>{pattern?.designer?.name}</td>
-                        <td>
-                          <span className="badge bg-danger">{favoriteCount}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+      <div className="admin-metrics admin-metrics--3">
+        <div className="admin-metric admin-metric--static">
+          <div className="admin-metric-head">
+            <span className="admin-metric-icon">
+              <Heart size={18} strokeWidth={1.75} />
+            </span>
+            <span className="admin-metric-label">Total Favorites</span>
           </div>
+          <div className="admin-metric-value">{totalFavorites.toLocaleString()}</div>
+          <div className="admin-metric-trend admin-metric-trend--muted">Patterns saved</div>
         </div>
 
-        <div className="col-md-6">
-          <div className="card h-100">
-            <div className="card-header d-flex align-items-center">
-              <Users size={18} className="me-2" />
-              <h5 className="mb-0">Top Users by Favorites</h5>
-            </div>
-            <div className="card-body">
-              <div className="table-responsive">
-                <table className="table table-hover">
-                  <thead>
-                    <tr>
-                      <th>User</th>
-                      <th>Email</th>
-                      <th>Favorites</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {topFavoritingUsers.map(({ user, favoriteCount }) => (
-                      <tr key={user?.id}>
-                        <td>{user?.name}</td>
-                        <td>{user?.email}</td>
-                        <td>
-                          <span className="badge bg-primary">{favoriteCount}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+        <div className="admin-metric admin-metric--static">
+          <div className="admin-metric-head">
+            <span className="admin-metric-icon">
+              <Scissors size={18} strokeWidth={1.75} />
+            </span>
+            <span className="admin-metric-label">Patterns Saved</span>
           </div>
+          <div className="admin-metric-value">{topFavoritedPatterns.length.toLocaleString()}</div>
+          <div className="admin-metric-trend admin-metric-trend--muted">In the top 10</div>
+        </div>
+
+        <div className="admin-metric admin-metric--static">
+          <div className="admin-metric-head">
+            <span className="admin-metric-icon">
+              <Users size={18} strokeWidth={1.75} />
+            </span>
+            <span className="admin-metric-label">Top Savers</span>
+          </div>
+          <div className="admin-metric-value">{uniqueSavers.toLocaleString()}</div>
+          <div className="admin-metric-trend admin-metric-trend--muted">Most active users</div>
         </div>
       </div>
 
-      <div className="card">
-        <div className="card-header">
-          <h5 className="mb-0">Recent Favorite Activity</h5>
-        </div>
-        <div className="card-body">
-          <div className="table-responsive">
-            <table className="table table-hover">
+      <div className="admin-grid-2">
+        <section className="admin-panel">
+          <div className="admin-panel-head">
+            <h2 className="admin-panel-title">
+              <TrendingUp size={16} strokeWidth={1.75} /> Top Favorited Patterns
+            </h2>
+          </div>
+          {topFavoritedPatterns.length === 0 ? (
+            <p className="admin-empty">No favorites yet.</p>
+          ) : (
+            <table className="admin-table">
               <thead>
                 <tr>
-                  <th>User</th>
                   <th>Pattern</th>
-                  <th>Designer</th>
-                  <th>Time</th>
+                  <th className="admin-num">Favorites</th>
                 </tr>
               </thead>
               <tbody>
-                {recentFavorites.map((favorite) => (
-                  <tr key={`${favorite.userId}-${favorite.patternId}-${favorite.createdAt.toString()}`}>
-                    <td>{favorite.user.name}</td>
+                {topFavoritedPatterns.map(({ pattern, favoriteCount }) => (
+                  <tr key={pattern?.id ?? `missing-${favoriteCount}`}>
                     <td>
-                      <Link href={`/admin/patterns/${favorite.pattern.id}/edit`}>{favorite.pattern.name}</Link>
+                      <div className="admin-row-item">
+                        <div>
+                          <p className="admin-row-title">
+                            {pattern ? (
+                              <Link href={`/admin/patterns/${pattern.id}/edit`}>{pattern.name}</Link>
+                            ) : (
+                              "Deleted pattern"
+                            )}
+                          </p>
+                          <p className="admin-row-sub">{pattern?.designer?.name ?? "—"}</p>
+                        </div>
+                      </div>
                     </td>
-                    <td>{favorite.pattern.designer?.name}</td>
-                    <td>{formatDistanceToNow(new Date(favorite.createdAt), { addSuffix: true })}</td>
+                    <td className="admin-num">
+                      <span className="admin-pill">{favoriteCount}</span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          )}
+          <div className="admin-panel-foot">
+            <Link href="/admin/patterns" className="admin-ghost-btn">
+              View all patterns
+            </Link>
           </div>
-        </div>
+        </section>
+
+        <section className="admin-panel">
+          <div className="admin-panel-head">
+            <h2 className="admin-panel-title">
+              <Users size={16} strokeWidth={1.75} /> Top Users by Favorites
+            </h2>
+          </div>
+          {topFavoritingUsers.length === 0 ? (
+            <p className="admin-empty">No favorites yet.</p>
+          ) : (
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th className="admin-num">Favorites</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topFavoritingUsers.map(({ user, favoriteCount }) => (
+                  <tr key={user?.id ?? `missing-${favoriteCount}`}>
+                    <td>
+                      <div className="admin-row-item">
+                        <div>
+                          <p className="admin-row-title">{user?.name ?? "Deleted user"}</p>
+                          <p className="admin-row-sub">{user?.email ?? "—"}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="admin-num">
+                      <span className="admin-pill">{favoriteCount}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          <div className="admin-panel-foot">
+            <Link href="/admin/users" className="admin-ghost-btn">
+              View all users
+            </Link>
+          </div>
+        </section>
       </div>
+
+      <section className="admin-panel">
+        <div className="admin-panel-head">
+          <h2 className="admin-panel-title">Recent Favorite Activity</h2>
+        </div>
+        {recentFavorites.length === 0 ? (
+          <p className="admin-empty">No recent activity.</p>
+        ) : (
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Pattern</th>
+                <th>Designer</th>
+                <th className="admin-num">When</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentFavorites.map((favorite) => (
+                <tr key={`${favorite.userId}-${favorite.patternId}-${favorite.createdAt.toString()}`}>
+                  <td>{favorite.user.name}</td>
+                  <td>
+                    <Link href={`/admin/patterns/${favorite.pattern.id}/edit`}>{favorite.pattern.name}</Link>
+                  </td>
+                  <td>{favorite.pattern.designer?.name ?? "—"}</td>
+                  <td className="admin-num">
+                    {formatDistanceToNow(new Date(favorite.createdAt), { addSuffix: true })}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
     </div>
   )
 }
