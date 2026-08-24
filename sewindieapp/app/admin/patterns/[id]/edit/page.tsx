@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation"
+import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import PatternForm from "../../components/PatternForm"
 
@@ -49,6 +51,11 @@ export default async function EditPatternPage({ params }: { params: Promise<{ id
           Format: true,
         },
       },
+      PatternSizeChart: {
+        include: {
+          SizeChart: true,
+        },
+      },
     },
   })
 
@@ -57,8 +64,15 @@ export default async function EditPatternPage({ params }: { params: Promise<{ id
   }
 
   return (
-    <div>
-      <h1 className="mb-4">Edit Pattern</h1>
+    <div className="admin-form-page">
+      <header className="admin-form-header">
+        <Link href="/admin/patterns" className="admin-form-back">
+          <ArrowLeft size={15} />
+          Back to Patterns
+        </Link>
+        <h1 className="admin-form-title">Edit Pattern</h1>
+        <p className="admin-form-subtitle">{pattern.name}</p>
+      </header>
       <PatternForm pattern={pattern} />
     </div>
   )

@@ -2616,3 +2616,371 @@
   margin-top: 0.85rem;
   min-height: 1.2rem;
 }
+
+/* =========================================================
+   Admin entity forms
+   Generic `admin-form-*` / `admin-field` names rather than
+   pattern-specific ones, so the other admin forms that are
+   still on raw Bootstrap can adopt this same layer later.
+   ========================================================= */
+.admin-form-page {
+  max-width: 1040px;
+}
+
+.admin-form-header {
+  margin-bottom: 1.5rem;
+}
+
+.admin-form-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 0.55rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Same anchor-specificity guard used by .btn-add-pattern: the global
+   `a:not(.btn):not(.nav-link)` rule in styles.css scores (0,2,1) and would
+   otherwise repaint this link brand pink. */
+.admin-shell a.admin-form-back,
+.admin-shell a.admin-form-back:visited {
+  color: var(--admin-muted);
+  text-decoration: none;
+}
+
+.admin-shell a.admin-form-back:hover {
+  color: var(--admin-rose);
+}
+
+.admin-form-title {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--admin-text);
+}
+
+.admin-form-subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.95rem;
+  color: var(--admin-muted);
+}
+
+/* ---- Cards ---- */
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.admin-form-card {
+  background-color: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  padding: 1.25rem 1.35rem 1.4rem;
+}
+
+.admin-form-card-head {
+  margin-bottom: 1.1rem;
+}
+
+.admin-form-card-title {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--admin-text);
+}
+
+.admin-form-card-desc {
+  max-width: 62ch;
+  margin: 0.3rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--admin-muted);
+}
+
+/* ---- Field grid ---- */
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.25rem;
+}
+
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  /* Without this a long <option> label forces the grid column wider than its
+     share and the two-column layout drifts out of alignment. */
+  min-width: 0;
+}
+
+.admin-field--full {
+  grid-column: 1 / -1;
+}
+
+.admin-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.admin-label-req {
+  margin-left: 0.15rem;
+  color: var(--admin-rose);
+}
+
+.admin-hint {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--admin-muted);
+}
+
+/* ---- Controls ---- */
+.admin-input,
+.admin-select,
+.admin-multiselect {
+  width: 100%;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  background-color: var(--admin-surface);
+  padding: 0.55rem 0.8rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  /* Explicit rather than `normal`: react-datepicker renders its own <input>,
+     whose default line-height resolved ~3px shorter than the sibling text
+     inputs and left the Release Date field visibly out of line. */
+  line-height: 1.5;
+  color: var(--admin-text);
+}
+
+.admin-input::placeholder {
+  color: var(--admin-muted);
+}
+
+.admin-input:focus,
+.admin-select:focus,
+.admin-multiselect:focus {
+  outline: none;
+  border-color: var(--admin-rose);
+  box-shadow: 0 0 0 3px var(--admin-rose-tint);
+}
+
+.admin-input:disabled,
+.admin-select:disabled,
+.admin-multiselect:disabled {
+  background-color: #faf7f7;
+  color: var(--admin-muted);
+  cursor: not-allowed;
+}
+
+.admin-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 2.3rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238f7a7c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.8rem center;
+  background-size: 15px 15px;
+}
+
+.admin-multiselect {
+  padding: 0.35rem;
+  height: auto;
+}
+
+.admin-multiselect option {
+  padding: 0.34rem 0.55rem;
+  border-radius: 7px;
+  font-size: 0.86rem;
+}
+
+/* Chrome/Safari ignore `background-color` on a checked <option> but do honour a
+   background-image, so the selected fill has to be painted as a gradient. */
+.admin-multiselect option:checked {
+  background: linear-gradient(var(--admin-rose-deep), var(--admin-rose-deep));
+  color: #fff;
+  font-weight: 600;
+}
+
+/* react-datepicker wraps its input in an inline-block div that would otherwise
+   collapse to the input's intrinsic width instead of filling the field. */
+.admin-field .react-datepicker-wrapper,
+.admin-field .react-datepicker__input-container {
+  display: block;
+  width: 100%;
+}
+
+/* react-datepicker.css styles its own input through a descendant selector, and
+   because that stylesheet is imported from the component its order relative to
+   this file isn't guaranteed. Matching through the container raises specificity
+   to (0,3,1) so the field lines up with the plain text inputs beside it. */
+.admin-field .react-datepicker__input-container input.admin-input {
+  padding: 0.55rem 0.8rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.admin-field .react-datepicker-popper {
+  z-index: 1050;
+}
+
+/* ---- Calendar popup ----
+   react-datepicker ships its own grey/blue palette. These overrides pull it
+   onto the admin surface/rose tokens. Selectors are kept at the same
+   specificity the library uses, plus the .admin-shell scope so they win. */
+.admin-shell .react-datepicker {
+  font-family: inherit;
+  font-size: 0.82rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(43, 36, 38, 0.14);
+  color: var(--admin-text);
+}
+
+.admin-shell .react-datepicker__header {
+  background-color: #fdf9fa;
+  border-bottom: 1px solid var(--admin-border);
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  padding-top: 0.6rem;
+}
+
+.admin-shell .react-datepicker__current-month,
+.admin-shell .react-datepicker__day-name {
+  color: var(--admin-text);
+}
+
+.admin-shell .react-datepicker__day-name {
+  color: var(--admin-muted);
+  font-weight: 600;
+}
+
+.admin-shell .react-datepicker__day {
+  border-radius: 8px;
+  color: var(--admin-text);
+}
+
+.admin-shell .react-datepicker__day:hover {
+  background-color: var(--admin-rose-tint);
+}
+
+.admin-shell .react-datepicker__day--today {
+  font-weight: 700;
+  color: var(--admin-rose);
+}
+
+.admin-shell .react-datepicker__day--selected,
+.admin-shell .react-datepicker__day--keyboard-selected {
+  background-color: var(--admin-rose-deep);
+  color: #fff;
+}
+
+.admin-shell .react-datepicker__day--selected:hover,
+.admin-shell .react-datepicker__day--keyboard-selected:hover {
+  background-color: var(--admin-rose-deep-hover);
+  color: #fff;
+}
+
+.admin-shell .react-datepicker__day--outside-month {
+  color: var(--admin-muted);
+}
+
+.admin-shell .react-datepicker__triangle {
+  display: none;
+}
+
+.admin-form-preview {
+  display: inline-flex;
+  /* The parent .admin-field is a stretch-aligned flex column, which would
+     otherwise blow this frame out to the full field width. */
+  align-self: flex-start;
+  margin-top: 0.15rem;
+  padding: 0.3rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  background-color: var(--admin-surface);
+}
+
+.admin-form-preview img {
+  display: block;
+  border-radius: 7px;
+  object-fit: cover;
+}
+
+/* ---- Action bar ---- */
+/* Deliberately not sticky: no other admin page floats a bar over its content,
+   and a pinned bar sat on top of the cards it was overlapping. */
+.admin-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1.35rem;
+  background-color: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+}
+
+.admin-form-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  background-color: var(--admin-surface);
+  padding: 0.5rem 1.1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-form-btn:hover:not(:disabled) {
+  background-color: var(--admin-rose-tint);
+  border-color: #e4d2d6;
+  color: var(--admin-rose);
+}
+
+.admin-form-btn-primary {
+  background-color: var(--admin-rose-deep);
+  border-color: var(--admin-rose-deep);
+  color: #fff;
+}
+
+.admin-form-btn-primary:hover:not(:disabled) {
+  background-color: var(--admin-rose-deep-hover);
+  border-color: var(--admin-rose-deep-hover);
+  color: #fff;
+}
+
+.admin-form-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Cancel is a <Link>, so it needs the same anchor-specificity guard. */
+.admin-shell a.admin-form-btn,
+.admin-shell a.admin-form-btn:visited {
+  color: var(--admin-text);
+  text-decoration: none;
+}
+
+.admin-shell a.admin-form-btn:hover {
+  color: var(--admin-rose);
+}
+
+@media (max-width: 767.98px) {
+  .admin-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-form-title {
+    font-size: 1.65rem;
+  }
+  .admin-form-card {
+    padding: 1.1rem 1rem 1.2rem;
+  }
+}
