@@ -285,329 +285,357 @@ export default function PatternForm({ pattern }: PatternFormProps) {
     }
   }
 
+  const selectedDesignerName = designers.find((d) => d.id === selectedDesignerId)?.name
+
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="mb-3">
-        <label htmlFor="name" className="form-label">
-          Name *
-        </label>
-        <input
-          type="text"
-          className="form-control"
-          id="name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          required
-        />
-      </div>
+    <form className="admin-form" onSubmit={handleSubmit}>
+      <section className="admin-form-card">
+        <div className="admin-form-card-head">
+          <h2 className="admin-form-card-title">Pattern Details</h2>
+          <p className="admin-form-card-desc">
+            The core information used to identify this pattern across the directory.
+          </p>
+        </div>
 
-      <div className="mb-3">
-        <label htmlFor="designer_id" className="form-label">
-          Designer *
-        </label>
-        <select
-          className="form-select"
-          id="designer_id"
-          name="designer_id"
-          value={formData.designer_id}
-          onChange={handleChange}
-          required
-        >
-          <option value="">Select a designer</option>
-          {designers.map((designer) => (
-            <option key={designer.id} value={designer.id.toString()}>
-              {designer.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="mb-3">
-        <label htmlFor="url" className="form-label">
-          Pattern URL *
-        </label>
-        <input
-          type="url"
-          className="form-control"
-          id="url"
-          name="url"
-          value={formData.url}
-          onChange={handleChange}
-          required
-        />
-      </div>
-
-      <div className="mb-3">
-        <label htmlFor="thumbnail_url" className="form-label">
-          Thumbnail URL
-        </label>
-        <input
-          type="url"
-          className="form-control"
-          id="thumbnail_url"
-          name="thumbnail_url"
-          value={formData.thumbnail_url || ""}
-          onChange={handleChange}
-        />
-        {formData.thumbnail_url && (
-          <div className="mt-2">
-            <Image
-              src={formData.thumbnail_url || "/placeholder.svg"}
-              alt="Thumbnail preview"
-              width={100}
-              height={100}
-              className="rounded border"
+        <div className="admin-form-grid">
+          <div className="admin-field admin-field--full">
+            <label htmlFor="name" className="admin-label">
+              Name <span className="admin-label-req">*</span>
+            </label>
+            <input
+              type="text"
+              className="admin-input"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
             />
           </div>
-        )}
-      </div>
 
-      <div className="row">
-        <div className="col-md-6 mb-3">
-          <label htmlFor="categories" className="form-label">
-            Categories
-          </label>
-          <select
-            className="form-select"
-            id="categories"
-            name="categories"
-            multiple
-            value={formData.categories}
-            onChange={(e) => handleMultiSelectChange(e, "categories")}
-            size={5}
-          >
-            {categories.map((category) => (
-              <option key={category.id} value={category.id.toString()}>
-                {category.name}
-              </option>
-            ))}
-          </select>
+          <div className="admin-field">
+            <label htmlFor="designer_id" className="admin-label">
+              Designer <span className="admin-label-req">*</span>
+            </label>
+            <select
+              className="admin-select"
+              id="designer_id"
+              name="designer_id"
+              value={formData.designer_id}
+              onChange={handleChange}
+              required
+            >
+              <option value="">Select a designer</option>
+              {designers.map((designer) => (
+                <option key={designer.id} value={designer.id.toString()}>
+                  {designer.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="admin-field">
+            <label htmlFor="status" className="admin-label">
+              Status
+            </label>
+            <select className="admin-select" id="status" name="status" value={formData.status} onChange={handleChange}>
+              <option value="PUBLISHED">Published</option>
+              <option value="IN_TESTING">In Testing</option>
+              <option value="DISCONTINUED">Discontinued</option>
+            </select>
+          </div>
+
+          <div className="admin-field admin-field--full">
+            <label htmlFor="url" className="admin-label">
+              Pattern URL <span className="admin-label-req">*</span>
+            </label>
+            <input
+              type="url"
+              className="admin-input"
+              id="url"
+              name="url"
+              value={formData.url}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="admin-field admin-field--full">
+            <label htmlFor="thumbnail_url" className="admin-label">
+              Thumbnail URL
+            </label>
+            <input
+              type="url"
+              className="admin-input"
+              id="thumbnail_url"
+              name="thumbnail_url"
+              value={formData.thumbnail_url || ""}
+              onChange={handleChange}
+            />
+            {formData.thumbnail_url && (
+              <div className="admin-form-preview">
+                <Image
+                  src={formData.thumbnail_url || "/placeholder.svg"}
+                  alt="Thumbnail preview"
+                  width={88}
+                  height={88}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="admin-form-card">
+        <div className="admin-form-card-head">
+          <h2 className="admin-form-card-title">Classification</h2>
+          <p className="admin-form-card-desc">
+            How this pattern is grouped and filtered. Hold Ctrl (Cmd on Mac) to select more than one in any list.
+          </p>
         </div>
 
-        <div className="col-md-6 mb-3">
-          <label htmlFor="audiences" className="form-label">
-            Target Audiences
-          </label>
-          <select
-            className="form-select"
-            id="audiences"
-            name="audiences"
-            multiple
-            value={formData.audiences}
-            onChange={(e) => handleMultiSelectChange(e, "audiences")}
-            size={5}
-          >
-            {audiences.map((audience) => (
-              <option key={audience.id} value={audience.id.toString()}>
-                {audience.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+        <div className="admin-form-grid">
+          <div className="admin-field">
+            <label htmlFor="categories" className="admin-label">
+              Categories
+            </label>
+            <select
+              className="admin-multiselect"
+              id="categories"
+              name="categories"
+              multiple
+              value={formData.categories}
+              onChange={(e) => handleMultiSelectChange(e, "categories")}
+              size={6}
+            >
+              {categories.map((category) => (
+                <option key={category.id} value={category.id.toString()}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      <div className="row">
-        <div className="col-md-6 mb-3">
-          <label htmlFor="fabricTypes" className="form-label">
-            Fabric Types
-          </label>
-          <select
-            className="form-select"
-            id="fabricTypes"
-            name="fabricTypes"
-            multiple
-            value={formData.fabricTypes}
-            onChange={(e) => handleMultiSelectChange(e, "fabricTypes")}
-            size={5}
-          >
-            {fabricTypes.map((fabricType) => (
-              <option key={fabricType.id} value={fabricType.id.toString()}>
-                {fabricType.name}
-              </option>
-            ))}
-          </select>
-        </div>
+          <div className="admin-field">
+            <label htmlFor="audiences" className="admin-label">
+              Target Audiences
+            </label>
+            <select
+              className="admin-multiselect"
+              id="audiences"
+              name="audiences"
+              multiple
+              value={formData.audiences}
+              onChange={(e) => handleMultiSelectChange(e, "audiences")}
+              size={6}
+            >
+              {audiences.map((audience) => (
+                <option key={audience.id} value={audience.id.toString()}>
+                  {audience.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div className="col-md-6 mb-3">
-          <label htmlFor="suggestedFabrics" className="form-label">
-            Suggested Fabrics
-          </label>
-          <select
-            className="form-select"
-            id="suggestedFabrics"
-            name="suggestedFabrics"
-            multiple
-            value={formData.suggestedFabrics}
-            onChange={(e) => handleMultiSelectChange(e, "suggestedFabrics")}
-            size={5}
-          >
-            {suggestedFabrics.map((suggestedFabric) => (
-              <option key={suggestedFabric.id} value={suggestedFabric.id.toString()}>
-                {suggestedFabric.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+          <div className="admin-field">
+            <label htmlFor="fabricTypes" className="admin-label">
+              Fabric Types
+            </label>
+            <select
+              className="admin-multiselect"
+              id="fabricTypes"
+              name="fabricTypes"
+              multiple
+              value={formData.fabricTypes}
+              onChange={(e) => handleMultiSelectChange(e, "fabricTypes")}
+              size={6}
+            >
+              {fabricTypes.map((fabricType) => (
+                <option key={fabricType.id} value={fabricType.id.toString()}>
+                  {fabricType.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      <div className="row">
-        <div className="col-md-6 mb-3">
-          <label htmlFor="attributes" className="form-label">
-            Attributes
-          </label>
-          <select
-            className="form-select"
-            id="attributes"
-            name="attributes"
-            multiple
-            value={formData.attributes}
-            onChange={(e) => handleMultiSelectChange(e, "attributes")}
-            size={5}
-          >
-            {attributes.map((attribute) => (
-              <option key={attribute.id} value={attribute.id.toString()}>
-                {attribute.name}
-              </option>
-            ))}
-          </select>
-        </div>
+          <div className="admin-field">
+            <label htmlFor="suggestedFabrics" className="admin-label">
+              Suggested Fabrics
+            </label>
+            <select
+              className="admin-multiselect"
+              id="suggestedFabrics"
+              name="suggestedFabrics"
+              multiple
+              value={formData.suggestedFabrics}
+              onChange={(e) => handleMultiSelectChange(e, "suggestedFabrics")}
+              size={6}
+            >
+              {suggestedFabrics.map((suggestedFabric) => (
+                <option key={suggestedFabric.id} value={suggestedFabric.id.toString()}>
+                  {suggestedFabric.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div className="col-md-6 mb-3">
-          <label htmlFor="formats" className="form-label">
-            Formats
-          </label>
-          <select
-            className="form-select"
-            id="formats"
-            name="formats"
-            multiple
-            value={formData.formats}
-            onChange={(e) => handleMultiSelectChange(e, "formats")}
-            size={5}
-          >
-            {formats.map((format) => (
-              <option key={format.id} value={format.id.toString()}>
-                {format.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+          <div className="admin-field">
+            <label htmlFor="attributes" className="admin-label">
+              Attributes
+            </label>
+            <select
+              className="admin-multiselect"
+              id="attributes"
+              name="attributes"
+              multiple
+              value={formData.attributes}
+              onChange={(e) => handleMultiSelectChange(e, "attributes")}
+              size={6}
+            >
+              {attributes.map((attribute) => (
+                <option key={attribute.id} value={attribute.id.toString()}>
+                  {attribute.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      {/* New Size Charts Multi-select */}
-      <div className="mb-3">
-        <label htmlFor="sizeCharts" className="form-label">
-          Size Charts
-        </label>
-        <select
-          className="form-select"
-          id="sizeCharts"
-          name="sizeCharts"
-          multiple
-          value={formData.sizeCharts}
-          onChange={(e) => handleMultiSelectChange(e, "sizeCharts")}
-          size={5}
-          disabled={!selectedDesignerId}
-        >
-          {availableSizeCharts.map((chart) => (
-            <option key={chart.id} value={chart.id.toString()}>
-              {chart.label}
-            </option>
-          ))}
-        </select>
-        <div className="form-text">
-          {!selectedDesignerId
-            ? "Select a designer to see their size charts."
-            : availableSizeCharts.length === 0
-              ? "This designer has no size charts yet."
-              : "Hold Ctrl (Cmd on Mac) to select more than one."}
+          <div className="admin-field">
+            <label htmlFor="formats" className="admin-label">
+              Formats
+            </label>
+            <select
+              className="admin-multiselect"
+              id="formats"
+              name="formats"
+              multiple
+              value={formData.formats}
+              onChange={(e) => handleMultiSelectChange(e, "formats")}
+              size={6}
+            >
+              {formats.map((format) => (
+                <option key={format.id} value={format.id.toString()}>
+                  {format.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="row">
-        <div className="col-md-6 mb-3">
-          <label htmlFor="yardage" className="form-label">
-            Yardage
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            id="yardage"
-            name="yardage"
-            value={formData.yardage || ""}
-            onChange={handleChange}
-          />
+      <section className="admin-form-card">
+        <div className="admin-form-card-head">
+          <h2 className="admin-form-card-title">Size Charts</h2>
+          <p className="admin-form-card-desc">
+            Size charts belong to a designer, so only the charts owned by this pattern&apos;s designer can be attached.
+          </p>
         </div>
 
-        <div className="col-md-6 mb-3">
-          <label htmlFor="language" className="form-label">
-            Language
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            id="language"
-            name="language"
-            value={formData.language || ""}
-            onChange={handleChange}
-          />
+        <div className="admin-form-grid">
+          <div className="admin-field admin-field--full">
+            <label htmlFor="sizeCharts" className="admin-label">
+              Applicable Size Charts
+            </label>
+            <select
+              className="admin-multiselect"
+              id="sizeCharts"
+              name="sizeCharts"
+              multiple
+              value={formData.sizeCharts}
+              onChange={(e) => handleMultiSelectChange(e, "sizeCharts")}
+              size={5}
+              disabled={!selectedDesignerId}
+            >
+              {availableSizeCharts.map((chart) => (
+                <option key={chart.id} value={chart.id.toString()}>
+                  {chart.label}
+                </option>
+              ))}
+            </select>
+            <p className="admin-hint">
+              {!selectedDesignerId
+                ? "Select a designer to see their size charts."
+                : availableSizeCharts.length === 0
+                  ? `${selectedDesignerName ?? "This designer"} has no size charts yet.`
+                  : `Showing the ${availableSizeCharts.length} chart${
+                      availableSizeCharts.length === 1 ? "" : "s"
+                    } belonging to ${selectedDesignerName ?? "this designer"}.`}
+            </p>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="row">
-        <div className="col-md-6 mb-3">
-          <label htmlFor="release_date" className="form-label">
-            Release Date
-          </label>
-          <DatePicker
-            selected={formData.release_date}
-            onChange={handleDateChange}
-            className="form-control"
-            dateFormat="yyyy-MM-dd"
-            isClearable
-          />
+      <section className="admin-form-card">
+        <div className="admin-form-card-head">
+          <h2 className="admin-form-card-title">Specifications</h2>
+          <p className="admin-form-card-desc">Optional details shown on the public pattern page.</p>
         </div>
 
-        <div className="col-md-6 mb-3">
-          <label htmlFor="difficulty" className="form-label">
-            Difficulty
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            id="difficulty"
-            name="difficulty"
-            value={formData.difficulty || ""}
-            onChange={handleChange}
-          />
-        </div>
-      </div>
+        <div className="admin-form-grid">
+          <div className="admin-field">
+            <label htmlFor="yardage" className="admin-label">
+              Yardage
+            </label>
+            <input
+              type="text"
+              className="admin-input"
+              id="yardage"
+              name="yardage"
+              value={formData.yardage || ""}
+              onChange={handleChange}
+            />
+          </div>
 
-      <div className="row">
-        <div className="col-md-6 mb-3">
-          <label htmlFor="status" className="form-label">
-            Status
-          </label>
-          <select
-            className="form-select"
-            id="status"
-            name="status"
-            value={formData.status}
-            onChange={handleChange}
-          >
-            <option value="PUBLISHED">Published</option>
-            <option value="IN_TESTING">In Testing</option>
-            <option value="DISCONTINUED">Discontinued</option>
-          </select>
-        </div>
-      </div>
+          <div className="admin-field">
+            <label htmlFor="language" className="admin-label">
+              Language
+            </label>
+            <input
+              type="text"
+              className="admin-input"
+              id="language"
+              name="language"
+              value={formData.language || ""}
+              onChange={handleChange}
+            />
+          </div>
 
-      <div className="d-flex gap-2">
-        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : "Save Pattern"}
+          <div className="admin-field">
+            <label htmlFor="release_date" className="admin-label">
+              Release Date
+            </label>
+            <DatePicker
+              id="release_date"
+              selected={formData.release_date}
+              onChange={handleDateChange}
+              className="admin-input"
+              dateFormat="yyyy-MM-dd"
+              placeholderText="yyyy-mm-dd"
+              isClearable
+            />
+          </div>
+
+          <div className="admin-field">
+            <label htmlFor="difficulty" className="admin-label">
+              Difficulty
+            </label>
+            <input
+              type="text"
+              className="admin-input"
+              id="difficulty"
+              name="difficulty"
+              value={formData.difficulty || ""}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+      </section>
+
+      <div className="admin-form-actions">
+        <button type="submit" className="admin-form-btn admin-form-btn-primary" disabled={isSubmitting}>
+          {isSubmitting ? "Saving..." : pattern ? "Save Pattern" : "Create Pattern"}
         </button>
-        <Link href="/admin/patterns" className="btn btn-outline-secondary">
+        <Link href="/admin/patterns" className="admin-form-btn">
           Cancel
         </Link>
       </div>
