@@ -3015,6 +3015,159 @@
   margin-top: 0.9rem;
 }
 
+/* ---- Column visibility ---- */
+.admin-measure-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.9rem;
+}
+
+.admin-col-toggle {
+  position: relative;
+}
+
+.admin-col-toggle-count {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--admin-muted);
+  border-left: 1px solid var(--admin-border);
+  margin-left: 0.15rem;
+  padding-left: 0.5rem;
+}
+
+.admin-col-menu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  z-index: 20;
+  width: 17rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  background-color: var(--admin-surface);
+  box-shadow: 0 12px 28px rgba(43, 36, 38, 0.14);
+  overflow: hidden;
+}
+
+.admin-col-menu-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-col-menu-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--admin-muted);
+}
+
+.admin-col-menu-acts {
+  display: flex;
+  gap: 0.6rem;
+}
+
+/* 17 measurements exceed a comfortable menu height, so the list scrolls while
+   the Show all / Hide empty actions stay put in the header. */
+.admin-col-menu-list {
+  max-height: 17rem;
+  overflow-y: auto;
+  padding: 0.3rem;
+}
+
+.admin-col-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  margin: 0;
+  padding: 0.4rem 0.5rem;
+  border-radius: 7px;
+  font-size: 0.86rem;
+  color: var(--admin-text);
+  cursor: pointer;
+}
+
+.admin-col-menu-item:hover {
+  background-color: var(--admin-rose-tint);
+}
+
+/* The real checkbox stays in the accessibility tree and keeps keyboard and
+   screen-reader behaviour; the styled box beside it is decorative. */
+.admin-col-menu-native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-col-menu-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 4px;
+  background-color: var(--admin-surface);
+  color: #fff;
+}
+
+.admin-col-menu-item:has(.admin-col-menu-native:checked) .admin-col-menu-box {
+  background-color: var(--admin-rose-deep);
+  border-color: var(--admin-rose-deep);
+}
+
+.admin-col-menu-item:has(.admin-col-menu-native:focus-visible) .admin-col-menu-box {
+  box-shadow: 0 0 0 3px var(--admin-rose-tint);
+}
+
+.admin-col-menu-label {
+  flex: 1 1 auto;
+}
+
+/* Marks a measurement that holds values, so it's clear when hiding one puts
+   real data out of view. */
+.admin-col-menu-dot {
+  flex-shrink: 0;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background-color: var(--admin-rose);
+}
+
+.admin-measure-hidden-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--admin-muted);
+}
+
+.admin-measure-link {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--admin-rose-deep);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.admin-measure-link:hover {
+  color: var(--admin-rose);
+}
+
 .admin-measure-card {
   padding-left: 0;
   padding-right: 0;

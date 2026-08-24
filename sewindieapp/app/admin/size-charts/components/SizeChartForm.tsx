@@ -1,9 +1,9 @@
 "use client"
 import type React from "react"
-import { useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Info, Plus, X } from "lucide-react"
+import { Check, Info, Plus, SlidersHorizontal, X } from "lucide-react"
 // Prisma 7 removed the `@prisma/client/runtime/library` entry point; Decimal is
 // now re-exported on the generated `Prisma` namespace.
 import type { Prisma } from "@prisma/client"
@@ -154,6 +154,38 @@ const MEASUREMENT_COLUMNS: { key: MeasurementKey; label: string }[] = [
   { key: "height", label: "Height" },
 ]
 
+// Column visibility is remembered per browser. Only brand-new charts are seeded
+// from it — an existing chart derives its own visible set from its content,
+// which is more specific than a global preference.
+const COLUMN_PREFS_KEY = "sewindie:size-chart-hidden-columns"
+
+// Which measurements this saved chart actually uses. Every measurement follows
+// the `<key>_min` / `<key>_max` column convention, so this can be derived
+// straight from the DB row without going through the form's string formatting.
+const usedColumnsFromChart = (rows: SerializableSizeChartRow[]): Set<MeasurementKey> => {
+  const used = new Set<MeasurementKey>()
+  for (const row of rows) {
+    for (const col of MEASUREMENT_COLUMNS) {
+      const record = row as unknown as Record<string, number | string | null | undefined>
+      if (record[`${col.key}_min`] != null || record[`${col.key}_max`] != null) {
+        used.add(col.key)
+      }
+    }
+  }
+  return used
+}
+
+// Which measurements currently have something typed in them.
+const columnsWithData = (rows: FormSizeChartRowData[]): Set<MeasurementKey> => {
+  const filled = new Set<MeasurementKey>()
+  for (const row of rows) {
+    for (const col of MEASUREMENT_COLUMNS) {
+      if (row[col.key].trim() !== "") filled.add(col.key)
+    }
+  }
+  return filled
+}
+
 // Helper function to parse a measurement input string into min/max numbers
 const parseMeasurementInput = (input: string): { min: number | null; max: number | null } => {
   const trimmedInput = input.trim()
@@ -227,6 +259,76 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
 
   // Echoed in the format hint so the numbers being typed are unambiguous.
   const unitLabel = formData.measurement_unit === "cm" ? "centimetres" : "inches"
+
+  // Derived from props only, so the server and first client render agree.
+  // Stored preferences are applied later, in an effect, because localStorage
+  // isn't available during SSR and reading it here would break hydration.
+  const [hiddenCols, setHiddenCols] = useState<Set<MeasurementKey>>(() => {
+    if (!sizeChart) return new Set()
+    const used = usedColumnsFromChart(sizeChart.SizeChartRow)
+    return new Set(MEASUREMENT_COLUMNS.filter((col) => !used.has(col.key)).map((col) => col.key))
+  })
+  const [colMenuOpen, setColMenuOpen] = useState(false)
+  const colMenuRef = useRef<HTMLDivElement>(null)
+
+  // Seed a new chart from the saved preference. Unknown keys are filtered out
+  // so a renamed or removed measurement in a stale preference is ignored.
+  useEffect(() => {
+    if (sizeChart) return
+    try {
+      const raw = window.localStorage.getItem(COLUMN_PREFS_KEY)
+      if (!raw) return
+      const stored = JSON.parse(raw) as unknown
+      if (!Array.isArray(stored)) return
+      setHiddenCols(new Set(MEASUREMENT_COLUMNS.filter((col) => stored.includes(col.key)).map((col) => col.key)))
+    } catch {
+      // A corrupt or unavailable store just means "no preference".
+    }
+  }, [sizeChart])
+
+  // Same dismissal behaviour as the metadata add menu.
+  useEffect(() => {
+    if (!colMenuOpen) return
+    const onPointerDown = (e: MouseEvent) => {
+      if (colMenuRef.current && !colMenuRef.current.contains(e.target as Node)) setColMenuOpen(false)
+    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setColMenuOpen(false)
+    }
+    document.addEventListener("mousedown", onPointerDown)
+    document.addEventListener("keydown", onKeyDown)
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown)
+      document.removeEventListener("keydown", onKeyDown)
+    }
+  }, [colMenuOpen])
+
+  const applyHidden = (next: Set<MeasurementKey>) => {
+    setHiddenCols(next)
+    try {
+      window.localStorage.setItem(COLUMN_PREFS_KEY, JSON.stringify([...next]))
+    } catch {
+      // Preference is a convenience; failing to store it must not block editing.
+    }
+  }
+
+  const filledCols = useMemo(() => columnsWithData(formData.rows), [formData.rows])
+  const visibleColumns = MEASUREMENT_COLUMNS.filter((col) => !hiddenCols.has(col.key))
+  const hiddenCount = MEASUREMENT_COLUMNS.length - visibleColumns.length
+  // Surfaced in the notice: hiding never deletes anything, but a hidden column
+  // holding values is worth calling out so it isn't forgotten on save.
+  const hiddenWithData = MEASUREMENT_COLUMNS.filter((col) => hiddenCols.has(col.key) && filledCols.has(col.key)).length
+
+  const toggleCol = (key: MeasurementKey) => {
+    const next = new Set(hiddenCols)
+    if (next.has(key)) next.delete(key)
+    else next.add(key)
+    applyHidden(next)
+  }
+
+  const showAllCols = () => applyHidden(new Set())
+  const hideEmptyCols = () =>
+    applyHidden(new Set(MEASUREMENT_COLUMNS.filter((col) => !filledCols.has(col.key)).map((col) => col.key)))
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -448,10 +550,85 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
               bound. Leave a cell empty to omit that measurement. Values are in {unitLabel}.
             </span>
           </div>
+
+          <div className="admin-measure-toolbar">
+            <div className="admin-col-toggle" ref={colMenuRef}>
+              <button
+                type="button"
+                className="admin-form-btn"
+                onClick={() => setColMenuOpen((o) => !o)}
+                aria-haspopup="true"
+                aria-expanded={colMenuOpen}
+              >
+                <SlidersHorizontal size={15} />
+                Columns
+                <span className="admin-col-toggle-count">
+                  {visibleColumns.length}/{MEASUREMENT_COLUMNS.length}
+                </span>
+              </button>
+
+              {colMenuOpen && (
+                <div className="admin-col-menu">
+                  <div className="admin-col-menu-head">
+                    <span className="admin-col-menu-title">Measurements</span>
+                    <div className="admin-col-menu-acts">
+                      <button type="button" className="admin-measure-link" onClick={showAllCols}>
+                        Show all
+                      </button>
+                      <button type="button" className="admin-measure-link" onClick={hideEmptyCols}>
+                        Hide empty
+                      </button>
+                    </div>
+                  </div>
+                  <div className="admin-col-menu-list">
+                    {MEASUREMENT_COLUMNS.map((col) => {
+                      const isVisible = !hiddenCols.has(col.key)
+                      return (
+                        <label key={col.key} className="admin-col-menu-item">
+                          <input
+                            type="checkbox"
+                            className="admin-col-menu-native"
+                            checked={isVisible}
+                            onChange={() => toggleCol(col.key)}
+                          />
+                          <span className="admin-col-menu-box" aria-hidden="true">
+                            {isVisible && <Check size={12} strokeWidth={3} />}
+                          </span>
+                          <span className="admin-col-menu-label">{col.label}</span>
+                          {filledCols.has(col.key) && (
+                            <span className="admin-col-menu-dot" title="Has values in this chart" />
+                          )}
+                        </label>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {hiddenCount > 0 && (
+              <span className="admin-measure-hidden-note">
+                {hiddenCount} {hiddenCount === 1 ? "column" : "columns"} hidden
+                {hiddenWithData > 0 && ` (${hiddenWithData} with values)`}
+                <button type="button" className="admin-measure-link" onClick={showAllCols}>
+                  Show all
+                </button>
+              </span>
+            )}
+          </div>
         </div>
 
         {formData.rows.length === 0 ? (
           <p className="admin-measure-empty">No sizes yet. Add your first size to start building this chart.</p>
+        ) : visibleColumns.length === 0 ? (
+          /* Reachable by unchecking all 17 — without this the table renders as
+             a bare Size + Remove pair with no obvious way back. */
+          <p className="admin-measure-empty">
+            Every measurement is hidden.{" "}
+            <button type="button" className="admin-measure-link" onClick={showAllCols}>
+              Show all columns
+            </button>
+          </p>
         ) : (
           <div className="admin-measure-scroll">
             <table className="admin-measure-table">
@@ -460,7 +637,7 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                   <th className="admin-measure-col-size">
                     Size <span className="admin-label-req">*</span>
                   </th>
-                  {MEASUREMENT_COLUMNS.map((col) => (
+                  {visibleColumns.map((col) => (
                     <th key={col.key}>{col.label}</th>
                   ))}
                   <th>Remove</th>
@@ -481,7 +658,7 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
                         required
                       />
                     </td>
-                    {MEASUREMENT_COLUMNS.map((col) => (
+                    {visibleColumns.map((col) => (
                       <td key={col.key}>
                         <input
                           type="text"
