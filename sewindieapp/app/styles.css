@@ -2095,61 +2095,34 @@ button.ui-btn-block {
   margin-bottom: 1.5rem;
 }
 
-.pcats-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-}
-
 .pcats-heading {
-  margin: 0;
+  margin: 0 0 0.75rem;
   font-family: var(--font-heading);
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--color-dark);
 }
 
-.pcats-all-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  border: none;
-  background: none;
-  padding: 0;
-  font-family: var(--font-heading);
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--site-plum);
-  cursor: pointer;
-}
-
-.pcats-all-toggle:hover {
-  text-decoration: underline;
-}
-
-/* Wrapping flex rather than fixed columns: the tiles are label-width, so they
-   reflow to fill the row at any breakpoint without leaving gaps. */
+/* An explicit column count rather than wrapping flex: with the "View all" tile
+   back in the row, a flex-basis grow would stretch a lone trailing tile into a
+   full-width bar. Fixed tracks keep all eight the same size. */
 .pcats-row {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.6rem;
 }
 
 .pcats-tile {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 0.15rem;
-  flex: 1 1 8.5rem;
-  min-width: 8.5rem;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.35rem;
   border: 1px solid #eadfe0;
   border-radius: 10px;
   background-color: #fff;
-  padding: 0.8rem 0.9rem;
-  text-align: left;
+  padding: 0.9rem 0.5rem 0.8rem;
+  text-align: center;
   cursor: pointer;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
@@ -2164,17 +2137,36 @@ button.ui-btn-block {
   background-color: var(--site-blush);
 }
 
-.pcats-tile-name {
-  font-family: var(--font-heading);
-  font-size: 0.92rem;
-  font-weight: 600;
+.pcats-tile-icon {
+  flex-shrink: 0;
   color: var(--site-plum);
 }
 
+.pcats-tile-name {
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--site-plum);
+  /* Category names are database values, so long ones like
+     "Sweater / Sweatshirt" have to wrap inside a narrow track. */
+  text-wrap: balance;
+}
+
 .pcats-tile-count {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--color-muted);
   font-variant-numeric: tabular-nums;
+  /* Pushed to the bottom so counts align across tiles whose labels wrap to a
+     different number of lines. */
+  margin-top: auto;
+  padding-top: 0.15rem;
+}
+
+/* The disclosure tile has no count, so its label sits optically centred with
+   the ones that do. */
+.pcats-tile-all .pcats-tile-name {
+  margin-bottom: auto;
 }
 
 .pcats-all {
@@ -3039,6 +3031,10 @@ button.ui-btn-block {
   .pdetail-specs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .pcats-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 @media (min-width: 768px) {
@@ -3061,6 +3057,11 @@ button.ui-btn-block {
 @media (min-width: 992px) {
   .patterns-body {
     grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+  }
+
+  /* All seven categories plus "View all" on one row, as in the mockup. */
+  .pcats-row {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
   }
 
   /* Rail follows the results column on long result pages. */

@@ -2,12 +2,50 @@
 
 import { useState } from "react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
-import { LayoutGrid, X } from "lucide-react"
+import { LayoutGrid, Shirt, X } from "lucide-react"
+import {
+  CoatIcon,
+  DressIcon,
+  type GarmentIconProps,
+  JumpsuitIcon,
+  PantsIcon,
+  ShortsIcon,
+  SkirtIcon,
+  SweaterIcon,
+  TopIcon,
+} from "./GarmentIcons"
 
 type CategoryOption = {
   id: number
   name: string
   count: number
+}
+
+/**
+ * Category names come from the database, so the tiles match on keywords rather
+ * than exact strings or ids -- renaming "Pants / Jeans" or promoting a new
+ * category into the top seven shouldn't silently drop its icon.
+ *
+ * Order is significant: "Sweater / Sweatshirt" contains "shirt", so the knit
+ * test has to run before the tops test, and "shorts" before "short sleeve".
+ */
+const ICON_RULES: Array<[RegExp, (props: GarmentIconProps) => React.JSX.Element]> = [
+  [/dress|gown/, DressIcon],
+  [/skirt/, SkirtIcon],
+  [/sweat|hoodie|jumper|knit|cardigan/, SweaterIcon],
+  [/coat|jacket|blazer|outerwear|vest/, CoatIcon],
+  [/short/, ShortsIcon],
+  [/jumpsuit|romper|overall|dungaree/, JumpsuitIcon],
+  [/pant|jean|trouser|legging|bottom/, PantsIcon],
+  [/top|shirt|tee|blouse|tank|bodice/, TopIcon],
+]
+
+function categoryIcon(name: string) {
+  const key = name.toLowerCase()
+  const match = ICON_RULES.find(([pattern]) => pattern.test(key))
+  // Falls back to lucide's shirt so an unmapped category still gets a glyph
+  // and the tiles keep a uniform height.
+  return match ? match[1] : Shirt
 }
 
 type CategoryTilesProps = {
@@ -43,28 +81,14 @@ export default function CategoryTiles({ popular, all }: CategoryTilesProps) {
 
   return (
     <section className="pcats" aria-labelledby="pcats-heading">
-      <div className="pcats-head">
-        <h2 className="pcats-heading" id="pcats-heading">
-          Popular categories
-        </h2>
-
-        {/* Sits with the heading rather than in the tile row: as an eighth
-            tile it stretched into a full-width bar on its own line. */}
-        <button
-          type="button"
-          className="pcats-all-toggle"
-          onClick={() => setShowAll((prev) => !prev)}
-          aria-expanded={showAll}
-          aria-controls="pcats-all"
-        >
-          {showAll ? <X size={15} aria-hidden="true" /> : <LayoutGrid size={15} aria-hidden="true" />}
-          {showAll ? "Hide all categories" : `View all ${all.length} categories`}
-        </button>
-      </div>
+      <h2 className="pcats-heading" id="pcats-heading">
+        Popular categories
+      </h2>
 
       <div className="pcats-row">
         {popular.map((cat) => {
           const isActive = selected.includes(cat.id.toString())
+          const Icon = categoryIcon(cat.name)
           return (
             <button
               key={cat.id}
@@ -73,13 +97,29 @@ export default function CategoryTiles({ popular, all }: CategoryTilesProps) {
               onClick={() => toggleCategory(cat.id)}
               aria-pressed={isActive}
             >
+              <Icon size={30} className="pcats-tile-icon" />
               <span className="pcats-tile-name">{cat.name}</span>
-              <span className="pcats-tile-count">
-                {cat.count.toLocaleString()} {cat.count === 1 ? "pattern" : "patterns"}
-              </span>
+              <span className="pcats-tile-count">{cat.count.toLocaleString()}</span>
             </button>
           )
         })}
+
+        {/* The eighth tile, matching the mockup. It's a disclosure rather than a
+            filter, so it carries aria-expanded instead of aria-pressed. */}
+        <button
+          type="button"
+          className={`pcats-tile pcats-tile-all ${showAll ? "pcats-tile-on" : ""}`}
+          onClick={() => setShowAll((prev) => !prev)}
+          aria-expanded={showAll}
+          aria-controls="pcats-all"
+        >
+          {showAll ? (
+            <X size={30} className="pcats-tile-icon" aria-hidden="true" />
+          ) : (
+            <LayoutGrid size={30} className="pcats-tile-icon" aria-hidden="true" />
+          )}
+          <span className="pcats-tile-name">{showAll ? "Hide categories" : "View all categories"}</span>
+        </button>
       </div>
 
       {showAll && (
