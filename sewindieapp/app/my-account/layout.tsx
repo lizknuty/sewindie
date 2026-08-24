@@ -2,8 +2,7 @@ import type React from "react"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import { redirect } from "next/navigation"
-import AccountSidebar from "@/my-account/components/AccountSidebar"
-import SidebarToggle from "@/components/SidebarToggle"
+import AccountTabs from "@/my-account/components/AccountTabs"
 
 export default async function AccountLayout({
   children,
@@ -16,18 +15,14 @@ export default async function AccountLayout({
     redirect("/login?callbackUrl=/my-account")
   }
 
+  // Tabs replace the old pinned sidebar, which overlapped the site header and
+  // hid the brand. Each page supplies its own <h1>, so the layout deliberately
+  // has no heading of its own — previously "My Account" appeared three times on
+  // one screen (navbar, layout header, and page title).
   return (
-    <div className="layout-container">
-      <div id="account-sidebar" className="sidebar-column">
-        <AccountSidebar user={session.user} />
-      </div>
-      <div className="content-wrapper">
-        <header className="content-header">
-          <SidebarToggle targetId="account-sidebar" />
-          <h1 className="d-none d-md-block">My Account</h1>
-        </header>
-        <main className="content-main p-4">{children}</main>
-      </div>
+    <div className="account-page">
+      <AccountTabs />
+      <main>{children}</main>
     </div>
   )
 }

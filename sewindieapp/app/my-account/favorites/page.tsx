@@ -9,7 +9,7 @@ export default async function FavoritesPage() {
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.email) {
-    return <div>No user information available</div>
+    return <div className="account-empty">No user information available</div>
   }
 
   // Get user's favorites
@@ -19,7 +19,7 @@ export default async function FavoritesPage() {
   })
 
   if (!user) {
-    return <div>User not found</div>
+    return <div className="account-empty">User not found</div>
   }
 
   const favorites = await prisma.favorite.findMany({
@@ -38,38 +38,51 @@ export default async function FavoritesPage() {
 
   return (
     <div>
-      <h1 className="mb-4">My Favorites</h1>
+      <header className="account-head">
+        <h1 className="account-title">My Favorites</h1>
+        <p className="account-subtitle">
+          {favorites.length === 0
+            ? "Patterns you save will appear here."
+            : `${favorites.length} ${favorites.length === 1 ? "pattern" : "patterns"} saved, newest first.`}
+        </p>
+      </header>
 
       {favorites.length === 0 ? (
-        <div className="alert alert-info">You haven't favorited any patterns yet.</div>
+        <div className="account-empty">
+          <p className="account-empty-title">No favorites yet</p>
+          <p className="account-empty-text">
+            Browse the pattern library and use the heart on any pattern to save it here for later.
+          </p>
+          <Link href="/patterns" className="account-btn account-empty-cta">
+            Browse patterns
+          </Link>
+        </div>
       ) : (
-        <div className="row">
+        <div className="account-grid">
           {favorites.map((favorite: (typeof favorites)[number]) => (
-            <div key={`${favorite.patternId}-${favorite.userId}`} className="col-md-4 mb-4">
-              <div className="card h-100">
+            /* The card itself is the link, so the whole tile is the target
+               instead of a small button inside it. */
+            <Link
+              key={`${favorite.patternId}-${favorite.userId}`}
+              href={`/patterns/${favorite.patternId}`}
+              className="account-item"
+            >
+              <div className="account-item-media">
                 <PatternThumbnail
                   src={favorite.pattern.thumbnail_url}
                   alt={favorite.pattern.name}
-                  width={300}
-                  height={300}
-                  className="card-img-top"
+                  fill
+                  sizes="(min-width: 992px) 25vw, (min-width: 576px) 50vw, 100vw"
                 />
-                <div className="card-body">
-                  <h5 className="card-title">{favorite.pattern.name}</h5>
-                  <p className="card-text">By {favorite.pattern.designer.name}</p>
-                  <p className="card-text">
-                    <small className="text-muted">
-                      Favorited {formatDistanceToNow(new Date(favorite.createdAt), { addSuffix: true })}
-                    </small>
-                  </p>
-                </div>
-                <div className="card-footer bg-transparent border-top-0">
-                  <Link href={`/patterns/${favorite.patternId}`} className="btn btn-primary">
-                    View Pattern
-                  </Link>
-                </div>
               </div>
-            </div>
+              <div className="account-item-body">
+                <h2 className="account-item-name">{favorite.pattern.name}</h2>
+                <p className="account-item-designer">{favorite.pattern.designer.name}</p>
+                <span className="account-item-meta">
+                  Saved {formatDistanceToNow(new Date(favorite.createdAt), { addSuffix: true })}
+                </span>
+              </div>
+            </Link>
           ))}
         </div>
       )}

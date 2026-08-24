@@ -1390,3 +1390,428 @@ a:not(.btn):not(.nav-link):focus {
     padding: 2.5rem;
   }
 }
+
+/* ===========================================================================
+   My Account
+   These pages render under the public root layout, not .admin-shell, so the
+   admin-* classes are out of scope here. They use --site-plum, the same accent
+   the admin sidebar highlights with, so the two areas stay related.
+   Navigation is a horizontal tab row rather than a left rail: the old sidebar
+   was pinned to the top of the viewport and covered the site brand.
+   =========================================================================== */
+.account-page {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.account-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 1.25rem;
+}
+
+.account-title {
+  font-family: var(--font-heading);
+  font-size: 1.9rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  margin: 0;
+}
+
+.account-subtitle {
+  font-size: 0.94rem;
+  color: var(--color-muted);
+  margin: 0;
+}
+
+/* Tabs scroll rather than wrap on narrow screens, so the row stays one line
+   and the active tab's underline never detaches from the content below. */
+.account-tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid #e7dcdd;
+  margin-bottom: 2rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.account-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.account-tab {
+  position: relative;
+  flex: 0 0 auto;
+  padding: 0.7rem 0.95rem;
+  font-family: var(--font-heading);
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--color-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+.account-tab:hover {
+  color: var(--color-dark);
+}
+
+.account-tab-active {
+  color: var(--site-plum);
+  font-weight: 600;
+}
+
+/* Sits on top of the row's own 1px border rather than adding height, so
+   switching tabs doesn't shift the content below by a pixel. */
+.account-tab-active::after {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background-color: var(--site-plum);
+}
+
+.account-card {
+  border: 1px solid #eadfe0;
+  border-radius: 12px;
+  background-color: #fff;
+  padding: 1.5rem;
+}
+
+.account-card-title {
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin: 0 0 1.1rem;
+}
+
+/* Definition list: these are read-only account facts, not editable fields, so
+   dt/dd carries the label-value relationship without implying a form. */
+.account-facts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
+  margin: 0;
+}
+
+.account-fact-label {
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-bottom: 0.15rem;
+}
+
+.account-fact-value {
+  font-size: 0.98rem;
+  color: var(--color-dark);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.account-stat-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.account-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  border: 1px solid #eadfe0;
+  border-radius: 12px;
+  background-color: #fff;
+  padding: 1.25rem 1.5rem;
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.account-stat:hover {
+  border-color: var(--site-plum);
+  box-shadow: 0 8px 20px rgba(138, 63, 92, 0.1);
+  transform: translateY(-2px);
+}
+
+.account-stat-value {
+  font-family: var(--font-heading);
+  font-size: 2.1rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--site-plum);
+  font-variant-numeric: tabular-nums;
+}
+
+.account-stat-label {
+  font-size: 0.86rem;
+  color: var(--color-muted);
+}
+
+.account-stat-link {
+  margin-top: 0.5rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--site-plum);
+}
+
+/* ---- Saved pattern / rating grids ---- */
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 1.5rem;
+}
+
+/* The whole card is one link, so there's no separate "View Pattern" button
+   competing with it for the same destination. */
+.account-item {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #eadfe0;
+  border-radius: 12px;
+  background-color: #fff;
+  overflow: hidden;
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.account-item:hover {
+  border-color: var(--site-plum);
+  box-shadow: 0 10px 24px rgba(138, 63, 92, 0.12);
+  transform: translateY(-2px);
+}
+
+.account-item-media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background-color: var(--site-blush);
+  overflow: hidden;
+}
+
+.account-item-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.account-item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.9rem 1rem 1.1rem;
+}
+
+.account-item-name {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-dark);
+  margin: 0;
+}
+
+.account-item-designer {
+  font-size: 0.86rem;
+  color: var(--color-muted);
+  margin: 0;
+}
+
+.account-item-meta {
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  color: var(--color-muted);
+}
+
+/* All five stars always render, with unearned ones greyed, so a 2/5 is
+   distinguishable from a 5/5 at a glance. The old grid drew only the earned
+   stars, which made a low score look like a short list. */
+.account-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+}
+
+.account-star-row {
+  display: inline-flex;
+  gap: 0.05rem;
+  color: #e0cfd1;
+}
+
+.account-star-on {
+  color: #d9a72c;
+  fill: #d9a72c;
+}
+
+.account-score {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Empty states ---- */
+.account-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px dashed #dfd0d2;
+  border-radius: 12px;
+  background-color: #fdf8f8;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.account-empty-title {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  margin: 0;
+}
+
+.account-empty-text {
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  margin: 0;
+  max-width: 34rem;
+}
+
+.account-empty-cta {
+  margin-top: 0.6rem;
+}
+
+/* ---- Forms (change password) ---- */
+.account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  max-width: 26rem;
+}
+
+.account-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.account-label {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--color-dark);
+}
+
+.account-input {
+  border: 1px solid #ded0d2;
+  border-radius: 8px;
+  background-color: #fff;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.94rem;
+  font-family: inherit;
+  color: var(--color-dark);
+}
+
+.account-input:focus {
+  outline: none;
+  border-color: var(--site-plum);
+  box-shadow: 0 0 0 3px rgba(138, 63, 92, 0.13);
+}
+
+.account-input:disabled {
+  background-color: #f7f2f2;
+  cursor: not-allowed;
+}
+
+.account-help {
+  font-size: 0.79rem;
+  color: var(--color-muted);
+}
+
+.account-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  border: 1px solid var(--site-plum);
+  border-radius: 8px;
+  background-color: var(--site-plum);
+  padding: 0.55rem 1.1rem;
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.account-btn:hover {
+  background-color: var(--site-plum-hover);
+  border-color: var(--site-plum-hover);
+  color: #fff;
+}
+
+.account-btn:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
+.account-btn-quiet {
+  background-color: transparent;
+  color: var(--site-plum);
+}
+
+.account-btn-quiet:hover {
+  background-color: var(--site-blush);
+  color: var(--site-plum-hover);
+}
+
+.account-alert {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.88rem;
+  margin-bottom: 1.1rem;
+}
+
+.account-alert-success {
+  border-color: #bcd9c2;
+  background-color: #f0f8f2;
+  color: #1f5130;
+}
+
+.account-alert-error {
+  border-color: #e6c0bd;
+  background-color: #fdf3f2;
+  color: #8a2b22;
+}
+
+@media (min-width: 576px) {
+  .account-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .account-stat-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .account-page {
+    padding: 2.5rem 2rem 4rem;
+  }
+
+  .account-facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
