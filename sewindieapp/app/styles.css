@@ -2637,7 +2637,7 @@ button.ui-btn-block {
   display: flex;
   flex-direction: column;
   height: 100%;
-  border: 1px solid #eadfe0;
+  border: 1px solid var(--color-dark);
   border-radius: 12px;
   background-color: #fff;
   overflow: hidden;
@@ -2651,11 +2651,12 @@ button.ui-btn-block {
 }
 
 /* contain, not cover: pattern envelope art is the product photo and cropping
-   it cuts off the garment illustration. Blush fills the letterboxing. */
+   it cuts off the garment illustration. The letterboxing stays white so the
+   whole card reads as a single white surface inside the black border. */
 .pcard-media {
   position: relative;
   aspect-ratio: 1 / 1;
-  background-color: var(--site-blush);
+  background-color: #fff;
 }
 
 .pcard-media img {
