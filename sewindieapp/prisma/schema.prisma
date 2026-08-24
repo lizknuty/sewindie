@@ -69,6 +69,21 @@ model Designer {
   status    DesignerStatus @default(PUBLISHED)
   patterns  Pattern[]
   SizeChart SizeChart[]
+  featured  FeaturedDesigner?
+}
+
+/// An editorially pinned designer for the homepage "Featured Designers" rail.
+/// Rows here lead the rail in `position` order and the automatic
+/// most-patterns-first query fills the remaining slots, so the rail is never
+/// short even when nothing is pinned. See app/page.tsx.
+model FeaturedDesigner {
+  id          Int      @id @default(autoincrement())
+  designer_id Int      @unique
+  position    Int
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  designer    Designer @relation(fields: [designer_id], references: [id], onDelete: Cascade)
+
+  @@index([position])
 }
 
 model FabricType {
@@ -104,6 +119,20 @@ model Pattern {
   PatternSizeChart       PatternSizeChart[]
   PatternSuggestedFabric PatternSuggestedFabric[]
   ratings                Rating[]
+  featured               FeaturedPattern?
+}
+
+/// An editorially pinned pattern for the homepage "New & Noteworthy" rail.
+/// Same contract as FeaturedDesigner: pinned rows lead in `position` order and
+/// the automatic newest-first query backfills the rest.
+model FeaturedPattern {
+  id         Int      @id @default(autoincrement())
+  pattern_id Int      @unique
+  position   Int
+  createdAt  DateTime @default(now()) @db.Timestamp(6)
+  pattern    Pattern  @relation(fields: [pattern_id], references: [id], onDelete: Cascade)
+
+  @@index([position])
 }
 
 model PatternAttribute {
