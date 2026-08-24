@@ -25,19 +25,20 @@ model Category {
 }
 
 model Designer {
-  id        Int            @id @default(autoincrement())
-  name      String         @db.VarChar(255)
-  url       String
-  logo_url  String?
-  email     String?        @db.VarChar(255)
-  address   String?        @db.VarChar(255)
-  facebook  String?
-  instagram String?
-  pinterest String?
-  youtube   String?
-  status    DesignerStatus @default(PUBLISHED)
-  patterns  Pattern[]
-  SizeChart SizeChart[]
+  id               Int               @id @default(autoincrement())
+  name             String            @db.VarChar(255)
+  url              String
+  logo_url         String?
+  email            String?           @db.VarChar(255)
+  address          String?           @db.VarChar(255)
+  facebook         String?
+  instagram        String?
+  pinterest        String?
+  youtube          String?
+  status           DesignerStatus    @default(PUBLISHED)
+  FeaturedDesigner FeaturedDesigner?
+  patterns         Pattern[]
+  SizeChart        SizeChart[]
 }
 
 model FabricType {
@@ -64,6 +65,7 @@ model Pattern {
   release_date           DateTime?                @db.Date
   status                 PatternStatus            @default(PUBLISHED)
   favorites              Favorite[]
+  FeaturedPattern        FeaturedPattern?
   designer               Designer                 @relation(fields: [designer_id], references: [id])
   PatternAttribute       PatternAttribute[]
   PatternAudience        PatternAudience[]
@@ -299,6 +301,26 @@ model LinkCheck {
   @@index([host])
   @@index([kind, status])
   @@index([status])
+}
+
+model FeaturedDesigner {
+  id          Int      @id @default(autoincrement())
+  designer_id Int      @unique
+  position    Int
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  Designer    Designer @relation(fields: [designer_id], references: [id], onDelete: Cascade)
+
+  @@index([position])
+}
+
+model FeaturedPattern {
+  id         Int      @id @default(autoincrement())
+  pattern_id Int      @unique
+  position   Int
+  createdAt  DateTime @default(now()) @db.Timestamp(6)
+  Pattern    Pattern  @relation(fields: [pattern_id], references: [id], onDelete: Cascade)
+
+  @@index([position])
 }
 
 enum MeasurementUnit {
