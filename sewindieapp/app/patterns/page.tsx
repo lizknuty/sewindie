@@ -4,9 +4,13 @@ import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
 import PatternSorter from '@/components/PatternSorter'
 import PatternFilters from '@/components/PatternFilters'
-import PatternSearch from '@/components/PatternSearch'
 import PatternCard from '@/components/PatternCard'
 import PaginationControls from '@/components/PaginationControls'
+import PatternsHero from '@/components/PatternsHero'
+import CategoryTiles from '@/components/CategoryTiles'
+import ActiveFilterChips from '@/components/ActiveFilterChips'
+import PatternViewToggle from '@/components/PatternViewToggle'
+import PatternListRow from '@/components/PatternListRow'
 import { Metadata } from 'next'
 
 type Pattern = {
@@ -23,7 +27,13 @@ type Pattern = {
       name: string;
     }
   }[];
+  // Already fetched for the filter joins; the list view surfaces them as
+  // per-row metadata instead of leaving them unused.
+  PatternFabricType: { fabricType: { id: number; name: string } }[];
+  PatternAudience: { audience: { id: number; name: string } }[];
 }
+
+type ViewMode = 'grid' | 'list'
 
 type FilterOption = {
   id: number;
@@ -43,6 +53,9 @@ export default async function PatternsPage({ searchParams }: PageProps) {
   const sort = (resolvedSearchParams.sort as SortOption) || 'name_asc';
   const page = parseInt(typeof resolvedSearchParams.page === 'string' ? resolvedSearchParams.page : '1', 10);
   const perPage = parseInt(typeof resolvedSearchParams.perPage === 'string' ? resolvedSearchParams.perPage : '40', 10);
+  // Anything other than an explicit 'list' falls back to grid, so a malformed
+  // ?view= value renders the default rather than nothing.
+  const view: ViewMode = resolvedSearchParams.view === 'list' ? 'list' : 'grid';
 
   const ensureArray = (value: string | string[] | undefined): string[] => {
     if (Array.isArray(value)) return value;
@@ -162,7 +175,11 @@ export default async function PatternsPage({ searchParams }: PageProps) {
         skip: (page - 1) * perPage,
         take: perPage === -1 ? undefined : perPage,
       }),
-      prisma.category.findMany({ select: { id: true, name: true } }),
+      // Counts drive the quick-search tiles, so the featured categories come
+      // from the data rather than a hardcoded list of ids that could rot.
+      prisma.category.findMany({
+        select: { id: true, name: true, _count: { select: { PatternCategory: true } } },
+      }),
       prisma.attribute.findMany({ select: { id: true, name: true } }),
       prisma.format.findMany({ select: { id: true, name: true } }),
       prisma.audience.findMany({ select: { id: true, name: true } }),
@@ -176,70 +193,109 @@ export default async function PatternsPage({ searchParams }: PageProps) {
 
     const totalPages = perPage === -1 ? 1 : Math.ceil(totalPatterns / perPage);
 
+    // Flatten the relation count once so the client components don't have to
+    // know about Prisma's _count shape.
+    const categoryOptions = categories.map((c) => ({
+      id: c.id,
+      name: c.name,
+      count: c._count.PatternCategory,
+    }));
+
+    const categoriesByName = [...categoryOptions].sort((a, b) => a.name.localeCompare(b.name));
+    const popularCategories = [...categoryOptions].sort((a, b) => b.count - a.count).slice(0, 7);
+
+    const filterOptionMap = {
+      category: categoriesByName,
+      attribute: attributes,
+      format: formats,
+      audience: audiences,
+      fabricType: fabricTypes,
+      designer: designers,
+    };
+
     return (
       <div className="patterns-page">
-        <header className="patterns-head">
-          <h1 className="patterns-title">Patterns</h1>
-          <p className="patterns-subtitle">
-            Browse independent sewing patterns by category, fabric, size range and designer.
-          </p>
-        </header>
+        <PatternsHero initialSearch={search} />
 
-        <PatternSearch initialSearch={search} />
+        <div className="patterns-shell">
+          <CategoryTiles popular={popularCategories} all={categoriesByName} />
 
-        <div className="patterns-body">
-          <div className="patterns-filters">
-            <PatternFilters
-              categories={categories}
-              attributes={attributes}
-              formats={formats}
-              audiences={audiences}
-              fabricTypes={fabricTypes}
-              designers={designers}
-            />
-          </div>
+          <ActiveFilterChips options={filterOptionMap} />
 
-          <div className="patterns-results">
-            <div className="patterns-toolbar">
-              <PatternSorter />
-              <p className="patterns-count">
-                {totalPatterns.toLocaleString()} {totalPatterns === 1 ? 'pattern' : 'patterns'}
-              </p>
+          <div className="patterns-body">
+            <div className="patterns-filters">
+              <PatternFilters
+                categories={categoriesByName}
+                attributes={attributes}
+                formats={formats}
+                audiences={audiences}
+                fabricTypes={fabricTypes}
+                designers={designers}
+              />
             </div>
 
-            {patterns.length === 0 ? (
-              <div className="patterns-empty">
-                <p className="patterns-empty-title">No patterns match these filters</p>
-                <p className="patterns-empty-text">
-                  Try clearing a filter or searching for a different designer or pattern name.
+            <div className="patterns-results">
+              <div className="patterns-toolbar">
+                <p className="patterns-count">
+                  {totalPatterns.toLocaleString()} {totalPatterns === 1 ? 'pattern' : 'patterns'}
                 </p>
+                <div className="patterns-toolbar-controls">
+                  <PatternSorter />
+                  <PatternViewToggle view={view} />
+                </div>
               </div>
-            ) : (
-              <>
-                <div className="pcard-grid">
-                  {patterns.map((pattern: Pattern) => (
-                    <PatternCard
-                      key={pattern.id}
-                      id={pattern.id}
-                      name={pattern.name}
-                      thumbnail_url={pattern.thumbnail_url}
-                      designer={pattern.designer}
-                      patternCategories={pattern.PatternCategory}
-                    />
-                  ))}
-                </div>
 
-                <div className="patterns-pager-row">
-                  <PaginationControls
-                    currentPage={page}
-                    totalPages={totalPages}
-                    perPage={perPage}
-                    totalItems={totalPatterns}
-                    basePath="/patterns"
-                  />
+              {patterns.length === 0 ? (
+                <div className="patterns-empty">
+                  <p className="patterns-empty-title">No patterns match these filters</p>
+                  <p className="patterns-empty-text">
+                    Try clearing a filter or searching for a different designer or pattern name.
+                  </p>
                 </div>
-              </>
-            )}
+              ) : (
+                <>
+                  {view === 'list' ? (
+                    <div className="prow-list">
+                      {patterns.map((pattern: Pattern) => (
+                        <PatternListRow
+                          key={pattern.id}
+                          id={pattern.id}
+                          name={pattern.name}
+                          thumbnail_url={pattern.thumbnail_url}
+                          designer={pattern.designer}
+                          categories={pattern.PatternCategory.map((pc) => pc.category)}
+                          fabricTypes={pattern.PatternFabricType.map((pf) => pf.fabricType)}
+                          audiences={pattern.PatternAudience.map((pa) => pa.audience)}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="pcard-grid">
+                      {patterns.map((pattern: Pattern) => (
+                        <PatternCard
+                          key={pattern.id}
+                          id={pattern.id}
+                          name={pattern.name}
+                          thumbnail_url={pattern.thumbnail_url}
+                          designer={pattern.designer}
+                          patternCategories={pattern.PatternCategory}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="patterns-pager-row">
+                    <PaginationControls
+                      currentPage={page}
+                      totalPages={totalPages}
+                      perPage={perPage}
+                      totalItems={totalPatterns}
+                      basePath="/patterns"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>

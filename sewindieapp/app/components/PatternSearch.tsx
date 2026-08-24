@@ -42,12 +42,14 @@ const PatternSearch: React.FC<PatternSearchProps> = ({ initialSearch }) => {
         type="search"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search patterns or designers..."
+        placeholder="Search patterns, designers, or keywords..."
         className="pattern-search-input"
       />
+      {/* Icon-only submit, so the accessible name comes from sr-only text
+          rather than a visible label. */}
       <button type="submit" className="pattern-search-btn">
-        <Search size={15} aria-hidden="true" />
-        Search
+        <Search size={18} aria-hidden="true" />
+        <span className="sr-only">Search</span>
       </button>
     </form>
   )
