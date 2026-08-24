@@ -1,67 +1,58 @@
-import Image from 'next/image'
-import { prisma }from '@/lib/prisma'
-import FeaturedCarousel from './components/FeaturedCarousel'
-
-import 'swiper/css'
-import 'swiper/css/navigation'
-import 'swiper/css/pagination'
+import { prisma } from "@/lib/prisma"
+import HomeHero from "./components/HomeHero"
+import FeaturedDesigners from "./components/FeaturedDesigners"
+import NewNoteworthyPatterns from "./components/NewNoteworthyPatterns"
+import CommunityCallout from "./components/CommunityCallout"
 
 export default async function Home() {
-
-  const featuredDesigners = await prisma.designer.findMany({
-    take: 6,
-    select: {
-      id: true,
-      name: true,
-      logo_url: true,
-    },
-    orderBy: {
-      patterns: {
-        _count: 'desc',
+  // Both rails are independent, so overlap the round trips.
+  const [featuredDesigners, featuredPatterns] = await Promise.all([
+    prisma.designer.findMany({
+      take: 10,
+      select: { id: true, name: true, logo_url: true },
+      orderBy: { patterns: { _count: "desc" } },
+    }),
+    prisma.pattern.findMany({
+      take: 12,
+      select: {
+        id: true,
+        name: true,
+        thumbnail_url: true,
+        designer: { select: { name: true } },
+        _count: { select: { favorites: true } },
       },
-    },
-  })
-
-  const featuredPatterns = await prisma.pattern.findMany({
-    take: 6,
-    select: {
-      id: true,
-      name: true,
-      thumbnail_url: true,
-    },
-    orderBy: {
-      id: 'desc',
-    },
-  })
+      orderBy: { id: "desc" },
+    }),
+  ])
 
   return (
-    <div className="d-flex flex-column min-vh-100">
-      <div className="hero-banner position-relative w-100">
-        <Image
-          src="/hero.jpg"
-          alt="Hero image"
-          fill
-          style={{ objectFit: 'cover' }}
-          className="z-1"
-        />
-      </div>
+    <div className="home-page">
+      <HomeHero />
 
-      <main className="flex-grow-1">
-        <div className="container px-4 py-5">
-          <FeaturedCarousel
-            designers={featuredDesigners.map((d: (typeof featuredDesigners)[number]) => ({
+      <div className="home-body">
+        <div className="container px-4">
+          <FeaturedDesigners
+            designers={featuredDesigners.map((d) => ({
               id: d.id,
               name: d.name,
-              imageUrl: d.logo_url || '/placeholder.svg',
-            }))}
-            patterns={featuredPatterns.map((p: (typeof featuredPatterns)[number]) => ({
-              id: p.id,
-              name: p.name,
-              imageUrl: p.thumbnail_url || '/placeholder.svg',
+              logoUrl: d.logo_url,
             }))}
           />
+
+          <NewNoteworthyPatterns
+            patterns={featuredPatterns.map((p) => ({
+              id: p.id,
+              name: p.name,
+              designerName: p.designer.name,
+              // PatternThumbnail resolves null and rotted links to the fallback.
+              thumbnailUrl: p.thumbnail_url,
+              favoriteCount: p._count.favorites,
+            }))}
+          />
+
+          <CommunityCallout />
         </div>
-      </main>
+      </div>
     </div>
   )
 }

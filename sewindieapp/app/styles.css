@@ -21,6 +21,12 @@
   --site-plum: #8a3f5c;
   --site-plum-hover: #74334c;
   --site-blush: #f7e6e6;
+
+  /* Homepage. --home-hero-bg matches the blush backdrop baked into hero.png so
+     the copy panel and the image read as one continuous band. */
+  --home-hero-bg: #fdede7;
+  --home-ink: #1f1f1f;
+  --home-ink-soft: #5c5153;
 }
 
 body {
@@ -866,5 +872,521 @@ a:not(.btn):not(.nav-link):focus {
   .col-md-6 {
     flex: 0 0 auto;
     width: 50%;
+  }
+}
+
+/* =========================================================
+   Homepage
+   Several rules below carry a redundant `:not(.nav-link)` on an
+   `a` selector. It never changes what matches — it only lifts
+   specificity above the global `a:not(.btn):not(.nav-link)` rule
+   that would otherwise repaint every link brand pink.
+   ========================================================= */
+.home-page {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Hero ---- */
+.home-hero {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--home-hero-bg);
+}
+
+.home-hero-copy {
+  display: flex;
+  padding: 3rem 1.5rem;
+}
+
+.home-hero-copy-inner {
+  max-width: 34rem;
+  margin: 0 auto;
+}
+
+.home-hero-title {
+  margin: 0;
+  color: var(--home-ink);
+  font-family: var(--font-heading);
+  font-size: clamp(2.1rem, 6vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.home-hero-lede {
+  margin: 1.25rem 0 0;
+  max-width: 30rem;
+  color: var(--home-ink-soft);
+  font-size: 1.02rem;
+  line-height: 1.6;
+}
+
+/* Wraps by default: at 320px the pair needs 319px of a 288px column, so
+   forcing one line here pushed the second button off-screen and gave the page
+   a horizontal scrollbar. Desktop pins them side by side (see breakpoint). */
+.home-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  margin-top: 1.5rem;
+}
+
+.home-hero-media {
+  position: relative;
+  /* The collage is ~3:2; the aspect box keeps it from collapsing since the
+     image is absolutely positioned by next/image's fill. */
+  aspect-ratio: 3 / 2;
+  width: 100%;
+}
+
+/* contain, not cover: hero.png is a 3:2 collage whose edge content (leaf art,
+   the right-hand photo) gets clipped by cover once the panel is narrower than
+   3:2. The image's own backdrop samples #fcece7-#fdede8, which matches
+   --home-hero-bg, so the letterboxing contain introduces is invisible. */
+.home-hero-image {
+  object-fit: contain;
+  object-position: center;
+}
+
+/* ---- Shared buttons (hero + community CTA) ---- */
+.home-page a.home-btn:not(.nav-link) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--site-plum);
+  font-family: var(--font-heading);
+  font-size: 0.96rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* Hero-only sizing. Scoped to .home-hero-actions so the community CTA, which
+   shares .home-btn, keeps its original size. nowrap stops "Browse Patterns"
+   from breaking across two lines once the pair sits side by side. */
+.home-hero-actions a.home-btn:not(.nav-link) {
+  padding: 0.6rem 1.1rem;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.home-page a.home-btn-dark:not(.nav-link) {
+  background-color: var(--site-plum);
+  color: #fff;
+}
+
+.home-page a.home-btn-dark:not(.nav-link):hover,
+.home-page a.home-btn-dark:not(.nav-link):focus {
+  background-color: var(--site-plum-hover);
+  border-color: var(--site-plum-hover);
+  color: #fff;
+  text-decoration: none;
+}
+
+.home-page a.home-btn-light:not(.nav-link) {
+  background-color: #fff;
+  color: var(--site-plum);
+}
+
+.home-page a.home-btn-light:not(.nav-link):hover,
+.home-page a.home-btn-light:not(.nav-link):focus {
+  background-color: var(--site-blush);
+  color: var(--site-plum);
+  text-decoration: none;
+}
+
+/* ---- White body ---- */
+.home-body {
+  background-color: #fff;
+  padding: 2.5rem 0 3.5rem;
+}
+
+.home-section + .home-section {
+  margin-top: 3rem;
+}
+
+/* wrap: the title is nowrap, so on a 320px screen the title + View all + both
+   arrows can't share a line and used to push the page into horizontal scroll.
+   Wrapping lets the tools drop below the title only when they don't fit. */
+.home-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.home-section-title {
+  margin: 0;
+  color: var(--home-ink);
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  /* Keep the title on one line so it doesn't wrap against the View all /
+     arrow cluster on narrow screens. */
+  white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+  .home-section-title {
+    font-size: 1.3rem;
+  }
+}
+
+/* Visually hidden below 640px, but still rendered so the link's accessible
+   name stays "View all patterns". Uses clip rather than display:none, which
+   would remove it from the accessible name entirely. */
+.home-view-all-suffix {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+  .home-view-all-suffix {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+}
+
+.home-section-tools {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.home-body a.home-view-all:not(.nav-link) {
+  color: var(--site-plum);
+  font-size: 0.88rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.home-body a.home-view-all:not(.nav-link):hover,
+.home-body a.home-view-all:not(.nav-link):focus {
+  color: var(--site-plum-hover);
+  text-decoration: underline;
+}
+
+/* ---- Designer rail ---- */
+.home-rail-nav {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.home-rail-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e4d9dc;
+  border-radius: 50%;
+  background-color: #fff;
+  color: var(--home-ink);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.home-rail-btn:hover:not(:disabled),
+.home-rail-btn:focus-visible:not(:disabled) {
+  background-color: var(--site-blush);
+  border-color: var(--site-plum);
+}
+
+.home-rail-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.home-designer-rail {
+  display: flex;
+  gap: 1.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  /* Firefox / standards thin scrollbar; the row is arrow- and swipe-driven so
+     the bar itself is visual noise. */
+  scrollbar-width: none;
+}
+
+.home-designer-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.home-designer-item {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  width: 112px;
+}
+
+.home-body a.home-designer-link:not(.nav-link) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+}
+
+.home-designer-avatar {
+  position: relative;
+  display: block;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: var(--site-blush);
+  transition: box-shadow 0.15s ease;
+}
+
+.home-body a.home-designer-link:not(.nav-link):hover .home-designer-avatar,
+.home-body a.home-designer-link:not(.nav-link):focus-visible .home-designer-avatar {
+  box-shadow: 0 0 0 2px var(--site-plum);
+}
+
+/* contain, not cover: these are logos, and cropping them cuts off wordmarks. */
+.home-designer-logo {
+  object-fit: contain;
+  padding: 0.5rem;
+}
+
+/* Shown when a hotlinked designer logo fails to load. */
+.home-designer-initials {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: var(--site-plum);
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.home-designer-name {
+  color: var(--home-ink);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.home-body a.home-designer-link:not(.nav-link):hover .home-designer-name {
+  text-decoration: underline;
+}
+
+/* ---- Pattern grid ---- */
+.home-pattern-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem 1.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Card is a column so the meta row can be pushed to the bottom, keeping the
+   heart counts on a shared baseline even when titles wrap to different
+   heights. */
+.home-pattern-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-body a.home-pattern-link:not(.nav-link) {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  text-decoration: none;
+}
+
+.home-pattern-media {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 4;
+  width: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: var(--site-blush);
+}
+
+.home-pattern-name {
+  display: block;
+  margin-top: 0.6rem;
+  color: var(--home-ink);
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.home-body a.home-pattern-link:not(.nav-link):hover .home-pattern-name {
+  text-decoration: underline;
+}
+
+.home-pattern-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
+}
+
+/* Designer names are long ("Winslet's Patterns"), so wrap to a second line
+   instead of truncating — the name is the useful part of the credit. */
+.home-pattern-designer {
+  color: var(--home-ink);
+  font-size: 0.82rem;
+  line-height: 1.3;
+  opacity: 0.75;
+}
+
+.home-pattern-faves {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  color: var(--site-plum);
+  font-size: 0.8rem;
+}
+
+/* ---- Community callout ---- */
+.home-community {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 3rem;
+  padding: 2.25rem 1.5rem;
+  border-radius: 12px;
+  background-color: var(--home-hero-bg);
+  text-align: center;
+}
+
+.home-community-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #fff;
+  color: var(--site-plum);
+}
+
+.home-community-title {
+  margin: 0.25rem 0 0;
+  color: var(--home-ink);
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.home-community-copy {
+  margin: 0;
+  max-width: 30rem;
+  color: var(--home-ink-soft);
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+
+.home-community-cta {
+  margin-top: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .home-pattern-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  /* Hero becomes a true split band: copy left, collage right. */
+  .home-hero {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  /* 42/58 — between an even split and a third, giving the copy a little more
+     room while the collage stays dominant. min-width: 0 lets the copy column
+     shrink below its content's intrinsic width so the basis is honoured
+     instead of being pushed wider by the headline. */
+  .home-hero-copy {
+    flex: 1 1 42%;
+    min-width: 0;
+    align-items: center;
+    /* Kept tight so the copy column stays shorter than the 2/1 media panel and
+       the panel remains the thing setting the band's height. When the copy was
+       the taller of the two it silently added back ~29px. */
+    padding: 1.5rem 2rem;
+  }
+
+  /* Tighten the internal rhythm for the same reason. */
+  .home-hero-lede {
+    margin-top: 1rem;
+  }
+
+  .home-hero-copy-inner {
+    margin: 0 0 0 auto;
+    padding-right: 0.75rem;
+  }
+
+  /* The base clamp scales on 6vw, which is tuned for a full-width/half-width
+     hero. In this narrower column that overshoots and breaks the headline into
+     three ragged lines, so re-scale it against the narrower measure. */
+  .home-hero-title {
+    font-size: clamp(1.9rem, 3.4vw, 2.8rem);
+  }
+
+  /* Force the break after "Track." on desktop. Inline on mobile so the
+     headline still flows naturally in the stacked layout. */
+  .home-hero-title-line {
+    display: block;
+  }
+
+  /* The copy column is wide enough here to guarantee both buttons fit. */
+  .home-hero-actions {
+    flex-wrap: nowrap;
+    margin-top: 1.25rem;
+  }
+
+  /* Exactly 6 across: six cards plus the five 1.5rem gaps between them fill
+     the rail, so the 7th sits just past the edge and the arrows page by six.
+     Left at the fixed 112px below this breakpoint, where a sixth of the width
+     would be too narrow for a legible avatar. */
+  .home-designer-item {
+    width: calc((100% - 5 * 1.5rem) / 6);
+  }
+
+  /* 2/1 rather than the collage's own 3/2: height is width/2 instead of
+     width/1.5, which is exactly 25% shorter. `contain` then fits the image by
+     height and centres it, and the blush it leaves at the sides matches
+     --home-hero-bg, so the band still reads as one continuous field. */
+  .home-hero-media {
+    aspect-ratio: 2 / 1;
+    flex: 1 1 58%;
+    min-width: 0;
+    /* Keep the 3:2 box rather than a fixed min-height: the panel then matches
+       the collage's own ratio exactly, so `contain` has no leftover strip to
+       letterbox and the image meets the top and bottom of the band. */
+    min-height: 0;
+  }
+
+  .home-pattern-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .home-community {
+    padding: 2.5rem;
   }
 }
