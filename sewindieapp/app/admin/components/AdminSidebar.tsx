@@ -13,6 +13,7 @@ import {
   Layers,
   Sprout,
   FileText,
+  Home,
   BarChart3,
   ChevronDown,
   LogOut,
@@ -49,6 +50,10 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/contributions", label: "Contributions", icon: Sprout, roles: ["ADMIN", "MODERATOR"] },
       { href: "/admin/blog", label: "Blog Posts", icon: FileText, roles: ["ADMIN", "MODERATOR"] },
     ],
+  },
+  {
+    label: "Site",
+    items: [{ href: "/admin/homepage", label: "Homepage", icon: Home, roles: ["ADMIN", "MODERATOR"] }],
   },
   {
     label: "Analytics",

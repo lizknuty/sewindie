@@ -2278,3 +2278,331 @@
     display: none;
   }
 }
+
+/* =========================================================
+   Homepage curation
+   Every control here is a <button>, not an anchor, so the
+   global a:not(.btn):not(.nav-link) rule documented above
+   doesn't apply and no specificity guard is needed.
+   ========================================================= */
+.curation-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  max-width: 1180px;
+}
+
+@media (min-width: 1200px) {
+  .curation-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.curation-card {
+  background-color: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  padding: 1.25rem 1.35rem;
+}
+
+.curation-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.curation-card-title {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--admin-text);
+  margin: 0;
+}
+
+.curation-card-desc {
+  max-width: 44ch;
+  margin: 0.3rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--admin-muted);
+}
+
+.curation-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.curation-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--admin-border);
+  background-color: var(--admin-surface);
+  color: var(--admin-text);
+  border-radius: 10px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.curation-btn:hover:not(:disabled) {
+  background-color: var(--admin-rose-tint);
+  border-color: #e4d2d6;
+  color: var(--admin-rose);
+}
+
+.curation-btn-primary {
+  background-color: var(--admin-rose-deep);
+  border-color: var(--admin-rose-deep);
+  color: #fff;
+}
+
+.curation-btn-primary:hover:not(:disabled) {
+  background-color: var(--admin-rose-deep-hover);
+  border-color: var(--admin-rose-deep-hover);
+  color: #fff;
+}
+
+.curation-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---- Picker ---- */
+.curation-picker-wrap {
+  position: relative;
+}
+
+.curation-picker {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 30;
+  width: min(20rem, 76vw);
+  background-color: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(43, 36, 38, 0.14);
+}
+
+.curation-search {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--admin-border);
+  color: var(--admin-muted);
+}
+
+.curation-search-input {
+  width: 100%;
+  border: none;
+  background: none;
+  font-size: 0.88rem;
+  color: var(--admin-text);
+}
+
+.curation-search-input:focus {
+  outline: none;
+}
+
+.curation-results {
+  list-style: none;
+  max-height: 17rem;
+  margin: 0;
+  padding: 0.3rem;
+  overflow-y: auto;
+}
+
+.curation-result {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  border: none;
+  background: none;
+  border-radius: 9px;
+  padding: 0.4rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.curation-result:hover:not(:disabled) {
+  background-color: var(--admin-rose-tint);
+}
+
+.curation-result:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.curation-result-empty {
+  padding: 0.85rem 0.5rem;
+  font-size: 0.82rem;
+  color: var(--admin-muted);
+  text-align: center;
+}
+
+.curation-pinned-tag,
+.curation-overflow-tag {
+  flex-shrink: 0;
+  border-radius: 999px;
+  background-color: var(--admin-rose-tint);
+  color: var(--admin-rose);
+  padding: 0.1rem 0.45rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ---- Sortable list ---- */
+.curation-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+}
+
+.curation-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background-color: var(--admin-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: 11px;
+  padding: 0.5rem 0.6rem;
+}
+
+.curation-row.is-dragging {
+  position: relative;
+  z-index: 10;
+  border-color: var(--admin-rose);
+  box-shadow: 0 8px 20px rgba(43, 36, 38, 0.14);
+}
+
+.curation-grip {
+  display: inline-flex;
+  border: none;
+  background: none;
+  padding: 0.15rem;
+  color: var(--admin-muted);
+  cursor: grab;
+  /* Required by dnd-kit's pointer sensor so dragging doesn't scroll on touch. */
+  touch-action: none;
+}
+
+.curation-grip:active {
+  cursor: grabbing;
+}
+
+.curation-position {
+  flex-shrink: 0;
+  width: 1.3rem;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--admin-muted);
+  text-align: center;
+}
+
+.curation-thumb,
+.curation-thumb-fallback {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  background-color: var(--admin-surface);
+}
+
+.curation-thumb-round {
+  border-radius: 50%;
+}
+
+.curation-thumb-fallback {
+  background-color: var(--admin-rose-tint);
+  color: var(--admin-rose);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* contain, not cover: these are logos and pattern covers, and cropping cuts
+   off wordmarks — same reasoning as the public rail. */
+.curation-thumb-img {
+  object-fit: contain;
+  padding: 2px;
+}
+
+.curation-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.curation-row-name {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.curation-row-sub {
+  font-size: 0.76rem;
+  color: var(--admin-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.curation-remove {
+  display: inline-flex;
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  border-radius: 7px;
+  padding: 0.3rem;
+  color: var(--admin-muted);
+  cursor: pointer;
+}
+
+.curation-remove:hover {
+  background-color: var(--admin-rose-tint);
+  color: var(--admin-rose);
+}
+
+.curation-empty,
+.curation-hint {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--admin-muted);
+}
+
+.curation-empty {
+  border: 1px dashed var(--admin-border);
+  border-radius: 11px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.curation-foot {
+  margin-top: 0.85rem;
+  min-height: 1.2rem;
+}
