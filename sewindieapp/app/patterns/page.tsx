@@ -91,6 +91,16 @@ export default async function PatternsPage({ searchParams }: PageProps) {
     }
   }
 
+  // The Format checkboxes wrote to the URL but nothing consumed formatIds, so
+  // the filter silently did nothing. PatternFormat mirrors the other joins.
+  if (formatIds.length > 0) {
+    where.PatternFormat = {
+      some: {
+        format_id: { in: formatIds.map(Number) }
+      }
+    }
+  }
+
   if (audienceIds.length > 0) {
     where.PatternAudience = {
       some: {
@@ -167,11 +177,18 @@ export default async function PatternsPage({ searchParams }: PageProps) {
     const totalPages = perPage === -1 ? 1 : Math.ceil(totalPatterns / perPage);
 
     return (
-      <div className="container-fluid mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold mb-8 text-center">Patterns</h1>
+      <div className="patterns-page">
+        <header className="patterns-head">
+          <h1 className="patterns-title">Patterns</h1>
+          <p className="patterns-subtitle">
+            Browse independent sewing patterns by category, fabric, size range and designer.
+          </p>
+        </header>
+
         <PatternSearch initialSearch={search} />
-        <div className="row">
-          <div className="col-md-3">
+
+        <div className="patterns-body">
+          <div className="patterns-filters">
             <PatternFilters
               categories={categories}
               attributes={attributes}
@@ -181,39 +198,48 @@ export default async function PatternsPage({ searchParams }: PageProps) {
               designers={designers}
             />
           </div>
-          <div className="col-md-9">
-            <div className="d-flex justify-content-between align-items-center mb-4">
+
+          <div className="patterns-results">
+            <div className="patterns-toolbar">
               <PatternSorter />
-              <PaginationControls
-                currentPage={page}
-                totalPages={totalPages}
-                perPage={perPage}
-                totalItems={totalPatterns}
-                basePath="/patterns"
-              />
+              <p className="patterns-count">
+                {totalPatterns.toLocaleString()} {totalPatterns === 1 ? 'pattern' : 'patterns'}
+              </p>
             </div>
-            <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
-              {patterns.map((pattern: Pattern) => (
-                <div key={pattern.id} className="col">
-                  <PatternCard
-                    id={pattern.id}
-                    name={pattern.name}
-                    thumbnail_url={pattern.thumbnail_url}
-                    designer={pattern.designer}
-                    patternCategories={pattern.PatternCategory}
+
+            {patterns.length === 0 ? (
+              <div className="patterns-empty">
+                <p className="patterns-empty-title">No patterns match these filters</p>
+                <p className="patterns-empty-text">
+                  Try clearing a filter or searching for a different designer or pattern name.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="pcard-grid">
+                  {patterns.map((pattern: Pattern) => (
+                    <PatternCard
+                      key={pattern.id}
+                      id={pattern.id}
+                      name={pattern.name}
+                      thumbnail_url={pattern.thumbnail_url}
+                      designer={pattern.designer}
+                      patternCategories={pattern.PatternCategory}
+                    />
+                  ))}
+                </div>
+
+                <div className="patterns-pager-row">
+                  <PaginationControls
+                    currentPage={page}
+                    totalPages={totalPages}
+                    perPage={perPage}
+                    totalItems={totalPatterns}
+                    basePath="/patterns"
                   />
                 </div>
-              ))}
-            </div>
-            <div className="mt-4">
-              <PaginationControls
-                currentPage={page}
-                totalPages={totalPages}
-                perPage={perPage}
-                totalItems={totalPatterns}
-                basePath="/patterns"
-              />
-            </div>
+              </>
+            )}
           </div>
         </div>
       </div>

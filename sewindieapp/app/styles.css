@@ -1830,3 +1830,808 @@ a:not(.btn):not(.nav-link):focus {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* ===========================================================================
+   Patterns browse + detail
+   Same plum/blush system as the account pages. The pattern card and pagination
+   are shared with the designer detail page, so those classes are generic
+   (pcard-*, pager-*) rather than named for this route.
+   =========================================================================== */
+.patterns-page {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.patterns-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 1.5rem;
+}
+
+.patterns-title {
+  font-family: var(--font-heading);
+  font-size: 1.9rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  margin: 0;
+}
+
+.patterns-subtitle {
+  font-size: 0.94rem;
+  color: var(--color-muted);
+  margin: 0;
+}
+
+/* Single column until there's room for a sidebar; on mobile the filter panel
+   stacks above the results instead of squeezing them. */
+.patterns-body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+.patterns-results {
+  min-width: 0;
+}
+
+.patterns-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.patterns-count {
+  font-size: 0.88rem;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.patterns-pager-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+/* Bootstrap 5 renamed .sr-only to .visually-hidden, so the class isn't
+   available from the vendor stylesheet — defined here for our own markup. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- Search ---- */
+.pattern-search {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 30rem;
+  margin-bottom: 1.5rem;
+}
+
+.pattern-search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid #ded0d2;
+  border-radius: 999px;
+  background-color: #fff;
+  padding: 0.55rem 1rem;
+  font-family: inherit;
+  font-size: 0.94rem;
+  color: var(--color-dark);
+}
+
+.pattern-search-input:focus {
+  outline: none;
+  border-color: var(--site-plum);
+  box-shadow: 0 0 0 3px rgba(138, 63, 92, 0.13);
+}
+
+.pattern-search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  border: 1px solid var(--site-plum);
+  border-radius: 999px;
+  background-color: var(--site-plum);
+  padding: 0.55rem 1.1rem;
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+}
+
+.pattern-search-btn:hover {
+  background-color: var(--site-plum-hover);
+  border-color: var(--site-plum-hover);
+}
+
+/* ---- Filter rail ---- */
+.pfilters {
+  border: 1px solid #eadfe0;
+  border-radius: 12px;
+  background-color: #fff;
+  padding: 1.1rem 1.15rem;
+}
+
+.pfilters-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-bottom: 0.8rem;
+  margin-bottom: 0.4rem;
+  border-bottom: 1px solid #f0e6e7;
+}
+
+.pfilters-title {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  margin: 0;
+}
+
+.pfilters-clear {
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--site-plum);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.pfilters-clear:hover {
+  color: var(--site-plum-hover);
+}
+
+.pfilters-section {
+  border-bottom: 1px solid #f5eef0;
+}
+
+.pfilters-section:last-child {
+  border-bottom: none;
+}
+
+.pfilters-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 0.7rem 0;
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  text-align: left;
+  cursor: pointer;
+}
+
+.pfilters-toggle:hover {
+  color: var(--site-plum);
+}
+
+.pfilters-toggle-icon {
+  flex-shrink: 0;
+  color: var(--color-muted);
+}
+
+/* Count of active filters in a collapsed section, so a filter that's applied
+   isn't invisible once the section is closed. */
+.pfilters-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.3rem;
+  height: 1.3rem;
+  margin-left: auto;
+  border-radius: 999px;
+  background-color: var(--site-plum);
+  padding: 0 0.4rem;
+  font-family: var(--font-body, inherit);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Long option lists (designers is ~200 entries) scroll instead of pushing the
+   rest of the rail off the page. */
+.pfilters-options {
+  max-height: 15rem;
+  overflow-y: auto;
+  padding: 0 0.1rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.pfilters-option {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0.32rem 0.4rem;
+  border-radius: 7px;
+  font-size: 0.87rem;
+  color: var(--color-dark);
+  cursor: pointer;
+}
+
+.pfilters-option:hover {
+  background-color: var(--site-blush);
+}
+
+.pfilters-native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pfilters-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid #d9c8cb;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #fff;
+}
+
+.pfilters-option:has(.pfilters-native:checked) .pfilters-box {
+  background-color: var(--site-plum);
+  border-color: var(--site-plum);
+}
+
+.pfilters-option:has(.pfilters-native:focus-visible) .pfilters-box {
+  box-shadow: 0 0 0 3px rgba(138, 63, 92, 0.18);
+}
+
+.pfilters-option-label {
+  flex: 1 1 auto;
+}
+
+/* ---- Sorter ---- */
+.psort {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.psort-label {
+  font-size: 0.86rem;
+  color: var(--color-muted);
+}
+
+.psort-select {
+  border: 1px solid #ded0d2;
+  border-radius: 8px;
+  background-color: #fff;
+  padding: 0.4rem 0.6rem;
+  font-family: inherit;
+  font-size: 0.87rem;
+  color: var(--color-dark);
+  cursor: pointer;
+}
+
+.psort-select:focus {
+  outline: none;
+  border-color: var(--site-plum);
+  box-shadow: 0 0 0 3px rgba(138, 63, 92, 0.13);
+}
+
+/* ---- Pattern card (shared with /designers/[id]) ---- */
+.pcard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.pcard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid #eadfe0;
+  border-radius: 12px;
+  background-color: #fff;
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.pcard:hover {
+  border-color: var(--site-plum);
+  box-shadow: 0 10px 24px rgba(138, 63, 92, 0.12);
+  transform: translateY(-2px);
+}
+
+/* contain, not cover: pattern envelope art is the product photo and cropping
+   it cuts off the garment illustration. Blush fills the letterboxing. */
+.pcard-media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background-color: var(--site-blush);
+}
+
+.pcard-media img {
+  object-fit: contain;
+}
+
+.pcard-media-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 0.82rem;
+  color: var(--color-muted);
+}
+
+.pcard-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.85rem 1rem 1rem;
+  /* Grow so the tag row can be pushed to the bottom, keeping tags on a shared
+     baseline when titles in a row wrap to different line counts. */
+  flex: 1 1 auto;
+}
+
+.pcard-name {
+  font-family: var(--font-heading);
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.pcard-name a {
+  color: var(--color-dark);
+  text-decoration: none;
+}
+
+.pcard-name a:hover {
+  color: var(--site-plum);
+}
+
+.pcard-designer {
+  font-size: 0.84rem;
+  margin: 0;
+}
+
+.pcard-designer a {
+  color: var(--color-muted);
+  text-decoration: none;
+}
+
+.pcard-designer a:hover {
+  color: var(--site-plum);
+  text-decoration: underline;
+}
+
+.pcard-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: auto;
+  padding-top: 0.6rem;
+}
+
+.pcard-tag {
+  border-radius: 999px;
+  background-color: var(--site-blush);
+  padding: 0.16rem 0.5rem;
+  font-size: 0.72rem;
+  color: var(--site-plum);
+}
+
+/* ---- Pagination (shared with /designers/[id]) ---- */
+.pager {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pager-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: 1px solid #ded0d2;
+  border-radius: 8px;
+  background-color: #fff;
+  padding: 0.35rem 0.7rem;
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--site-plum);
+  cursor: pointer;
+}
+
+.pager-btn:hover:not(:disabled) {
+  border-color: var(--site-plum);
+  background-color: var(--site-blush);
+}
+
+.pager-btn:disabled {
+  color: #b7a7aa;
+  cursor: not-allowed;
+}
+
+.pager-status {
+  font-size: 0.84rem;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.patterns-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px dashed #dfd0d2;
+  border-radius: 12px;
+  background-color: #fdf8f8;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.patterns-empty-title {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  margin: 0;
+}
+
+.patterns-empty-text {
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  margin: 0;
+  max-width: 32rem;
+}
+
+/* ---- Pattern detail ---- */
+.pdetail {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.pdetail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--site-plum);
+  text-decoration: none;
+}
+
+.pdetail-back:hover {
+  color: var(--site-plum-hover);
+  text-decoration: underline;
+}
+
+.pdetail-body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.pdetail-media {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  border: 1px solid #eadfe0;
+  border-radius: 12px;
+  background-color: var(--site-blush);
+  overflow: hidden;
+}
+
+.pdetail-media img {
+  object-fit: contain;
+}
+
+.pdetail-credit {
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  text-align: center;
+}
+
+.pdetail-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  margin-top: 0.9rem;
+  border: 1px solid var(--site-plum);
+  border-radius: 8px;
+  background-color: var(--site-plum);
+  padding: 0.6rem 1rem;
+  font-family: var(--font-heading);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+}
+
+.pdetail-cta:hover {
+  background-color: var(--site-plum-hover);
+  border-color: var(--site-plum-hover);
+  color: #fff;
+}
+
+.pdetail-title {
+  font-family: var(--font-heading);
+  font-size: 1.85rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-dark);
+  margin: 0 0 0.25rem;
+}
+
+.pdetail-byline {
+  font-size: 0.98rem;
+  color: var(--color-muted);
+  margin: 0 0 1.25rem;
+}
+
+.pdetail-byline a {
+  color: var(--site-plum);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pdetail-byline a:hover {
+  text-decoration: underline;
+}
+
+.pdetail-section {
+  margin-top: 1.75rem;
+}
+
+.pdetail-section-title {
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin: 0 0 0.75rem;
+}
+
+/* dt/dd keeps the spec label-value pairing explicit for screen readers. */
+.pdetail-specs {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem 1.5rem;
+  margin: 0;
+}
+
+.pdetail-spec-label {
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-bottom: 0.1rem;
+}
+
+.pdetail-spec-value {
+  font-size: 0.94rem;
+  color: var(--color-dark);
+  margin: 0;
+}
+
+/* Distinguishes an unpopulated field from a real value, so "Not specified"
+   doesn't read as data. */
+.pdetail-spec-empty {
+  color: #a89598;
+  font-style: italic;
+}
+
+.pdetail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.pdetail-tag {
+  border-radius: 999px;
+  background-color: var(--site-blush);
+  padding: 0.25rem 0.65rem;
+  font-size: 0.8rem;
+  color: var(--site-plum);
+}
+
+.pdetail-designer-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid #eadfe0;
+  border-radius: 12px;
+  background-color: #fff;
+  padding: 1.1rem 1.25rem;
+}
+
+.pdetail-designer-name {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  margin: 0 0 0.15rem;
+}
+
+.pdetail-designer-note {
+  font-size: 0.86rem;
+  color: var(--color-muted);
+  margin: 0;
+}
+
+.pdetail-designer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid var(--site-plum);
+  border-radius: 8px;
+  padding: 0.45rem 0.9rem;
+  font-family: var(--font-heading);
+  font-size: 0.87rem;
+  font-weight: 600;
+  color: var(--site-plum);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.pdetail-designer-link:hover {
+  background-color: var(--site-blush);
+  color: var(--site-plum-hover);
+}
+
+/* ---- Favorite + rating bar ---- */
+.pfav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid #eadfe0;
+  border-radius: 12px;
+  background-color: #fff;
+  padding: 0.9rem 1.1rem;
+}
+
+.pfav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--site-plum);
+  border-radius: 999px;
+  background-color: #fff;
+  padding: 0.45rem 0.95rem;
+  font-family: var(--font-heading);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--site-plum);
+  cursor: pointer;
+}
+
+.pfav-btn:hover {
+  background-color: var(--site-blush);
+}
+
+.pfav-btn-on {
+  background-color: var(--site-plum);
+  color: #fff;
+}
+
+.pfav-btn-on:hover {
+  background-color: var(--site-plum-hover);
+}
+
+.pfav-icon-on {
+  fill: currentColor;
+}
+
+.pfav-rate {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.pfav-rate-label {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+}
+
+.pfav-stars {
+  display: inline-flex;
+  gap: 0.1rem;
+}
+
+/* Real buttons: rating is an action, and the old version put click handlers on
+   bare SVGs that keyboard users could not reach. */
+.pfav-star {
+  border: none;
+  background: none;
+  padding: 0.1rem;
+  line-height: 0;
+  color: #e0cfd1;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.pfav-star:hover {
+  color: #d9a72c;
+}
+
+.pfav-star:focus-visible {
+  outline: 2px solid var(--site-plum);
+  outline-offset: 1px;
+}
+
+.pfav-star-on {
+  color: #d9a72c;
+}
+
+.pfav-star-on svg {
+  fill: currentColor;
+}
+
+@media (min-width: 576px) {
+  .pdetail-specs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .patterns-page,
+  .pdetail {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  .pdetail-body {
+    grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+    gap: 2.5rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .patterns-body {
+    grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+  }
+
+  /* Rail follows the results column on long result pages. */
+  .patterns-filters {
+    position: sticky;
+    top: 1.5rem;
+  }
+}

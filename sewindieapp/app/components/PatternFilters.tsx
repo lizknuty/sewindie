@@ -18,6 +18,10 @@ type PatternFiltersProps = {
   designers: FilterOption[]
 }
 
+// Section titles are display-only; the URL key is what identifies a section, so
+// expanded state is tracked by filterType rather than by lowercased label.
+const FILTER_TYPES = ["category", "attribute", "format", "audience", "fabricType", "designer"] as const
+
 export default function PatternFilters({
   categories,
   attributes,
@@ -28,28 +32,13 @@ export default function PatternFilters({
 }: PatternFiltersProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const pathname = usePathname() // This should be '/patterns'
+  const pathname = usePathname()
   const [expandedSections, setExpandedSections] = useState<string[]>([])
 
-  // Initialize state from URL params
+  // Open whichever sections already have a filter applied, so arriving on a
+  // filtered URL shows what's active instead of hiding it behind a collapsed row.
   useEffect(() => {
-    const categoryParams = searchParams.getAll("category")
-    const attributeParams = searchParams.getAll("attribute")
-    const formatParams = searchParams.getAll("format")
-    const audienceParams = searchParams.getAll("audience")
-    const fabricTypeParams = searchParams.getAll("fabricType")
-    const designerParams = searchParams.getAll("designer")
-
-    const initialExpanded: string[] = []
-    const filterTypes = ["category", "attribute", "format", "audience", "fabricType", "designer"]
-    filterTypes.forEach((type) => {
-      if (searchParams.has(type)) {
-        initialExpanded.push(type)
-      }
-    })
-    setExpandedSections(initialExpanded)
-
-    console.log("[v0] PatternFilters - pathname:", pathname)
+    setExpandedSections(FILTER_TYPES.filter((type) => searchParams.has(type)))
   }, [searchParams])
 
   const handleFilterChange = useCallback(
@@ -61,6 +50,8 @@ export default function PatternFilters({
       } else {
         currentParams.append(filterType, value)
       }
+      // Narrowing or widening the results invalidates the current page offset.
+      currentParams.delete("page")
       router.push(`${pathname}?${currentParams.toString()}`)
     },
     [router, searchParams, pathname],
@@ -68,78 +59,90 @@ export default function PatternFilters({
 
   const handleClearAll = useCallback(() => {
     const currentParams = new URLSearchParams(searchParams.toString())
-    const filterTypes = ["category", "attribute", "format", "audience", "fabricType", "designer"]
-    filterTypes.forEach((type) => {
-      currentParams.delete(type)
-    })
-    router.push(`${pathname}?${currentParams.toString()}`)
+    FILTER_TYPES.forEach((type) => currentParams.delete(type))
+    currentParams.delete("page")
+    const qs = currentParams.toString()
+    router.push(qs ? `${pathname}?${qs}` : pathname)
   }, [router, searchParams, pathname])
 
   const toggleSection = useCallback((section: string) => {
     setExpandedSections((prev) => (prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]))
   }, [])
 
-  const MemoizedChevronDown = useMemo(() => <ChevronDown className="h-5 w-5" />, [])
-  const MemoizedChevronRight = useMemo(() => <ChevronRight className="h-5 w-5" />, [])
-
   const renderFilterSection = useCallback(
-    (title: string, options: FilterOption[], filterType: string) => (
-      <div className="card mb-3 border-0">
-        <div className="card-header bg-white border-0 p-0">
+    (title: string, options: FilterOption[], filterType: string) => {
+      const isExpanded = expandedSections.includes(filterType)
+      const selected = searchParams.getAll(filterType)
+      const panelId = `pfilter-panel-${filterType}`
+
+      return (
+        <div className="pfilters-section" key={filterType}>
           <button
-            className="btn btn-link w-100 text-left d-flex justify-content-between align-items-center text-muted"
-            onClick={() => toggleSection(title.toLowerCase())}
+            type="button"
+            className="pfilters-toggle"
+            onClick={() => toggleSection(filterType)}
+            aria-expanded={isExpanded}
+            aria-controls={panelId}
           >
             <span>{title}</span>
-            {expandedSections.includes(title.toLowerCase()) ? MemoizedChevronDown : MemoizedChevronRight}
+            {selected.length > 0 && <span className="pfilters-badge">{selected.length}</span>}
+            {isExpanded ? (
+              <ChevronDown size={16} className="pfilters-toggle-icon" aria-hidden="true" />
+            ) : (
+              <ChevronRight size={16} className="pfilters-toggle-icon" aria-hidden="true" />
+            )}
           </button>
-        </div>
-        {expandedSections.includes(title.toLowerCase()) && (
-          <div className="card-body p-0">
-            <div className="space-y-2 scrollable-filter">
+
+          {isExpanded && (
+            <div className="pfilters-options" id={panelId}>
               {options.map((option) => {
-                const isChecked = searchParams.getAll(filterType).includes(option.id.toString())
+                const isChecked = selected.includes(option.id.toString())
                 return (
-                  <div key={option.id} className="form-check custom-checkbox">
+                  <label className="pfilters-option" key={option.id} htmlFor={`${filterType}-${option.id}`}>
                     <input
-                      className="form-check-input"
+                      className="pfilters-native"
                       type="checkbox"
                       id={`${filterType}-${option.id}`}
                       checked={isChecked}
                       onChange={() => handleFilterChange(filterType, option.id.toString())}
                     />
-                    <label
-                      className="form-check-label"
-                      htmlFor={`${filterType}-${option.id}`}
-                      style={{ color: "var(--color-dark)" }}
-                    >
-                      {option.name}
-                    </label>
-                  </div>
+                    <span className="pfilters-box" aria-hidden="true">
+                      {isChecked && (
+                        <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                          <path
+                            d="M2 6.5L4.5 9L10 3.5"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      )}
+                    </span>
+                    <span className="pfilters-option-label">{option.name}</span>
+                  </label>
                 )
               })}
             </div>
-          </div>
-        )}
-      </div>
-    ),
-    [expandedSections, handleFilterChange, searchParams, MemoizedChevronDown, MemoizedChevronRight, toggleSection],
+          )}
+        </div>
+      )
+    },
+    [expandedSections, handleFilterChange, searchParams, toggleSection],
   )
 
-  const isAnyFilterApplied = useMemo(() => {
-    const filterTypes = ["category", "attribute", "format", "audience", "fabricType", "designer"]
-    return filterTypes.some((type) => searchParams.has(type))
-  }, [searchParams])
+  const activeCount = useMemo(
+    () => FILTER_TYPES.reduce((sum, type) => sum + searchParams.getAll(type).length, 0),
+    [searchParams],
+  )
 
   return (
-    <div className="p-4 rounded border border-gray-200" style={{ backgroundColor: "#8f7a7c" }}>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="h4 mb-0" style={{ color: "var(--color-light)" }}>
-          Filters
-        </h2>
-        {isAnyFilterApplied && (
-          <button className="btn btn-sm btn-outline-light" onClick={handleClearAll}>
-            Clear All
+    <aside className="pfilters" aria-label="Pattern filters">
+      <div className="pfilters-head">
+        <h2 className="pfilters-title">Filters</h2>
+        {activeCount > 0 && (
+          <button type="button" className="pfilters-clear" onClick={handleClearAll}>
+            Clear all ({activeCount})
           </button>
         )}
       </div>
@@ -149,6 +152,6 @@ export default function PatternFilters({
       {renderFilterSection("Audience", audiences, "audience")}
       {renderFilterSection("Fabric Type", fabricTypes, "fabricType")}
       {renderFilterSection("Designer", designers, "designer")}
-    </div>
+    </aside>
   )
 }
