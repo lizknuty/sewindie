@@ -79,71 +79,86 @@ export default function ChangePasswordPage() {
 
   return (
     <div>
-      <h1 className="mb-4">Change Password</h1>
+      <header className="account-head">
+        <h1 className="account-title">Change Password</h1>
+        <p className="account-subtitle">Update the password you use to sign in to SewIndie.</p>
+      </header>
 
-      <div className="card">
-        <div className="card-body">
-          {message && (
-            <div className={`alert ${message.type === "success" ? "alert-success" : "alert-danger"}`}>
-              {message.text}
-            </div>
-          )}
+      <section className="account-card">
+        {message && (
+          // role="status" so the result is announced to screen readers, which
+          // otherwise get no feedback on a same-page submit.
+          <div
+            role="status"
+            aria-live="polite"
+            className={`account-alert ${
+              message.type === "success" ? "account-alert-success" : "account-alert-error"
+            }`}
+          >
+            {message.text}
+          </div>
+        )}
 
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label htmlFor="currentPassword" className="form-label">
-                Current Password
-              </label>
-              <input
-                type="password"
-                className="form-control"
-                id="currentPassword"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-                disabled={isSubmitting}
-              />
-            </div>
+        <form className="account-form" onSubmit={handleSubmit}>
+          <div className="account-field">
+            <label htmlFor="currentPassword" className="account-label">
+              Current password
+            </label>
+            <input
+              type="password"
+              className="account-input"
+              id="currentPassword"
+              autoComplete="current-password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              required
+              disabled={isSubmitting}
+            />
+          </div>
 
-            <div className="mb-3">
-              <label htmlFor="newPassword" className="form-label">
-                New Password
-              </label>
-              <input
-                type="password"
-                className="form-control"
-                id="newPassword"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-                disabled={isSubmitting}
-                minLength={8}
-              />
-              <div className="form-text">Password must be at least 8 characters long.</div>
-            </div>
+          <div className="account-field">
+            <label htmlFor="newPassword" className="account-label">
+              New password
+            </label>
+            <input
+              type="password"
+              className="account-input"
+              id="newPassword"
+              autoComplete="new-password"
+              aria-describedby="newPasswordHelp"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              required
+              disabled={isSubmitting}
+              minLength={8}
+            />
+            <span id="newPasswordHelp" className="account-help">
+              Must be at least 8 characters long.
+            </span>
+          </div>
 
-            <div className="mb-3">
-              <label htmlFor="confirmPassword" className="form-label">
-                Confirm New Password
-              </label>
-              <input
-                type="password"
-                className="form-control"
-                id="confirmPassword"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                disabled={isSubmitting}
-                minLength={8}
-              />
-            </div>
+          <div className="account-field">
+            <label htmlFor="confirmPassword" className="account-label">
+              Confirm new password
+            </label>
+            <input
+              type="password"
+              className="account-input"
+              id="confirmPassword"
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              disabled={isSubmitting}
+              minLength={8}
+            />
+          </div>
 
-            <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-              {isSubmitting ? "Changing Password..." : "Change Password"}
-            </button>
-          </form>
-        </div>
-      </div>
+          <button type="submit" className="account-btn" disabled={isSubmitting}>
+            {isSubmitting ? "Changing password..." : "Change password"}
+          </button>
+        </form>
+      </section>
     </div>
   )
 }
