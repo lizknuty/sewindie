@@ -2331,10 +2331,15 @@
   color: var(--admin-muted);
 }
 
+/* `flex-basis: 100%` keeps this row on its own line at the card's left edge.
+   Without it the parent's `space-between` floats the buttons to the top-right
+   whenever they happen to fit beside the description, which made the picker's
+   anchor point jump between layouts at around this card width. */
 .curation-actions {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-basis: 100%;
 }
 
 .curation-btn {
@@ -2383,8 +2388,13 @@
 .curation-picker {
   position: absolute;
   top: calc(100% + 0.4rem);
-  right: 0;
-  z-index: 30;
+  /* Opens rightward from the Add button. `right: 0` anchored the panel to the
+     button's right edge instead, so it grew leftward across the sidebar. */
+  left: 0;
+  right: auto;
+  /* Must clear the fixed sidebar (z-index 1030) or it paints over the panel.
+     Stays under .admin-modal-overlay (1080). */
+  z-index: 1040;
   width: min(20rem, 76vw);
   background-color: var(--admin-surface);
   border: 1px solid var(--admin-border);
