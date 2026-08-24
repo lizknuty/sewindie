@@ -1832,6 +1832,71 @@ a:not(.btn):not(.nav-link):focus {
 }
 
 /* ===========================================================================
+   Shared button
+   The same visual spec as the homepage hero pair (.home-btn), but not scoped to
+   .home-page and matching <button> as well as <a>, so any route can use it.
+   Element selectors (a.ui-btn / button.ui-btn) are here to outrank Bootstrap's
+   bare `a` and `button` rules without needing !important.
+   =========================================================================== */
+a.ui-btn,
+button.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--site-plum);
+  background-color: transparent;
+  font-family: var(--font-heading);
+  font-size: 0.96rem;
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* :not(.nav-link) mirrors the .home-btn rules: it raises specificity above
+   Bootstrap's `a` color declarations, which otherwise repaint the label pink. */
+a.ui-btn-dark:not(.nav-link),
+button.ui-btn-dark:not(.nav-link) {
+  background-color: var(--site-plum);
+  color: #fff;
+}
+
+a.ui-btn-dark:not(.nav-link):hover,
+a.ui-btn-dark:not(.nav-link):focus,
+button.ui-btn-dark:not(.nav-link):hover,
+button.ui-btn-dark:not(.nav-link):focus {
+  background-color: var(--site-plum-hover);
+  border-color: var(--site-plum-hover);
+  color: #fff;
+  text-decoration: none;
+}
+
+a.ui-btn-light:not(.nav-link),
+button.ui-btn-light:not(.nav-link) {
+  background-color: #fff;
+  color: var(--site-plum);
+}
+
+a.ui-btn-light:not(.nav-link):hover,
+a.ui-btn-light:not(.nav-link):focus,
+button.ui-btn-light:not(.nav-link):hover,
+button.ui-btn-light:not(.nav-link):focus {
+  background-color: var(--site-blush);
+  color: var(--site-plum);
+  text-decoration: none;
+}
+
+/* Fills its column, for buttons that anchor a narrow sidebar. */
+a.ui-btn-block,
+button.ui-btn-block {
+  width: 100%;
+}
+
+/* ===========================================================================
    Patterns browse + detail
    Same plum/blush system as the account pages. The pattern card and pagination
    are shared with the designer detail page, so those classes are generic
@@ -2364,28 +2429,9 @@ a:not(.btn):not(.nav-link):focus {
   text-align: center;
 }
 
+/* Appearance comes from .ui-btn; this only handles placement. */
 .pdetail-cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  width: 100%;
   margin-top: 0.9rem;
-  border: 1px solid var(--site-plum);
-  border-radius: 8px;
-  background-color: var(--site-plum);
-  padding: 0.6rem 1rem;
-  font-family: var(--font-heading);
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: #fff;
-  text-decoration: none;
-}
-
-.pdetail-cta:hover {
-  background-color: var(--site-plum-hover);
-  border-color: var(--site-plum-hover);
-  color: #fff;
 }
 
 .pdetail-title {
@@ -2496,24 +2542,10 @@ a:not(.btn):not(.nav-link):focus {
   margin: 0;
 }
 
+/* Appearance comes from .ui-btn; nowrap keeps the label on one line when the
+   designer card wraps to a narrow column. */
 .pdetail-designer-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  border: 1px solid var(--site-plum);
-  border-radius: 8px;
-  padding: 0.45rem 0.9rem;
-  font-family: var(--font-heading);
-  font-size: 0.87rem;
-  font-weight: 600;
-  color: var(--site-plum);
-  text-decoration: none;
   white-space: nowrap;
-}
-
-.pdetail-designer-link:hover {
-  background-color: var(--site-blush);
-  color: var(--site-plum-hover);
 }
 
 /* ---- Favorite + rating bar ---- */
@@ -2528,34 +2560,8 @@ a:not(.btn):not(.nav-link):focus {
   padding: 0.9rem 1.1rem;
 }
 
-.pfav-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  border: 1px solid var(--site-plum);
-  border-radius: 999px;
-  background-color: #fff;
-  padding: 0.45rem 0.95rem;
-  font-family: var(--font-heading);
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--site-plum);
-  cursor: pointer;
-}
-
-.pfav-btn:hover {
-  background-color: var(--site-blush);
-}
-
-.pfav-btn-on {
-  background-color: var(--site-plum);
-  color: #fff;
-}
-
-.pfav-btn-on:hover {
-  background-color: var(--site-plum-hover);
-}
-
+/* The favorite button gets .ui-btn plus .ui-btn-light / .ui-btn-dark depending
+   on state, so only the filled-heart icon needs a rule here. */
 .pfav-icon-on {
   fill: currentColor;
 }
