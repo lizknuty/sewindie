@@ -2740,6 +2740,7 @@
 
 /* ---- Controls ---- */
 .admin-input,
+.admin-textarea,
 .admin-select,
 .admin-multiselect {
   width: 100%;
@@ -2756,11 +2757,20 @@
   color: var(--admin-text);
 }
 
-.admin-input::placeholder {
+.admin-input::placeholder,
+.admin-textarea::placeholder {
   color: var(--admin-muted);
 }
 
+/* Vertical-only resize: a textarea free to grow horizontally can be dragged
+   past its grid column and break the two-column field alignment. */
+.admin-textarea {
+  resize: vertical;
+  min-height: 5.5rem;
+}
+
 .admin-input:focus,
+.admin-textarea:focus,
 .admin-select:focus,
 .admin-multiselect:focus {
   outline: none;
@@ -2769,6 +2779,7 @@
 }
 
 .admin-input:disabled,
+.admin-textarea:disabled,
 .admin-select:disabled,
 .admin-multiselect:disabled {
   background-color: #faf7f7;
@@ -2907,7 +2918,11 @@
 .admin-form-preview img {
   display: block;
   border-radius: 7px;
-  object-fit: cover;
+  /* contain, not cover: these previews exist so an admin can confirm the URL
+     they pasted points at the right asset. Wide designer logos were being
+     centre-cropped down to a couple of illegible letters. Letterboxing inside
+     the square frame keeps the whole image visible. */
+  object-fit: contain;
 }
 
 /* ---- Action bar ---- */

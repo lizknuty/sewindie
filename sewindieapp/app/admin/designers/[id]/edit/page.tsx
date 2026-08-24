@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation"
+import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import DesignerForm from "../../components/DesignerForm"
 
@@ -24,8 +26,15 @@ export default async function EditDesignerPage({ params }: { params: Promise<{ i
   }
 
   return (
-    <div>
-      <h1 className="mb-4">Edit Designer</h1>
+    <div className="admin-form-page">
+      <header className="admin-form-header">
+        <Link href="/admin/designers" className="admin-form-back">
+          <ArrowLeft size={15} />
+          Back to Designers
+        </Link>
+        <h1 className="admin-form-title">Edit Designer</h1>
+        <p className="admin-form-subtitle">{designer.name}</p>
+      </header>
       <DesignerForm designer={designer} />
     </div>
   )
