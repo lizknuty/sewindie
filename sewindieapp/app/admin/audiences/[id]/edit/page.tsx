@@ -24,14 +24,6 @@ export default async function EditAudiencePage({ params }: { params: Promise<{ i
   }
 
   return (
-    <div>
-      <h1 className="mb-4">Edit Audience</h1>
-      <SimpleEntityForm
-        entity={audience}
-        entityType="Audience"
-        apiPath="/api/audiences"
-        returnPath="/admin/audiences"
-      />
-    </div>
+    <SimpleEntityForm entity={audience} entityType="Audience" apiPath="/api/audiences" returnPath="/admin/audiences" />
   )
 }

@@ -24,14 +24,6 @@ export default async function EditCategoryPage({ params }: { params: Promise<{ i
   }
 
   return (
-    <div>
-      <h1 className="mb-4">Edit Category</h1>
-      <SimpleEntityForm
-        entity={category}
-        entityType="Category"
-        apiPath="/api/categories"
-        returnPath="/admin/categories"
-      />
-    </div>
+    <SimpleEntityForm entity={category} entityType="Category" apiPath="/api/categories" returnPath="/admin/categories" />
   )
 }

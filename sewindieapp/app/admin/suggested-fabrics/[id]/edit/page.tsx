@@ -24,14 +24,11 @@ export default async function EditSuggestedFabricPage({ params }: { params: Prom
   }
 
   return (
-    <div>
-      <h1 className="mb-4">Edit Suggested Fabric</h1>
-      <SimpleEntityForm
-        entity={suggestedFabric}
-        entityType="Suggested Fabric"
-        apiPath="/api/suggested-fabrics"
-        returnPath="/admin/suggested-fabrics"
-      />
-    </div>
+    <SimpleEntityForm
+      entity={suggestedFabric}
+      entityType="Suggested Fabric"
+      apiPath="/api/suggested-fabrics"
+      returnPath="/admin/suggested-fabrics"
+    />
   )
 }
