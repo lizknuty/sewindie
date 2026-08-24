@@ -204,6 +204,10 @@ export default async function PatternsPage({ searchParams }: PageProps) {
     const categoriesByName = [...categoryOptions].sort((a, b) => a.name.localeCompare(b.name));
     const popularCategories = [...categoryOptions].sort((a, b) => b.count - a.count).slice(0, 7);
 
+    // The tiles are a discovery shortcut, so an empty category would only be a
+    // dead end. The sidebar still lists every category.
+    const browsableCategories = categoriesByName.filter((c) => c.count > 0);
+
     const filterOptionMap = {
       category: categoriesByName,
       attribute: attributes,
@@ -218,7 +222,7 @@ export default async function PatternsPage({ searchParams }: PageProps) {
         <PatternsHero initialSearch={search} />
 
         <div className="patterns-shell">
-          <CategoryTiles popular={popularCategories} all={categoriesByName} />
+          <CategoryTiles popular={popularCategories} all={browsableCategories} />
 
           <ActiveFilterChips options={filterOptionMap} />
 
