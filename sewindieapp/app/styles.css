@@ -2657,6 +2657,12 @@ button.ui-btn-block {
   position: relative;
   aspect-ratio: 1 / 1;
   background-color: #fff;
+  /* Margin, not padding: the thumbnail is next/image fill, whose inline
+     `inset: 0` resolves against this element's PADDING box -- and the padding
+     area sits inside that box, so padding here would not move the art at all.
+     Offsetting the whole media box lets the card's white background show as a
+     gap above the image. */
+  margin-top: 0.5rem;
 }
 
 .pcard-media img {
