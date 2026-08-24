@@ -3006,6 +3006,185 @@
   color: var(--admin-rose);
 }
 
+/* ---- Measurement grid (size charts) ----
+   17 measurement columns plus size and remove cannot fit any realistic
+   viewport, so this scrolls horizontally. To keep that usable, both the header
+   row and the size-label column are sticky: without them you scroll out to
+   "Inseam" and can no longer tell which column or which size you're editing. */
+.admin-form-card-head .admin-form-hint {
+  margin-top: 0.9rem;
+}
+
+.admin-measure-card {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.admin-measure-card > .admin-form-card-head {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.admin-measure-scroll {
+  overflow-x: auto;
+  border-top: 1px solid var(--admin-border);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-measure-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  /* Let the table exceed the container so every column keeps a usable width
+     instead of being crushed to fit. */
+  width: max-content;
+  min-width: 100%;
+}
+
+.admin-measure-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background-color: var(--admin-surface);
+  border-bottom: 1px solid var(--admin-border);
+  padding: 0.6rem 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--admin-muted);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.admin-measure-table td {
+  padding: 0.3rem 0.5rem;
+  vertical-align: middle;
+}
+
+.admin-measure-table tbody tr + tr td {
+  border-top: 1px solid var(--admin-border);
+}
+
+/* Size label is the row's identity, so it stays pinned while measurements
+   scroll past. z-index 3 on the header keeps the top-left corner above both
+   the sticky row and the sticky column where they intersect. */
+.admin-measure-col-size {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background-color: var(--admin-surface);
+  border-right: 1px solid var(--admin-border);
+}
+
+th.admin-measure-col-size {
+  z-index: 3;
+}
+
+.admin-measure-input {
+  /* An explicit width, not 100%: inside a max-content table a percentage width
+     is indeterminate, so the input fell back to its default ~20-character
+     intrinsic size and every column rendered ~220px wide. That doubled the
+     table to 4200px and made the horizontal scroll far longer than necessary. */
+  width: 5.5rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 7px;
+  background-color: var(--admin-surface);
+  padding: 0.4rem 0.5rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  color: var(--admin-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Each cell keeps a visible border. A borderless treatment was quieter, but on
+   an empty chart the measurement cells then looked like inert blank space with
+   no hint that they were editable. */
+.admin-measure-input:hover {
+  border-color: var(--admin-muted);
+}
+
+.admin-measure-input:focus {
+  outline: none;
+  background-color: var(--admin-surface);
+  border-color: var(--admin-rose);
+  box-shadow: 0 0 0 3px var(--admin-rose-tint);
+}
+
+.admin-measure-input--size {
+  width: 6.5rem;
+  font-weight: 600;
+}
+
+.admin-measure-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 7px;
+  background-color: transparent;
+  color: var(--admin-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.admin-measure-remove:hover {
+  color: #b3261e;
+  border-color: #b3261e;
+  background-color: rgba(179, 38, 30, 0.07);
+}
+
+.admin-measure-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.9rem 1.5rem 0;
+}
+
+.admin-measure-count {
+  font-size: 0.82rem;
+  color: var(--admin-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-measure-empty {
+  padding: 2.25rem 1.5rem;
+  text-align: center;
+  color: var(--admin-muted);
+  font-size: 0.88rem;
+}
+
+/* Format guidance, replacing the Bootstrap .alert-info panel. */
+.admin-form-hint {
+  display: flex;
+  gap: 0.6rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  background-color: var(--admin-surface-2, rgba(0, 0, 0, 0.02));
+  padding: 0.85rem 1rem;
+  font-size: 0.84rem;
+  color: var(--admin-muted);
+  line-height: 1.55;
+}
+
+.admin-form-hint code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.82em;
+  color: var(--admin-text);
+  background-color: var(--admin-rose-tint);
+  border-radius: 4px;
+  padding: 0.1rem 0.32rem;
+}
+
+.admin-form-hint-icon {
+  flex-shrink: 0;
+  color: var(--admin-rose);
+  margin-top: 0.1rem;
+}
+
 @media (max-width: 767.98px) {
   .admin-form-grid {
     grid-template-columns: 1fr;

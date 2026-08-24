@@ -3,7 +3,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Plus, X } from "lucide-react"
+import { Info, Plus, X } from "lucide-react"
 // Prisma 7 removed the `@prisma/client/runtime/library` entry point; Decimal is
 // now re-exported on the generated `Prisma` namespace.
 import type { Prisma } from "@prisma/client"
@@ -129,6 +129,31 @@ interface SizeChartFormProps {
   designers: Designer[]
 }
 
+// The measurement columns, driven from one list so the header row and the body
+// cells cannot drift apart. Previously these were 17 hand-written <td> blocks,
+// where a copy-paste slip would silently bind a cell to the wrong field.
+type MeasurementKey = keyof Omit<FormSizeChartRowData, "id" | "size_label">
+
+const MEASUREMENT_COLUMNS: { key: MeasurementKey; label: string }[] = [
+  { key: "upper_bust", label: "Upper Bust" },
+  { key: "full_bust", label: "Full Bust" },
+  { key: "chest", label: "Chest" },
+  { key: "under_bust", label: "Under Bust" },
+  { key: "waist", label: "Waist" },
+  { key: "preferred_waist", label: "Preferred Waist" },
+  { key: "side_waist_length", label: "Side Waist Length" },
+  { key: "waist_to_hip_length", label: "Waist to Hip Length" },
+  { key: "high_hip", label: "High Hip" },
+  { key: "hip", label: "Hip" },
+  { key: "thigh", label: "Thigh" },
+  { key: "calf", label: "Calf" },
+  { key: "inseam", label: "Inseam" },
+  { key: "crotch_length", label: "Crotch Length" },
+  { key: "arm_length", label: "Arm Length" },
+  { key: "upper_arm", label: "Upper Arm" },
+  { key: "height", label: "Height" },
+]
+
 // Helper function to parse a measurement input string into min/max numbers
 const parseMeasurementInput = (input: string): { min: number | null; max: number | null } => {
   const trimmedInput = input.trim()
@@ -199,6 +224,9 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
         height: formatMeasurementOutput(row.height_min, row.height_max),
       })) || [],
   })
+
+  // Echoed in the format hint so the numbers being typed are unambiguous.
+  const unitLabel = formData.measurement_unit === "cm" ? "centimetres" : "inches"
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -341,278 +369,165 @@ export default function SizeChartForm({ sizeChart, designers }: SizeChartFormPro
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="mb-3">
-        <label htmlFor="label" className="form-label">
-          Label *
-        </label>
-        <input
-          type="text"
-          className="form-control"
-          id="label"
-          name="label"
-          value={formData.label}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      <div className="mb-3">
-        <label htmlFor="designer_id" className="form-label">
-          Designer *
-        </label>
-        <select
-          className="form-select"
-          id="designer_id"
-          name="designer_id"
-          value={formData.designer_id}
-          onChange={handleChange}
-          required
-        >
-          <option value="">Select a designer</option>
-          {designers.map((designer) => (
-            <option key={designer.id} value={designer.id.toString()}>
-              {designer.name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="mb-3">
-        <label htmlFor="measurement_unit" className="form-label">
-          Measurement Unit *
-        </label>
-        <select
-          className="form-select"
-          id="measurement_unit"
-          name="measurement_unit"
-          value={formData.measurement_unit}
-          onChange={handleChange}
-          required
-        >
-          <option value="inches">Inches</option>
-          <option value="cm">CM</option>
-        </select>
-      </div>
+    <form className="admin-form" onSubmit={handleSubmit}>
+      <section className="admin-form-card">
+        <div className="admin-form-card-head">
+          <h2 className="admin-form-card-title">Chart Details</h2>
+          <p className="admin-form-card-desc">
+            Identifies this chart and the units its measurements are recorded in.
+          </p>
+        </div>
 
-      <div className="alert alert-info mb-3">
-        <strong>Input Format:</strong>
-        <ul className="mb-0 mt-2">
-          <li>Single value (e.g., "32") - will be saved as max value</li>
-          <li>Range (e.g., "32-34") - will be saved as min-max range</li>
-          <li>Leave empty for no measurement</li>
-        </ul>
-      </div>
+        <div className="admin-form-grid">
+          <div className="admin-field admin-field--full">
+            <label htmlFor="label" className="admin-label">
+              Label <span className="admin-label-req">*</span>
+            </label>
+            <input
+              type="text"
+              className="admin-input"
+              id="label"
+              name="label"
+              value={formData.label}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-      <h3 className="mt-4 mb-3">Size Chart Rows</h3>
-      <div className="table-responsive mb-3">
-        <table className="table table-bordered table-sm">
-          <thead>
-            <tr>
-              <th>Size Label *</th>
-              <th>Upper Bust</th>
-              <th>Full Bust</th>
-              <th>Chest</th>
-              <th>Under Bust</th>
-              <th>Waist</th>
-              <th>Preferred Waist</th>
-              <th>Side Waist Length</th>
-              <th>Waist to Hip Length</th>
-              <th>High Hip</th>
-              <th>Hip</th>
-              <th>Thigh</th>
-              <th>Calf</th>
-              <th>Inseam</th>
-              <th>Crotch Length</th>
-              <th>Arm Length</th>
-              <th>Upper Arm</th>
-              <th>Height</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {formData.rows.map((row, index) => (
-              <tr key={index}>
-                <td>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    name="size_label"
-                    value={row.size_label}
-                    onChange={(e) => handleRowChange(index, e)}
-                    required
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    name="upper_bust"
-                    value={row.upper_bust}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    name="full_bust"
-                    value={row.full_bust}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    name="chest"
-                    value={row.chest}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    name="under_bust"
-                    value={row.under_bust}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    name="waist"
-                    value={row.waist}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    name="preferred_waist"
-                    value={row.preferred_waist}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    name="side_waist_length"
-                    value={row.side_waist_length}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    name="waist_to_hip_length"
-                    value={row.waist_to_hip_length}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    name="high_hip"
-                    value={row.high_hip}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    name="hip"
-                    value={row.hip}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    name="thigh"
-                    value={row.thigh}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    name="calf"
-                    value={row.calf}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    name="inseam"
-                    value={row.inseam}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    name="crotch_length"
-                    value={row.crotch_length}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    name="arm_length"
-                    value={row.arm_length}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    name="upper_arm"
-                    value={row.upper_arm}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    name="height"
-                    value={row.height}
-                    onChange={(e) => handleRowChange(index, e)}
-                  />
-                </td>
-                <td>
-                  <button type="button" className="btn btn-danger btn-sm" onClick={() => removeRow(index)}>
-                    <X size={16} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <button type="button" className="btn btn-outline-primary mb-4" onClick={addRow}>
-        <Plus size={18} className="me-2" />
-        Add Row
-      </button>
-      <div className="d-flex gap-2">
-        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : "Save Size Chart"}
+          <div className="admin-field">
+            <label htmlFor="designer_id" className="admin-label">
+              Designer <span className="admin-label-req">*</span>
+            </label>
+            <select
+              className="admin-select"
+              id="designer_id"
+              name="designer_id"
+              value={formData.designer_id}
+              onChange={handleChange}
+              required
+            >
+              <option value="">Select a designer</option>
+              {designers.map((designer) => (
+                <option key={designer.id} value={designer.id.toString()}>
+                  {designer.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="admin-field">
+            <label htmlFor="measurement_unit" className="admin-label">
+              Measurement Unit <span className="admin-label-req">*</span>
+            </label>
+            <select
+              className="admin-select"
+              id="measurement_unit"
+              name="measurement_unit"
+              value={formData.measurement_unit}
+              onChange={handleChange}
+              required
+            >
+              <option value="inches">Inches</option>
+              <option value="cm">CM</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section className="admin-form-card admin-measure-card">
+        <div className="admin-form-card-head">
+          <h2 className="admin-form-card-title">Sizes &amp; Measurements</h2>
+          <p className="admin-form-card-desc">
+            One row per size. There are more measurements than fit on screen — scroll sideways; the size column stays
+            pinned.
+          </p>
+          <div className="admin-form-hint">
+            <Info size={15} className="admin-form-hint-icon" />
+            <span>
+              Enter a range like <code>32-34</code>, or a single value like <code>32</code> to record just an upper
+              bound. Leave a cell empty to omit that measurement. Values are in {unitLabel}.
+            </span>
+          </div>
+        </div>
+
+        {formData.rows.length === 0 ? (
+          <p className="admin-measure-empty">No sizes yet. Add your first size to start building this chart.</p>
+        ) : (
+          <div className="admin-measure-scroll">
+            <table className="admin-measure-table">
+              <thead>
+                <tr>
+                  <th className="admin-measure-col-size">
+                    Size <span className="admin-label-req">*</span>
+                  </th>
+                  {MEASUREMENT_COLUMNS.map((col) => (
+                    <th key={col.key}>{col.label}</th>
+                  ))}
+                  <th>Remove</th>
+                </tr>
+              </thead>
+              <tbody>
+                {formData.rows.map((row, index) => (
+                  <tr key={index}>
+                    <td className="admin-measure-col-size">
+                      <input
+                        type="text"
+                        className="admin-measure-input admin-measure-input--size"
+                        name="size_label"
+                        value={row.size_label}
+                        onChange={(e) => handleRowChange(index, e)}
+                        placeholder="e.g. M"
+                        aria-label={`Size label, row ${index + 1}`}
+                        required
+                      />
+                    </td>
+                    {MEASUREMENT_COLUMNS.map((col) => (
+                      <td key={col.key}>
+                        <input
+                          type="text"
+                          className="admin-measure-input"
+                          name={col.key}
+                          value={row[col.key]}
+                          onChange={(e) => handleRowChange(index, e)}
+                          aria-label={`${col.label}, row ${index + 1}`}
+                        />
+                      </td>
+                    ))}
+                    <td>
+                      <button
+                        type="button"
+                        className="admin-measure-remove"
+                        onClick={() => removeRow(index)}
+                        aria-label={`Remove size ${row.size_label || index + 1}`}
+                      >
+                        <X size={15} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <div className="admin-measure-foot">
+          <button type="button" className="admin-form-btn" onClick={addRow}>
+            <Plus size={16} />
+            Add Size
+          </button>
+          {formData.rows.length > 0 && (
+            <span className="admin-measure-count">
+              {formData.rows.length} {formData.rows.length === 1 ? "size" : "sizes"}
+            </span>
+          )}
+        </div>
+      </section>
+
+      <div className="admin-form-actions">
+        <button type="submit" className="admin-form-btn admin-form-btn-primary" disabled={isSubmitting}>
+          {isSubmitting ? "Saving..." : sizeChart ? "Save Size Chart" : "Create Size Chart"}
         </button>
-        <Link href="/admin/size-charts" className="btn btn-outline-secondary">
+        <Link href="/admin/size-charts" className="admin-form-btn">
           Cancel
         </Link>
       </div>
