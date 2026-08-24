@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react'
 import PatternThumbnail from '@/components/PatternThumbnail'
 import { prisma } from '@/lib/prisma'
 import FavoritesAndRatings from '@/components/FavoritesAndRatings'
@@ -52,105 +53,134 @@ export default async function PatternPage({ params }: PageProps) {
     notFound()
   }
 
+  // Renders a joined list, or an italic placeholder so an empty relation is
+  // visibly "no data" rather than a blank space next to a label.
+  const specValue = (value: string | null | undefined) =>
+    value && value.trim() ? (
+      <span>{value}</span>
+    ) : (
+      <span className="pdetail-spec-empty">Not specified</span>
+    )
+
+  const joinNames = (items: { name: string }[]) => (items.length > 0 ? items.map((i) => i.name).join(', ') : null)
+
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <div className="container py-5">
-        <div className="row">
-          <div className="col-md-4">
-            <div className="card mb-4">
-              {pattern.thumbnail_url && (
-                <>
-                  <div className="position-relative" style={{ paddingBottom: '125%' }}>
-                    <PatternThumbnail
-                      src={pattern.thumbnail_url}
-                      alt={pattern.name}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 40vw, 25vw"
-                      className="card-img-top object-fit-cover"
-                    />
-                  </div>
-                  <p className="text-center mt-2">© {pattern.designer.name}</p>
-                </>
-              )}
-              <div className="card-body">
-                <a href={pattern.url} target="_blank" rel="noopener noreferrer" className="btn btn-primary w-100">
-                  View on Designer's Website
-                </a>
+    <Suspense fallback={<div className="pdetail">Loading...</div>}>
+      <div className="pdetail">
+        <Link href="/patterns" className="pdetail-back">
+          <ChevronLeft size={15} aria-hidden="true" />
+          All patterns
+        </Link>
+
+        <div className="pdetail-body">
+          <div>
+            {pattern.thumbnail_url ? (
+              <>
+                <div className="pdetail-media">
+                  <PatternThumbnail
+                    src={pattern.thumbnail_url}
+                    alt={pattern.name}
+                    fill
+                    sizes="(min-width: 768px) 320px, 100vw"
+                  />
+                </div>
+                <p className="pdetail-credit">© {pattern.designer.name}</p>
+              </>
+            ) : (
+              <div className="pdetail-media">
+                <span className="pcard-media-empty">No image</span>
               </div>
-            </div>
+            )}
+
+            <a href={pattern.url} target="_blank" rel="noopener noreferrer" className="pdetail-cta">
+              View on designer&apos;s website
+              <ExternalLink size={15} aria-hidden="true" />
+            </a>
           </div>
-          <div className="col-md-8">
-            <h1 className="font-heading mb-4">{pattern.name}</h1>
-            <h2 className="h4 font-heading mb-3">by {pattern.designer.name}</h2>
+
+          <div>
+            <h1 className="pdetail-title">{pattern.name}</h1>
+            <p className="pdetail-byline">
+              by <Link href={`/designers/${pattern.designer.id}`}>{pattern.designer.name}</Link>
+            </p>
 
             <FavoritesAndRatings patternId={pattern.id} />
 
-            <div className="row mb-4">
-              <div className="col-md-6">
-                <h3 className="h5 font-heading">Details</h3>
-                <ul className="list-unstyled">
-                  <li><strong>Yardage:</strong> {pattern.yardage || 'Not specified'}</li>
-                  <li><strong>Sizes:</strong> {pattern.sizes || 'Not specified'}</li>
-                  <li><strong>Language:</strong> {pattern.language || 'Not specified'}</li>
-                  <li>
-                    <strong>Audience:</strong>{' '}
-                    {pattern.PatternAudience.map(({ audience }, index) => (
-                      <span key={audience.id}>
-                        {index > 0 && ', '}
-                        {audience.name}
-                      </span>
-                    ))}
-                  </li>
-                  <li>
-                    <strong>Fabric Types:</strong>{' '}
-                    {pattern.PatternFabricType.map(({ fabricType }, index) => (
-                      <span key={fabricType.id}>
-                        {index > 0 && ', '}
-                        {fabricType.name}
-                      </span>
-                    ))}
-                  </li>
-                  <li>
-                    <strong>Suggested Fabrics:</strong>{' '}
-                    {pattern.PatternSuggestedFabric.map(({ suggestedFabric }, index) => (
-                      <span key={suggestedFabric.id}>
-                        {index > 0 && ', '}
-                        {suggestedFabric.name}
-                      </span>
-                    ))}
-                  </li>
-                </ul>
-              </div>
-              <div className="col-md-6">
-                <h3 className="h5 font-heading">Categories</h3>
+            <section className="pdetail-section">
+              <h2 className="pdetail-section-title">Details</h2>
+              <dl className="pdetail-specs">
                 <div>
+                  <dt className="pdetail-spec-label">Yardage</dt>
+                  <dd className="pdetail-spec-value">{specValue(pattern.yardage)}</dd>
+                </div>
+                <div>
+                  <dt className="pdetail-spec-label">Sizes</dt>
+                  <dd className="pdetail-spec-value">{specValue(pattern.sizes)}</dd>
+                </div>
+                <div>
+                  <dt className="pdetail-spec-label">Language</dt>
+                  <dd className="pdetail-spec-value">{specValue(pattern.language)}</dd>
+                </div>
+                <div>
+                  <dt className="pdetail-spec-label">Audience</dt>
+                  <dd className="pdetail-spec-value">
+                    {specValue(joinNames(pattern.PatternAudience.map(({ audience }) => audience)))}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="pdetail-spec-label">Fabric types</dt>
+                  <dd className="pdetail-spec-value">
+                    {specValue(joinNames(pattern.PatternFabricType.map(({ fabricType }) => fabricType)))}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="pdetail-spec-label">Suggested fabrics</dt>
+                  <dd className="pdetail-spec-value">
+                    {specValue(joinNames(pattern.PatternSuggestedFabric.map(({ suggestedFabric }) => suggestedFabric)))}
+                  </dd>
+                </div>
+              </dl>
+            </section>
+
+            {pattern.PatternCategory.length > 0 && (
+              <section className="pdetail-section">
+                <h2 className="pdetail-section-title">Categories</h2>
+                <div className="pdetail-tags">
                   {pattern.PatternCategory.map(({ category }) => (
-                    <span key={category.id} className="badge bg-secondary text-white me-2 mb-2">
+                    <span key={category.id} className="pdetail-tag">
                       {category.name}
                     </span>
                   ))}
                 </div>
+              </section>
+            )}
+
+            {pattern.PatternAttribute.length > 0 && (
+              <section className="pdetail-section">
+                <h2 className="pdetail-section-title">Attributes</h2>
+                <div className="pdetail-tags">
+                  {pattern.PatternAttribute.map(({ attribute }) => (
+                    <span key={attribute.id} className="pdetail-tag">
+                      {attribute.name}
+                    </span>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            <section className="pdetail-section">
+              <h2 className="pdetail-section-title">About the designer</h2>
+              <div className="pdetail-designer-card">
+                <div>
+                  <p className="pdetail-designer-name">{pattern.designer.name}</p>
+                  <p className="pdetail-designer-note">No designer description available.</p>
+                </div>
+                <Link href={`/designers/${pattern.designer.id}`} className="pdetail-designer-link">
+                  View all patterns
+                  <ChevronRight size={15} aria-hidden="true" />
+                </Link>
               </div>
-            </div>
-
-            <div className="mb-4">
-              <h3 className="h5 font-heading">Attributes</h3>
-              <ul className="list-inline">
-                {pattern.PatternAttribute.map(({ attribute }) => (
-                  <li key={attribute.id} className="list-inline-item">
-                    <span className="badge bg-secondary">{attribute.name}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="mb-4">
-              <h3 className="h5 font-heading">About the Designer</h3>
-              <p>No designer description available.</p>
-              <Link href={`/designers/${pattern.designer.id}`} className="btn btn-primary">
-                View All Patterns by {pattern.designer.name}
-              </Link>
-            </div>
+            </section>
           </div>
         </div>
       </div>
