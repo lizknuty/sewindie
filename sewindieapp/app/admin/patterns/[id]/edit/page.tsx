@@ -49,6 +49,11 @@ export default async function EditPatternPage({ params }: { params: Promise<{ id
           Format: true,
         },
       },
+      PatternSizeChart: {
+        include: {
+          SizeChart: true,
+        },
+      },
     },
   })
 

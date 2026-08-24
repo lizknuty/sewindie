@@ -54,6 +54,7 @@ interface Format {
 interface SizeChart {
   id: number
   label: string
+  designer_id: number
   Designer: {
     name: string
   }
@@ -91,8 +92,10 @@ interface PatternFormProps {
     PatternFormat?: Array<{
       Format: Format
     }>
+    // Only the id is read here, to seed the selected chart ids. The selectable
+    // options come from /api/size-charts instead.
     PatternSizeChart?: Array<{
-      SizeChart: SizeChart
+      SizeChart: { id: number }
     }>
   }
 }
@@ -100,7 +103,11 @@ interface PatternFormProps {
 export default function PatternForm({ pattern }: PatternFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [designers, setDesigners] = useState<Designer[]>([])
+  // Seeded with the pattern's own designer so a matching <option> exists on the
+  // very first render. The full list arrives async, and a controlled <select>
+  // whose value has no matching option gets silently reset to "" by the DOM,
+  // which used to blank out the designer on every edit.
+  const [designers, setDesigners] = useState<Designer[]>(pattern?.designer ? [pattern.designer] : [])
   const [categories, setCategories] = useState<Category[]>([])
   const [audiences, setAudiences] = useState<Audience[]>([])
   const [fabricTypes, setFabricTypes] = useState<FabricType[]>([])
@@ -189,8 +196,32 @@ export default function PatternForm({ pattern }: PatternFormProps) {
     fetchData()
   }, [])
 
+  // Size charts belong to a designer, so only the selected designer's charts are
+  // valid for this pattern. Empty until a designer is chosen.
+  const selectedDesignerId = formData.designer_id ? Number.parseInt(formData.designer_id) : null
+  const availableSizeCharts = selectedDesignerId
+    ? sizeCharts.filter((chart) => chart.designer_id === selectedDesignerId)
+    : []
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
+
+    // Changing the designer invalidates any chart picked from the previous one.
+    // Without this the stale ids stay in formData and get submitted even though
+    // they are no longer visible in the list.
+    if (name === "designer_id") {
+      const nextDesignerId = value ? Number.parseInt(value) : null
+      setFormData((prev) => ({
+        ...prev,
+        designer_id: value,
+        sizeCharts: prev.sizeCharts.filter((id) => {
+          const chart = sizeCharts.find((c) => c.id.toString() === id)
+          return chart != null && chart.designer_id === nextDesignerId
+        }),
+      }))
+      return
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
@@ -477,13 +508,21 @@ export default function PatternForm({ pattern }: PatternFormProps) {
           value={formData.sizeCharts}
           onChange={(e) => handleMultiSelectChange(e, "sizeCharts")}
           size={5}
+          disabled={!selectedDesignerId}
         >
-          {sizeCharts.map((chart) => (
+          {availableSizeCharts.map((chart) => (
             <option key={chart.id} value={chart.id.toString()}>
-              {chart.label} ({chart.Designer.name})
+              {chart.label}
             </option>
           ))}
         </select>
+        <div className="form-text">
+          {!selectedDesignerId
+            ? "Select a designer to see their size charts."
+            : availableSizeCharts.length === 0
+              ? "This designer has no size charts yet."
+              : "Hold Ctrl (Cmd on Mac) to select more than one."}
+        </div>
       </div>
 
       <div className="row">
