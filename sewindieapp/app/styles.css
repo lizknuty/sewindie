@@ -247,12 +247,20 @@ h6,
   background-color: rgba(138, 63, 92, 0.12);
 }
 
+/* Anchored left by default: in the mobile panel .site-nav-auth is a
+   left-aligned row in a full-width column, so the avatar sits near the left
+   edge and a right-anchored menu would expand off the left of the screen.
+   Flipped to right-anchored at 992px, where the avatar moves to the far right.
+   max-width keeps the panel inside the viewport on very narrow screens, where
+   232px + the gutter would otherwise overflow. */
 .site-account-menu {
   position: absolute;
   top: calc(100% + 0.5rem);
-  right: 0;
+  left: 0;
+  right: auto;
   z-index: 1050;
   min-width: 232px;
+  max-width: calc(100vw - 1.5rem);
   padding: 0.4rem;
   background-color: #fff;
   border: 1px solid #efe3e6;
@@ -331,6 +339,13 @@ h6,
     flex-direction: row;
     align-items: center;
     gap: 0.4rem;
+  }
+
+  /* The avatar is now the rightmost item in the header, so the menu hangs from
+     its right edge and opens inward. */
+  .site-account-menu {
+    left: auto;
+    right: 0;
   }
 }
 
