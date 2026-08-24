@@ -107,41 +107,38 @@ export default function FavoritesAndRatings({ patternId }: FavoritesAndRatingsPr
   }
 
   return (
-    <div className="mb-4">
-      <div className="d-flex align-items-center mb-2">
-        {session ? (
-          <button 
-            className={`btn ${isFavorited ? 'btn-secondary' : 'btn-outline-secondary'} me-2`}
-            onClick={handleFavorite}
-          >
-            <Heart className={`inline-block mr-2 ${isFavorited ? 'text-danger' : ''}`} />
-            {isFavorited ? 'Favorited' : 'Add to Favorites'}
-          </button>
-        ) : (
-          <button 
-            className="btn btn-outline-secondary me-2"
-            onClick={() => router.push('/login')}
-          >
-            <Heart className="inline-block mr-2" />
-            Login to Favorite
-          </button>
-        )}
-        <div>
-          <p className="mb-1">Average rating: {averageRating.toFixed(1)} / 5</p>
-          <div className="d-flex">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star
-                key={star}
-                className={`cursor-pointer ${star <= userRating ? 'text-warning' : 'text-secondary'}`}
-                onClick={() => session ? handleRating(star) : router.push('/login')}
-              />
-            ))}
-          </div>
+    <div className="pfav">
+      <button
+        type="button"
+        className={`pfav-btn ${isFavorited ? "pfav-btn-on" : ""}`}
+        onClick={session ? handleFavorite : () => router.push("/login")}
+        aria-pressed={session ? isFavorited : undefined}
+      >
+        <Heart size={16} className={isFavorited ? "pfav-icon-on" : ""} aria-hidden="true" />
+        {!session ? "Log in to favorite" : isFavorited ? "Favorited" : "Add to favorites"}
+      </button>
+
+      <div className="pfav-rate">
+        <span className="pfav-rate-label">
+          {averageRating > 0 ? `Average ${averageRating.toFixed(1)} / 5` : "No ratings yet"}
+          {session && userRating > 0 && ` · your rating ${userRating}`}
+        </span>
+        {/* Buttons rather than click handlers on bare SVGs, which were
+            unreachable by keyboard and exposed no accessible name. */}
+        <div className="pfav-stars">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              type="button"
+              className={`pfav-star ${star <= userRating ? "pfav-star-on" : ""}`}
+              onClick={() => (session ? handleRating(star) : router.push("/login"))}
+              aria-label={session ? `Rate ${star} out of 5` : "Log in to rate this pattern"}
+            >
+              <Star size={18} aria-hidden="true" />
+            </button>
+          ))}
         </div>
       </div>
-      {!session && (
-        <p className="text-muted small">Login to rate this pattern</p>
-      )}
     </div>
   )
 }

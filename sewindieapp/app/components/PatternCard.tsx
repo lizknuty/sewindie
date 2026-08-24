@@ -1,66 +1,62 @@
-import React from 'react'
-import Link from 'next/link'
-import PatternThumbnail from './PatternThumbnail'
+import React from "react"
+import Link from "next/link"
+import PatternThumbnail from "./PatternThumbnail"
 
 type PatternCardProps = {
-  id: number;
-  name: string;
-  thumbnail_url: string | null;
+  id: number
+  name: string
+  thumbnail_url: string | null
   designer: {
-    id: number;
-    name: string;
-  };
+    id: number
+    name: string
+  }
   patternCategories: {
     category: {
-      id: number;
-      name: string;
+      id: number
+      name: string
     }
-  }[];
+  }[]
 }
 
 export default function PatternCard({ id, name, thumbnail_url, designer, patternCategories }: PatternCardProps) {
   if (!id || !name || !designer) {
-    console.error('Invalid pattern data:', { id, name, designer });
-    return null;
+    console.error("Invalid pattern data:", { id, name, designer })
+    return null
   }
 
   return (
-    <div className="card h-100" style={{ backgroundColor: 'white' }}>
-      <div className="card-body d-flex flex-column">
-        <div className="mb-3" style={{ height: '200px', position: 'relative' }}>
-          {thumbnail_url ? (
-            <PatternThumbnail
-              src={thumbnail_url}
-              alt={`${name} thumbnail`}
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              style={{ objectFit: 'contain' }}
-              className="rounded"
-            />
-          ) : (
-            <div className="w-100 h-100 bg-light d-flex justify-content-center align-items-center rounded">
-              <span className="text-muted">No image</span>
-            </div>
-          )}
-        </div>
-        <h2 className="card-title h5 text-center mb-2">
-          <Link href={`/patterns/${id}`} className="text-decoration-none">
-            {name}
-          </Link>
-        </h2>
-        <p className="card-text text-center text-muted mb-3">
-          <Link href={`/designers/${designer.id}`} className="text-decoration-none text-muted">
-            {designer.name}
-          </Link>
+    // Not a single wrapping link: the card holds two separate destinations
+    // (pattern and designer), so nesting them would be invalid markup.
+    <article className="pcard">
+      <Link href={`/patterns/${id}`} className="pcard-media" aria-label={name}>
+        {thumbnail_url ? (
+          <PatternThumbnail
+            src={thumbnail_url}
+            alt={`${name} thumbnail`}
+            fill
+            sizes="(min-width: 1200px) 20vw, (min-width: 992px) 25vw, (min-width: 576px) 50vw, 100vw"
+          />
+        ) : (
+          <span className="pcard-media-empty">No image</span>
+        )}
+      </Link>
+      <div className="pcard-body">
+        <h3 className="pcard-name">
+          <Link href={`/patterns/${id}`}>{name}</Link>
+        </h3>
+        <p className="pcard-designer">
+          <Link href={`/designers/${designer.id}`}>{designer.name}</Link>
         </p>
-        <div className="mt-auto d-flex flex-wrap justify-content-center gap-1">
-          {patternCategories && patternCategories.map(pc => (
-            <span key={pc.category.id} className="badge bg-secondary">
-              {pc.category.name}
-            </span>
-          ))}
-        </div>
+        {patternCategories && patternCategories.length > 0 && (
+          <div className="pcard-tags">
+            {patternCategories.map((pc) => (
+              <span key={pc.category.id} className="pcard-tag">
+                {pc.category.name}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
-    </div>
+    </article>
   )
 }
