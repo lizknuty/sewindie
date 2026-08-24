@@ -48,8 +48,9 @@ export default function FeaturedDesigners({ designers }: { designers: FeaturedDe
   function scrollByCards(direction: 1 | -1) {
     const rail = railRef.current
     if (!rail) return
-    // Scroll by roughly the visible width so paging never lands mid-card.
-    rail.scrollBy({ left: direction * rail.clientWidth * 0.8, behavior: "smooth" })
+    // A full rail width is exactly one set of 6 on desktop, so each press pages
+    // to the next six. scroll-snap keeps the landing position on a card edge.
+    rail.scrollBy({ left: direction * rail.clientWidth, behavior: "smooth" })
   }
 
   if (designers.length === 0) return null

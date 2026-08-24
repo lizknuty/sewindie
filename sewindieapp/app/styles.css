@@ -1325,9 +1325,15 @@ a:not(.btn):not(.nav-link):focus {
     flex: 1 1 42%;
     min-width: 0;
     align-items: center;
-    /* Trimmed from 4rem so the band hugs the collage instead of adding empty
-       blush above and below it. */
-    padding: 2.25rem 2rem;
+    /* Kept tight so the copy column stays shorter than the 2/1 media panel and
+       the panel remains the thing setting the band's height. When the copy was
+       the taller of the two it silently added back ~29px. */
+    padding: 1.5rem 2rem;
+  }
+
+  /* Tighten the internal rhythm for the same reason. */
+  .home-hero-lede {
+    margin-top: 1rem;
   }
 
   .home-hero-copy-inner {
@@ -1351,9 +1357,23 @@ a:not(.btn):not(.nav-link):focus {
   /* The copy column is wide enough here to guarantee both buttons fit. */
   .home-hero-actions {
     flex-wrap: nowrap;
+    margin-top: 1.25rem;
   }
 
+  /* Exactly 6 across: six cards plus the five 1.5rem gaps between them fill
+     the rail, so the 7th sits just past the edge and the arrows page by six.
+     Left at the fixed 112px below this breakpoint, where a sixth of the width
+     would be too narrow for a legible avatar. */
+  .home-designer-item {
+    width: calc((100% - 5 * 1.5rem) / 6);
+  }
+
+  /* 2/1 rather than the collage's own 3/2: height is width/2 instead of
+     width/1.5, which is exactly 25% shorter. `contain` then fits the image by
+     height and centres it, and the blush it leaves at the sides matches
+     --home-hero-bg, so the band still reads as one continuous field. */
   .home-hero-media {
+    aspect-ratio: 2 / 1;
     flex: 1 1 58%;
     min-width: 0;
     /* Keep the 3:2 box rather than a fixed min-height: the panel then matches
