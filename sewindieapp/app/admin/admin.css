@@ -791,20 +791,24 @@
   font-size: 0.95rem;
 }
 
+/* Matches .admin-form-btn-primary (the "Create Designer"/"Save Pattern" button)
+   so the primary action reads the same everywhere in the admin: deep rose fill
+   and a 10px radius rather than the old bright-pink pill. The pill radius is
+   reserved for badges, chips and counts, which are not actionable. */
 .btn-add-pattern {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
   flex-shrink: 0;
-  background-color: var(--admin-rose);
+  background-color: var(--admin-rose-deep);
   color: #fff;
-  border: none;
-  border-radius: 999px;
+  border: 1px solid var(--admin-rose-deep);
+  border-radius: 10px;
   padding: 0.6rem 1.15rem;
   font-size: 0.9rem;
   font-weight: 600;
   text-decoration: none;
-  transition: filter 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 /* These "Add ..." buttons are Next.js <Link>s, i.e. anchors. The global rule
@@ -820,8 +824,11 @@
   text-decoration: none;
 }
 
+/* An explicit token rather than the old `filter: brightness()`: filter creates
+   a containing block, which clipped the metadata split button's dropdown. */
 .btn-add-pattern:hover {
-  filter: brightness(0.94);
+  background-color: var(--admin-rose-deep-hover);
+  border-color: var(--admin-rose-deep-hover);
   color: #fff;
 }
 
@@ -1878,6 +1885,10 @@
 .metadata-add-main {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
+  /* Both halves now carry a 1px border from .btn-add-pattern, which would meet
+     as a 2px seam down the middle of the split button. Dropping the inner edge
+     leaves the divider below as the only separator. */
+  border-right: none;
 }
 .metadata-add-caret {
   padding-left: 0.6rem;
