@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
+import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
 import SizeChartForm from "../../components/SizeChartForm"
 
 // Helper function to convert Decimal to string for serialization
@@ -10,12 +12,11 @@ function toDecimal(value: any): string | null {
   return value.toString()
 }
 
-export default async function EditSizeChartPage({
-  params,
-}: {
-  params: { id: string }
-}) {
-  const { id } = params
+export default async function EditSizeChartPage({ params }: { params: Promise<{ id: string }> }) {
+  // Await params before using it — in Next.js 16 `params` is a Promise, so the
+  // previous synchronous destructure left `id` undefined and every request
+  // fell through to notFound(). The surrounding try/catch hid it as a 404.
+  const { id } = await params
 
   try {
     // Fetch the size chart with its rows and designer
@@ -84,15 +85,19 @@ export default async function EditSizeChartPage({
     }
 
     return (
-      <div className="container-fluid">
-        <div className="row">
-          <div className="col-12">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-              <h1>Edit Size Chart</h1>
-            </div>
-            <SizeChartForm sizeChart={serializableSizeChart} designers={designers} />
-          </div>
-        </div>
+      <div className="admin-form-page">
+        <header className="admin-form-header">
+          <Link href="/admin/size-charts" className="admin-form-back">
+            <ArrowLeft size={15} />
+            Back to Size Charts
+          </Link>
+          <h1 className="admin-form-title">Edit Size Chart</h1>
+          <p className="admin-form-subtitle">
+            {sizeChart.label}
+            {sizeChart.Designer?.name ? ` — ${sizeChart.Designer.name}` : ""}
+          </p>
+        </header>
+        <SizeChartForm sizeChart={serializableSizeChart} designers={designers} />
       </div>
     )
   } catch (error) {
