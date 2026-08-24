@@ -24,14 +24,11 @@ export default async function EditAttributePage({ params }: { params: Promise<{ 
   }
 
   return (
-    <div>
-      <h1 className="mb-4">Edit Attribute</h1>
-      <SimpleEntityForm
-        entity={attribute}
-        entityType="Attribute"
-        apiPath="/api/attributes"
-        returnPath="/admin/attributes"
-      />
-    </div>
+    <SimpleEntityForm
+      entity={attribute}
+      entityType="Attribute"
+      apiPath="/api/attributes"
+      returnPath="/admin/attributes"
+    />
   )
 }

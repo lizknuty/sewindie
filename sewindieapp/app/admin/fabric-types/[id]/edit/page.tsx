@@ -24,14 +24,11 @@ export default async function EditFabricTypePage({ params }: { params: Promise<{
   }
 
   return (
-    <div>
-      <h1 className="mb-4">Edit Fabric Type</h1>
-      <SimpleEntityForm
-        entity={fabricType}
-        entityType="Fabric Type"
-        apiPath="/api/fabric-types"
-        returnPath="/admin/fabric-types"
-      />
-    </div>
+    <SimpleEntityForm
+      entity={fabricType}
+      entityType="Fabric Type"
+      apiPath="/api/fabric-types"
+      returnPath="/admin/fabric-types"
+    />
   )
 }

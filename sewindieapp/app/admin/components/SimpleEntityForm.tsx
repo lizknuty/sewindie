@@ -5,6 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
 
 interface SimpleEntityFormProps {
   entity?: {
@@ -52,30 +53,60 @@ export default function SimpleEntityForm({ entity, entityType, apiPath, returnPa
     }
   }
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <div className="mb-3">
-        <label htmlFor="name" className="form-label">
-          Name *
-        </label>
-        <input
-          type="text"
-          className="form-control"
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-      </div>
+  // The back link label comes from the return path ("/admin/fabric-types" ->
+  // "Fabric Types") so callers don't have to pass a second, plural label that
+  // could drift out of sync with where the link actually goes.
+  const backLabel = (returnPath.split("/").filter(Boolean).pop() ?? "")
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
 
-      <div className="d-flex gap-2">
-        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : `Save ${entityType}`}
-        </button>
-        <Link href={returnPath} className="btn btn-outline-secondary">
-          Cancel
+  return (
+    <div className="admin-form-page admin-form-page--narrow">
+      <header className="admin-form-header">
+        <Link href={returnPath} className="admin-form-back">
+          <ArrowLeft size={15} />
+          Back to {backLabel}
         </Link>
-      </div>
-    </form>
+        <h1 className="admin-form-title">{entity ? `Edit ${entityType}` : `Add New ${entityType}`}</h1>
+        {entity?.name && <p className="admin-form-subtitle">{entity.name}</p>}
+      </header>
+
+      <form className="admin-form" onSubmit={handleSubmit}>
+        <section className="admin-form-card">
+          <div className="admin-form-card-head">
+            <h2 className="admin-form-card-title">{entityType} Details</h2>
+            <p className="admin-form-card-desc">
+              The name shown wherever this {entityType.toLowerCase()} appears in the directory and in pattern filters.
+            </p>
+          </div>
+
+          <div className="admin-form-grid">
+            <div className="admin-field admin-field--full">
+              <label htmlFor="name" className="admin-label">
+                Name <span className="admin-label-req">*</span>
+              </label>
+              <input
+                type="text"
+                className="admin-input"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+        </section>
+
+        <div className="admin-form-actions">
+          <button type="submit" className="admin-form-btn admin-form-btn-primary" disabled={isSubmitting}>
+            {isSubmitting ? "Saving..." : entity ? `Save ${entityType}` : `Create ${entityType}`}
+          </button>
+          <Link href={returnPath} className="admin-form-btn">
+            Cancel
+          </Link>
+        </div>
+      </form>
+    </div>
   )
 }

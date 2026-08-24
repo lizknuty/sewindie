@@ -2638,6 +2638,13 @@
   max-width: 1040px;
 }
 
+/* Single-field forms (the metadata entities: categories, audiences, formats,
+   attributes, fabric types, suggested fabrics). At the full 1040px a lone Name
+   input reads as an unfinished page, so these get a tighter column. */
+.admin-form-page--narrow {
+  max-width: 580px;
+}
+
 .admin-form-header {
   margin-bottom: 1.5rem;
 }

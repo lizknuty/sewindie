@@ -23,10 +23,5 @@ export default async function EditFormatPage({ params }: { params: Promise<{ id:
     notFound()
   }
 
-  return (
-    <div>
-      <h1 className="mb-4">Edit Format</h1>
-      <SimpleEntityForm entity={format} entityType="Format" apiPath="/api/formats" returnPath="/admin/formats" />
-    </div>
-  )
+  return <SimpleEntityForm entity={format} entityType="Format" apiPath="/api/formats" returnPath="/admin/formats" />
 }
