@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { prisma } from "@/lib/prisma"
+import { DESIGNER_SLOTS, PATTERN_SLOTS, DESIGNER_VISIBLE } from "@/lib/homepage-rails"
 import CurationRail, { type CurationItem } from "./CurationRail"
 
 export const metadata: Metadata = {
@@ -63,14 +64,15 @@ export default async function AdminHomepagePage() {
           kind="designer"
           title="Featured Designers"
           description="Pinned designers lead the rail. Remaining slots fill with the designers who have the most published patterns."
-          visibleSlots={6}
+          totalSlots={DESIGNER_SLOTS}
+          visibleSlots={DESIGNER_VISIBLE}
           initialItems={designers}
         />
         <CurationRail
           kind="pattern"
           title="New & Noteworthy"
           description="Pinned patterns lead the rail. Remaining slots fill with the most recently added patterns."
-          visibleSlots={12}
+          totalSlots={PATTERN_SLOTS}
           initialItems={patterns}
         />
       </div>

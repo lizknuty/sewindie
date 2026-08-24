@@ -33,8 +33,15 @@ type Props = {
   kind: "designer" | "pattern"
   title: string
   description: string
-  /** How many slots the live homepage rail shows before overflow. */
-  visibleSlots: number
+  /** How many items the homepage rail loads in total — the real slot count. */
+  totalSlots: number
+  /**
+   * How many are on screen at once, when that differs from `totalSlots`. The
+   * designer rail is a scroller showing 6 of its 10, so picks past the 6th are
+   * flagged as needing an arrow press. Omitted for the pattern grid, which
+   * renders all of its slots at once.
+   */
+  visibleSlots?: number
   initialItems: CurationItem[]
 }
 
@@ -77,7 +84,7 @@ function SortableRow({
   item: CurationItem
   index: number
   kind: Props["kind"]
-  visibleSlots: number
+  visibleSlots?: number
   onRemove: (id: number) => void
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -107,8 +114,10 @@ function SortableRow({
         <span className="curation-row-name">{item.name}</span>
         {item.subtitle ? <span className="curation-row-sub">{item.subtitle}</span> : null}
       </span>
-      {index >= visibleSlots ? (
-        <span className="curation-overflow-tag">Overflow</span>
+      {visibleSlots !== undefined && index >= visibleSlots ? (
+        <span className="curation-overflow-tag" title="Reachable with the rail arrows">
+          Scroll
+        </span>
       ) : null}
       <button
         type="button"
@@ -126,6 +135,7 @@ export default function CurationRail({
   kind,
   title,
   description,
+  totalSlots,
   visibleSlots,
   initialItems,
 }: Props) {
@@ -325,7 +335,7 @@ export default function CurationRail({
 
       {items.length === 0 ? (
         <p className="curation-empty">
-          Nothing pinned. The rail is filling all {visibleSlots} slots automatically —
+          Nothing pinned. The rail is filling all {totalSlots} slots automatically —
           {kind === "designer" ? " designers with the most patterns" : " the newest patterns"} come
           first.
         </p>
@@ -360,10 +370,12 @@ export default function CurationRail({
             : status === "error"
               ? error
               : items.length > 0
-                ? `${Math.min(items.length, visibleSlots)} of ${visibleSlots} slots pinned${
-                    items.length < visibleSlots
-                      ? ` — the remaining ${visibleSlots - items.length} fill automatically.`
-                      : "."
+                ? `${Math.min(items.length, totalSlots)} of ${totalSlots} slots pinned${
+                    items.length < totalSlots
+                      ? ` — the remaining ${totalSlots - items.length} fill automatically.`
+                      : items.length > totalSlots
+                        ? ` — ${items.length - totalSlots} past the end of the rail won't show.`
+                        : "."
                   }`
                 : ""}
         </p>

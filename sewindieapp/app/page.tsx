@@ -1,13 +1,9 @@
 import { prisma } from "@/lib/prisma"
+import { DESIGNER_SLOTS, PATTERN_SLOTS } from "@/lib/homepage-rails"
 import HomeHero from "./components/HomeHero"
 import FeaturedDesigners from "./components/FeaturedDesigners"
 import NewNoteworthyPatterns from "./components/NewNoteworthyPatterns"
 import CommunityCallout from "./components/CommunityCallout"
-
-// How many items each rail shows. The designer rail fits exactly 6 per view,
-// and admins curate against these same numbers in /admin/homepage.
-const DESIGNER_SLOTS = 10
-const PATTERN_SLOTS = 12
 
 /**
  * Puts editorially pinned rows first (in their saved order) and backfills the
