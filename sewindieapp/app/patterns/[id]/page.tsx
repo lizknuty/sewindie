@@ -92,7 +92,12 @@ export default async function PatternPage({ params }: PageProps) {
               </div>
             )}
 
-            <a href={pattern.url} target="_blank" rel="noopener noreferrer" className="pdetail-cta">
+            <a
+              href={pattern.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ui-btn ui-btn-dark ui-btn-block pdetail-cta"
+            >
               View on designer&apos;s website
               <ExternalLink size={15} aria-hidden="true" />
             </a>
@@ -175,7 +180,10 @@ export default async function PatternPage({ params }: PageProps) {
                   <p className="pdetail-designer-name">{pattern.designer.name}</p>
                   <p className="pdetail-designer-note">No designer description available.</p>
                 </div>
-                <Link href={`/designers/${pattern.designer.id}`} className="pdetail-designer-link">
+                <Link
+                  href={`/designers/${pattern.designer.id}`}
+                  className="ui-btn ui-btn-light pdetail-designer-link"
+                >
                   View all patterns
                   <ChevronRight size={15} aria-hidden="true" />
                 </Link>

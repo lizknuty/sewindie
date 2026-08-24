@@ -110,7 +110,7 @@ export default function FavoritesAndRatings({ patternId }: FavoritesAndRatingsPr
     <div className="pfav">
       <button
         type="button"
-        className={`pfav-btn ${isFavorited ? "pfav-btn-on" : ""}`}
+        className={`ui-btn ${isFavorited ? "ui-btn-dark" : "ui-btn-light"}`}
         onClick={session ? handleFavorite : () => router.push("/login")}
         aria-pressed={session ? isFavorited : undefined}
       >
