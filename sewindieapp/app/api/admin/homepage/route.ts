@@ -37,12 +37,12 @@ export async function GET() {
   const [designers, patterns] = await Promise.all([
     prisma.featuredDesigner.findMany({
       orderBy: { position: "asc" },
-      include: { designer: { select: { id: true, name: true, logo_url: true } } },
+      include: { Designer: { select: { id: true, name: true, logo_url: true } } },
     }),
     prisma.featuredPattern.findMany({
       orderBy: { position: "asc" },
       include: {
-        pattern: {
+        Pattern: {
           select: {
             id: true,
             name: true,
@@ -56,15 +56,15 @@ export async function GET() {
 
   return NextResponse.json({
     designers: designers.map((row) => ({
-      id: row.designer.id,
-      name: row.designer.name,
-      imageUrl: row.designer.logo_url,
+      id: row.Designer.id,
+      name: row.Designer.name,
+      imageUrl: row.Designer.logo_url,
     })),
     patterns: patterns.map((row) => ({
-      id: row.pattern.id,
-      name: row.pattern.name,
-      imageUrl: row.pattern.thumbnail_url,
-      subtitle: row.pattern.designer?.name ?? null,
+      id: row.Pattern.id,
+      name: row.Pattern.name,
+      imageUrl: row.Pattern.thumbnail_url,
+      subtitle: row.Pattern.designer?.name ?? null,
     })),
   })
 }

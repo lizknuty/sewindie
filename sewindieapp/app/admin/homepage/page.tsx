@@ -14,12 +14,12 @@ export const dynamic = "force-dynamic"
 async function getFeaturedDesigners(): Promise<CurationItem[]> {
   const rows = await prisma.featuredDesigner.findMany({
     orderBy: { position: "asc" },
-    include: { designer: { select: { id: true, name: true, logo_url: true } } },
+    include: { Designer: { select: { id: true, name: true, logo_url: true } } },
   })
   return rows.map((row) => ({
-    id: row.designer.id,
-    name: row.designer.name,
-    imageUrl: row.designer.logo_url,
+    id: row.Designer.id,
+    name: row.Designer.name,
+    imageUrl: row.Designer.logo_url,
   }))
 }
 
@@ -27,21 +27,24 @@ async function getFeaturedPatterns(): Promise<CurationItem[]> {
   const rows = await prisma.featuredPattern.findMany({
     orderBy: { position: "asc" },
     include: {
-      pattern: {
+      Pattern: {
         select: {
           id: true,
           name: true,
           thumbnail_url: true,
+          // `designer` stays lowercase: it is a pre-existing relation field, and
+          // `prisma db pull` preserves names it has already seen. Only the two
+          // new Featured* models get introspection's model-cased defaults.
           designer: { select: { name: true } },
         },
       },
     },
   })
   return rows.map((row) => ({
-    id: row.pattern.id,
-    name: row.pattern.name,
-    imageUrl: row.pattern.thumbnail_url,
-    subtitle: row.pattern.designer?.name ?? null,
+    id: row.Pattern.id,
+    name: row.Pattern.name,
+    imageUrl: row.Pattern.thumbnail_url,
+    subtitle: row.Pattern.designer?.name ?? null,
   }))
 }
 

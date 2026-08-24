@@ -69,7 +69,7 @@ model Designer {
   status    DesignerStatus @default(PUBLISHED)
   patterns  Pattern[]
   SizeChart SizeChart[]
-  featured  FeaturedDesigner?
+  FeaturedDesigner FeaturedDesigner?
 }
 
 /// An editorially pinned designer for the homepage "Featured Designers" rail.
@@ -81,7 +81,7 @@ model FeaturedDesigner {
   designer_id Int      @unique
   position    Int
   createdAt   DateTime @default(now()) @db.Timestamp(6)
-  designer    Designer @relation(fields: [designer_id], references: [id], onDelete: Cascade)
+  Designer    Designer @relation(fields: [designer_id], references: [id], onDelete: Cascade)
 
   @@index([position])
 }
@@ -119,7 +119,7 @@ model Pattern {
   PatternSizeChart       PatternSizeChart[]
   PatternSuggestedFabric PatternSuggestedFabric[]
   ratings                Rating[]
-  featured               FeaturedPattern?
+  FeaturedPattern        FeaturedPattern?
 }
 
 /// An editorially pinned pattern for the homepage "New & Noteworthy" rail.
@@ -130,7 +130,7 @@ model FeaturedPattern {
   pattern_id Int      @unique
   position   Int
   createdAt  DateTime @default(now()) @db.Timestamp(6)
-  pattern    Pattern  @relation(fields: [pattern_id], references: [id], onDelete: Cascade)
+  Pattern    Pattern  @relation(fields: [pattern_id], references: [id], onDelete: Cascade)
 
   @@index([position])
 }
