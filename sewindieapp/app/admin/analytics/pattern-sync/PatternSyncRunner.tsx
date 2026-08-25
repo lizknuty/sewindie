@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { RefreshCw, ExternalLink, DownloadCloud } from "lucide-react"
+import { KIND_LABELS, type ProductKind } from "@/lib/pattern-sync/types"
 
 type DesignerOption = {
   id: number
@@ -16,7 +17,7 @@ type Row = {
   url: string
   imageUrl: string | null
   releaseDate: string | null
-  isBundle: boolean
+  kind: ProductKind
   sourceId: string
   status: "NEW" | "POSSIBLE_MATCH"
   matchedPattern: { id: number; name: string } | null
@@ -73,9 +74,14 @@ export default function PatternSyncRunner({ designers }: { designers: DesignerOp
       }
       const data: CheckResult = await res.json()
       setResult(data)
-      // Pre-select confident finds only. Possible matches need a human look
-      // before they risk becoming duplicates.
-      setSelected(new Set(data.rows.filter((row) => row.status === "NEW").map((row) => row.url)))
+      // Pre-select confident finds only: brand-new standalone patterns. Possible
+      // matches risk becoming duplicates, and bundles/add-ons aren't really
+      // patterns -- both need a human look, so neither is checked by default.
+      setSelected(
+        new Set(
+          data.rows.filter((row) => row.status === "NEW" && row.kind === "pattern").map((row) => row.url),
+        ),
+      )
     } catch (err) {
       setError(err instanceof Error ? err.message : "Check failed")
     } finally {
@@ -252,7 +258,7 @@ export default function PatternSyncRunner({ designers }: { designers: DesignerOp
                         )}
                         <span>
                           <span className="admin-sync-name">{row.name}</span>
-                          {row.isBundle && <span className="admin-soon-tag">Bundle</span>}
+                          {row.kind !== "pattern" && <span className="admin-soon-tag">{KIND_LABELS[row.kind]}</span>}
                         </span>
                       </span>
                     </td>

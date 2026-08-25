@@ -1,9 +1,10 @@
 import type { DesignerAdapter } from "./types"
 import { patternsForPiratesAdapter } from "./adapters/patterns-for-pirates"
+import { jalieAdapter } from "./adapters/jalie"
 
 // Adding support for another designer means writing one adapter file and adding
 // it to this list. No route or UI changes required.
-export const ADAPTERS: DesignerAdapter[] = [patternsForPiratesAdapter]
+export const ADAPTERS: DesignerAdapter[] = [patternsForPiratesAdapter, jalieAdapter]
 
 /** Bare hostname, lowercased and stripped of `www.`, or null if unparseable. */
 export function hostOf(url: string | null | undefined): string | null {
