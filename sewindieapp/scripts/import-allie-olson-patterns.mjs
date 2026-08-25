@@ -27,15 +27,30 @@
 //   jeans    -> Pants / Jeans          45
 //   skirt    -> Skirt                 394
 //
-// Following the tags instead would have miscategorised 4 of the 11 against
-// every comparable row already in the table.
+// Following the tags instead would have miscategorised 3 of the 11 against
+// every comparable row already in the table: Monarch Jacket, Neffy Cardigan and
+// Lonetree Jacket and Vest are all tagged only "Tops" upstream. Hive Pullover
+// is a fourth row that disagrees with the tags in effect, but for a different
+// reason -- the store gives it no tags at all, so there is nothing to override.
+// Coarser-but-consistent tags ("Bottoms" on Buttress Jeans) are not overrides
+// and are not reported as such.
 //
-// release_date is left null on purpose. Shopify's published_at looks like a
-// release date but is not one here: Kila Tank, Highlands Wrap Dress and Coram
-// Top and Dress all share 2019-11-22T10:57:11 to the second, and Monarch
-// Jacket and Lonetree Jacket and Vest share 2019-11-25T18:21:38. Identical
-// timestamps across distinct designs are a store migration artifact, so
-// writing them would invent provenance the source does not have.
+// release_date comes from Shopify's published_at, but only where that value is
+// trustworthy. It is not trustworthy everywhere: Kila Tank, Highlands Wrap
+// Dress and Coram Top and Dress all share 2019-11-22T10:57:11 to the second,
+// and Monarch Jacket and Lonetree Jacket and Vest share 2019-11-25T18:21:38.
+// Three distinct designs cannot have been released in the same second, so those
+// stamps record a bulk store migration, not a release.
+//
+// Rather than hardcode which handles to skip, the rule is derived from the data:
+// group the collection by published_at, and treat any timestamp claimed by more
+// than one product as an artifact. That leaves 6 dated rows and 5 nulls, and it
+// self-corrects if the store re-publishes or adds patterns later.
+//
+// Caveat this rule cannot settle: Weaver Skirt and Hive Pullover are 51 seconds
+// apart on 2023-08-31. Distinct stamps, so both are accepted, but that gap is
+// short enough to be one bulk action rather than two releases. Reported as a
+// near-collision so the pair can be reviewed rather than silently trusted.
 //
 // difficulty and yardage are left null: they are populated on 3 and 1 rows
 // respectively out of 9458 catalogue-wide, and the product descriptions carry
@@ -58,6 +73,27 @@ const FORMAT = "PDF"
 
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125 Safari/537.36"
+
+// Which store tags are CONSISTENT with which catalogue categories. Used only
+// for reporting, to separate a tag that genuinely contradicts the assigned
+// category from one that is merely coarser. "Bottoms" on Buttress Jeans is a
+// parent of "Pants / Jeans" and agrees with it; "Tops" on Monarch Jacket does
+// not. Without this distinction the report flags harmless coarse tags as
+// overrides and the flag stops being worth reading.
+const TAG_COMPATIBLE = {
+  bottoms: ["Pants / Jeans", "Skirt", "Shorts"],
+  tops: ["Tops"],
+  dresses: ["Dress"],
+  skirts: ["Skirt"],
+  outerwear: ["Coat / Jacket", "Vest"],
+}
+
+function overrideNote(row) {
+  if (row.storeTags === "(none)") return "   (store has no tags for this product)"
+  const tags = row.storeTags.split(",").map((t) => t.trim().toLowerCase())
+  const anyAgrees = tags.some((t) => (TAG_COMPATIBLE[t] ?? []).some((c) => row.cats.includes(c)))
+  return anyAgrees ? "" : "   <-- contradicts store tag, see header"
+}
 
 // Ordered garment-noun rules. Every rule is backed by the existing convention
 // counts quoted above. Longer/more specific nouns must precede shorter ones so
@@ -132,6 +168,43 @@ async function main() {
     return
   }
 
+  // ---- which published_at values are real releases ---------------------
+  // A timestamp shared by two or more distinct designs records a bulk store
+  // action, not a release, so it is discarded rather than written.
+  const stampCount = new Map()
+  for (const p of products) {
+    stampCount.set(p.published_at, (stampCount.get(p.published_at) ?? 0) + 1)
+  }
+  const releaseDateFor = (p) =>
+    stampCount.get(p.published_at) === 1 && p.published_at ? new Date(p.published_at) : null
+
+  const shared = [...stampCount.entries()].filter(([, n]) => n > 1)
+  console.log(`\n=== published_at triage ===`)
+  console.log(`  distinct stamps           : ${stampCount.size}`)
+  console.log(`  bulk stamps (-> null)     : ${shared.length} covering ${shared.reduce((a, [, n]) => a + n, 0)} products`)
+  shared.forEach(([stamp, n]) => {
+    const titles = products.filter((p) => p.published_at === stamp).map((p) => p.title)
+    console.log(`    ${stamp}  x${n}: ${titles.join(", ")}`)
+  })
+
+  // Distinct but suspiciously close stamps are still accepted -- they are
+  // genuinely different values -- but they are surfaced rather than trusted
+  // silently, since a sub-minute gap can also mean one bulk action.
+  const dated = products.filter((p) => stampCount.get(p.published_at) === 1)
+  const NEAR_MS = 5 * 60 * 1000
+  const near = []
+  const sorted = [...dated].sort((a, b) => new Date(a.published_at) - new Date(b.published_at))
+  for (let i = 1; i < sorted.length; i++) {
+    const gap = new Date(sorted[i].published_at) - new Date(sorted[i - 1].published_at)
+    if (gap <= NEAR_MS) {
+      near.push(`${sorted[i - 1].title} and ${sorted[i].title} (${Math.round(gap / 1000)}s apart)`)
+    }
+  }
+  if (near.length > 0) {
+    console.log(`  near-collisions (accepted, review): ${near.length}`)
+    near.forEach((n) => console.log(`    ${n}`))
+  }
+
   // ---- vocabularies (resolved by name, never hardcoded ids) ------------
   const [categories, audiences, formats] = await Promise.all([
     prisma.category.findMany({ select: { id: true, name: true } }),
@@ -198,7 +271,15 @@ async function main() {
     }
 
     const storeTags = (product.tags ?? []).join(", ") || "(none)"
-    planned.push({ name, url, image, cats, storeTags, handle: product.handle })
+    planned.push({
+      name,
+      url,
+      image,
+      cats,
+      storeTags,
+      handle: product.handle,
+      releaseDate: releaseDateFor(product),
+    })
   }
 
   // ---- report ----------------------------------------------------------
@@ -211,7 +292,10 @@ async function main() {
   for (const row of planned) {
     console.log(`  ${row.name}`)
     console.log(`      category : ${row.cats.join(" + ")}`)
-    console.log(`      store tag: ${row.storeTags}${row.storeTags !== "(none)" && !row.cats.some((c) => row.storeTags.includes(c.split(" ")[0])) ? "   <-- tag overridden, see header" : ""}`)
+    console.log(`      store tag: ${row.storeTags}${overrideNote(row)}`)
+    console.log(
+      `      released : ${row.releaseDate ? row.releaseDate.toISOString().slice(0, 10) : "null (bulk stamp)"}`,
+    )
     console.log(`      url      : ${row.url}`)
     console.log(`      image    : ${row.image}`)
   }
@@ -261,7 +345,11 @@ async function main() {
   if (!APPLY) {
     console.log(`\nDRY RUN: would import ${planned.length} patterns for designer ${DESIGNER_ID}.`)
     console.log(`Each would get category as mapped above, audience "${AUDIENCE}", format "${FORMAT}",`)
-    console.log(`language "${LANGUAGE}", and null release_date/difficulty/yardage (see header).`)
+    const withDate = planned.filter((r) => r.releaseDate).length
+    console.log(
+      `language "${LANGUAGE}", release_date on ${withDate} of ${planned.length} (${planned.length - withDate} bulk-stamped rows stay null),`,
+    )
+    console.log(`and null difficulty/yardage (see header).`)
     console.log(`Re-run with --apply to write.`)
     return
   }
@@ -277,6 +365,7 @@ async function main() {
           url: row.url,
           thumbnail_url: row.image,
           language: LANGUAGE,
+          release_date: row.releaseDate,
         },
         select: { id: true },
       })
