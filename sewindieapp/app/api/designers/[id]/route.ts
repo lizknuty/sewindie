@@ -56,6 +56,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         logo_url: data.logo_url || null,
         email: data.email || null,
         address: data.address || null,
+        tagline: data.tagline || null,
+        about: data.about || null,
         facebook: data.facebook || null,
         instagram: data.instagram || null,
         pinterest: data.pinterest || null,
