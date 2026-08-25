@@ -12,8 +12,7 @@ export const maxDuration = 60
 
 export async function POST(request: Request) {
   const access = await checkAdminAccess()
-  // TEMP_PREVIEW_BYPASS
-  if (false && !access.authorized) return access.response
+  if (!access.authorized) return access.response
 
   let designerId: number
   try {
