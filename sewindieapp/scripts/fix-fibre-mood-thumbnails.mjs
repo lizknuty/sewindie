@@ -22,6 +22,19 @@
 //
 //   node scripts/fix-fibre-mood-thumbnails.mjs           # preview
 //   node scripts/fix-fibre-mood-thumbnails.mjs --apply   # write
+//
+// --include-craft-variants adds a second, looser matching tier for rows the
+// strict key cannot reach because the catalogue and the store disagree on the
+// CRAFT word rather than the garment: the catalogue says "Alba Digital
+// Pattern" where the store titles it "Alba Knitting Pattern". The looser tier
+// ignores the craft/format word entirely and matches on the garment name
+// alone, so it is only allowed when exactly one store image claims that name.
+//
+// It deliberately refuses generic catalogue titles. "Pattern Book 30" is a
+// magazine issue, not a garment, and its name-alone match resolves to a
+// site-wide banner image rather than a product photo — a wrong image that
+// would still look plausible in a report. Anything matching GENERIC_TITLES is
+// skipped even when its match is unique.
 
 import { PrismaClient } from "@prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
@@ -33,8 +46,26 @@ const DEAD_HOST = "shop.fibremood.com"
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
 const APPLY = process.argv.includes("--apply")
+const CRAFT_VARIANTS = process.argv.includes("--include-craft-variants")
 const BATCH = 25
 const SAMPLE = 12
+
+// Catalogue titles that are not a single garment, so a name-alone match cannot
+// be trusted. "Pattern Book <n>" is a magazine issue and resolves to a generic
+// site banner rather than a product photo.
+const GENERIC_TITLES = [/\bpattern\s*book\b/i, /\bmix\s*(?:&|and)\s*match\b/i, /\bgift\s*card\b/i]
+
+const isGenericTitle = (name) => GENERIC_TITLES.some((pattern) => pattern.test(name))
+
+// Strip the trailing craft/format word so "Alba Digital Pattern",
+// "Alba Paper Pattern" and "Alba Knitting Pattern" all reduce to "alba".
+const garmentKey = (name) =>
+  normalize(
+    name
+      .replace(/(?:\.{3}|\u2026)+$/, "")
+      .replace(/\b(digital|paper|knitting|crochet|sewing)\b/gi, " ")
+      .replace(/\bpattern\b/gi, " "),
+  )
 
 const normalize = (value) =>
   value
@@ -90,10 +121,19 @@ async function main() {
     // name key -> set of candidate image urls (a product has one cover photo,
     // so a set larger than one means two different products claim the name).
     const claims = new Map()
+    // Craft-agnostic index: garment name alone -> candidate images.
+    const garmentClaims = new Map()
     for (const product of products) {
       const image = product.images?.[0]?.src ?? null
       if (!image) continue
       const base = baseTitle(product.title)
+
+      const gKey = garmentKey(base)
+      if (gKey.length >= 3) {
+        if (!garmentClaims.has(gKey)) garmentClaims.set(gKey, new Set())
+        garmentClaims.get(gKey).add(image)
+      }
+
       for (const variant of product.variants ?? []) {
         const format = (variant.title ?? "").trim()
         if (format !== "Digital" && format !== "Paper") continue
@@ -114,6 +154,9 @@ async function main() {
     const unmatched = []
     const alreadyLive = []
     const noThumb = []
+    // Rows rescued by the looser craft-agnostic tier, reported separately.
+    const craftMatched = []
+    const craftRefused = []
 
     for (const row of rows) {
       const current = row.thumbnail_url ?? ""
@@ -148,17 +191,46 @@ async function main() {
         candidates = claims.get(normalize(trimmed)) ?? null
       }
 
+      // Tier 2: only for rows the strict key could not reach at all, and only
+      // when explicitly enabled. Never overrides an ambiguous strict result.
+      if ((!candidates || candidates.size === 0) && CRAFT_VARIANTS) {
+        const gKey = garmentKey(trimmed)
+        const gHits = gKey.length >= 3 ? garmentClaims.get(gKey) : null
+
+        if (isGenericTitle(trimmed)) {
+          craftRefused.push({ row, reason: "generic title, name-alone match not trustworthy" })
+        } else if (gHits && gHits.size === 1) {
+          const image = [...gHits][0]
+          craftMatched.push({ id: row.id, name: row.name, to: image })
+          updates.push({ id: row.id, name: row.name, from: current, to: image, tier: "craft" })
+          continue
+        } else if (gHits && gHits.size > 1) {
+          craftRefused.push({ row, reason: `${gHits.size} products claim that garment name` })
+        }
+      }
+
       if (!candidates || candidates.size === 0) unmatched.push(row)
       else if (candidates.size > 1) ambiguous.push({ row, images: [...candidates] })
-      else updates.push({ id: row.id, name: row.name, from: current, to: [...candidates][0] })
+      else updates.push({ id: row.id, name: row.name, from: current, to: [...candidates][0], tier: "strict" })
     }
 
     console.log(`designer ${DESIGNER_ID} rows: ${rows.length}`)
     console.log(`  thumbnail already on live store : ${alreadyLive.length}`)
     console.log(`  null/empty thumbnail, skipped   : ${noThumb.length}`)
     console.log(`  safe to repair                  : ${updates.length}`)
+    console.log(`    - strict name match           : ${updates.filter((u) => u.tier === "strict").length}`)
+    console.log(
+      `    - craft-agnostic match        : ${craftMatched.length}${CRAFT_VARIANTS ? "" : " (tier disabled)"}`,
+    )
     console.log(`  ambiguous, skipped              : ${ambiguous.length}`)
     console.log(`  no store match, skipped         : ${unmatched.length}`)
+
+    if (CRAFT_VARIANTS) {
+      console.log(`\n=== craft-agnostic tier: ${craftMatched.length} rows rescued (all listed) ===`)
+      craftMatched.forEach((m) => console.log(`  [${m.id}] ${m.name}\n      -> ${m.to}`))
+      console.log(`\n=== craft-agnostic tier: ${craftRefused.length} refused ===`)
+      craftRefused.forEach((r) => console.log(`  [${r.row.id}] ${r.row.name}\n      ${r.reason}`))
+    }
 
     const distinct = new Set(updates.map((u) => u.to))
     console.log(`\ndistinct replacement images: ${distinct.size} for ${updates.length} rows`)
@@ -190,12 +262,17 @@ async function main() {
     updates.slice(0, 10).forEach((u) => console.log(`  [${u.id}] ${u.name}\n      ${u.from}\n   -> ${u.to}`))
 
     // Prove the replacements are real images before writing anything.
-    const pool2 = [...distinct]
-    const sample = []
-    while (pool2.length > 0 && sample.length < SAMPLE) {
+    // Every craft-tier image is checked, since that tier is the looser one.
+    // The remainder of the sample is drawn at random from the strict matches.
+    const craftImages = [...new Set(craftMatched.map((m) => m.to))]
+    const pool2 = [...distinct].filter((url) => !craftImages.includes(url))
+    const sample = [...craftImages]
+    while (pool2.length > 0 && sample.length < SAMPLE + craftImages.length) {
       sample.push(pool2.splice(Math.floor(Math.random() * pool2.length), 1)[0])
     }
-    console.log(`\n=== live check: ${sample.length} random replacement images ===`)
+    console.log(
+      `\n=== live check: ${sample.length} images (${craftImages.length} craft-tier, all of them, + random strict) ===`,
+    )
     let ok = 0
     for (const url of sample) {
       const res = await checkImage(url)
