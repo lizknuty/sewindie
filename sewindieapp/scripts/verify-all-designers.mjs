@@ -17,7 +17,11 @@ const DESIGNERS = [
   { id: 70, label: "Jalie" },
   { id: 57, label: "Greenstyle Creations" },
   { id: 43, label: "Fibre Mood" },
+  { id: 112, label: "Seamwork" },
 ]
+
+/** Designers whose URLs legitimately carry a `?variant=` identity. */
+const VARIANT_DESIGNER_IDS = new Set([43])
 
 // Mirrors app/lib/pattern-sync/compare.ts exactly.
 function normalizeUrl(url) {
@@ -78,8 +82,8 @@ async function main() {
       console.log(`  identity collisions  before: ${beforeCollisions}  ->  after: ${afterCollisions}`)
       console.log(`  rows whose identity changed by the edit: ${changed}`)
 
-      // For the three non-variant designers nothing should change at all.
-      if (designer.id !== 43 && changed !== 0) {
+      // For every non-variant designer nothing should change at all.
+      if (!VARIANT_DESIGNER_IDS.has(designer.id) && changed !== 0) {
         console.log(`  PROBLEM: identity changed for a designer that uses no ?variant= urls`)
         anyProblem = true
       }
