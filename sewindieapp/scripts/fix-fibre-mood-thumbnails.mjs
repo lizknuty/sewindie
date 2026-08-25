@@ -36,9 +36,13 @@
 // would still look plausible in a report. Anything matching GENERIC_TITLES is
 // skipped even when its match is unique.
 
-import { PrismaClient } from "@prisma/client"
-import { PrismaPg } from "@prisma/adapter-pg"
-import pg from "pg"
+// @prisma/client is CommonJS, so it must be loaded via require rather than a
+// named ESM import (a named import throws at module load under Node's ESM).
+import { createRequire } from "node:module"
+const require = createRequire(import.meta.url)
+const { PrismaClient } = require("@prisma/client")
+const { PrismaPg } = require("@prisma/adapter-pg")
+const pg = require("pg")
 
 const DESIGNER_ID = 43
 const STORE = "https://www.fibremood.com"
