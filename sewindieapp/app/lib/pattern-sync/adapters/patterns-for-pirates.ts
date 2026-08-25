@@ -152,7 +152,7 @@ export const patternsForPiratesAdapter: DesignerAdapter = {
         url: product.link,
         imageUrl: product._embedded?.["wp:featuredmedia"]?.[0]?.source_url ?? null,
         releaseDate: product.date ?? null,
-        isBundle: terms.some((id) => categories.bundles.has(id)),
+        kind: terms.some((id) => categories.bundles.has(id)) ? "bundle" : "pattern",
         sourceId: String(product.id),
       })
     }

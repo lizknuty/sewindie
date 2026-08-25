@@ -103,9 +103,12 @@ export function comparePatterns(
     rows.push({ ...item, status: "NEW", matchedPattern: null })
   }
 
-  // Newest first, and keep bundles below standalone patterns at equal dates.
+  // Standalone patterns first, then newest-first within each group, so bundles
+  // and add-ons never push a genuinely new pattern below the fold.
   rows.sort((a, b) => {
-    if (a.isBundle !== b.isBundle) return a.isBundle ? 1 : -1
+    const aside = a.kind === "pattern" ? 0 : 1
+    const bside = b.kind === "pattern" ? 0 : 1
+    if (aside !== bside) return aside - bside
     return (b.releaseDate ?? "").localeCompare(a.releaseDate ?? "")
   })
 

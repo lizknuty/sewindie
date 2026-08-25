@@ -5,6 +5,20 @@
 // is the seam that keeps that mess contained: the API routes and the admin UI
 // only ever talk to `DesignerAdapter`, never to a specific store.
 
+/**
+ * What kind of product a listing actually is. Anything other than "pattern" is
+ * flagged in the UI rather than filtered out, so an admin decides case by case:
+ *  - "bundle": several patterns sold together (P4P bundles, Jalie GALAXIE packs)
+ *  - "addon":  an expansion that needs a base pattern bought separately
+ */
+export type ProductKind = "pattern" | "bundle" | "addon"
+
+/** Human-readable chip text for a non-standalone product. */
+export const KIND_LABELS: Record<Exclude<ProductKind, "pattern">, string> = {
+  bundle: "Bundle",
+  addon: "Add-on",
+}
+
 /** A single product pulled from a designer's live storefront. */
 export type ScrapedPattern = {
   name: string
@@ -12,8 +26,7 @@ export type ScrapedPattern = {
   imageUrl: string | null
   /** ISO date string, or null when the store doesn't expose one. */
   releaseDate: string | null
-  /** Multi-pattern bundles are flagged rather than filtered, so an admin can decide. */
-  isBundle: boolean
+  kind: ProductKind
   /** Upstream product id. Kept for stable React keys and debugging. */
   sourceId: string
 }
