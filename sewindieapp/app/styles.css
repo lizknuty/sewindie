@@ -2317,7 +2317,10 @@ button.ui-btn-block {
 .prow-list {
   display: flex;
   flex-direction: column;
-  border: 1px solid #eadfe0;
+  /* Same black hairline as .pcard so the list surface stands off the page
+     background exactly as the grid cards do. The inner row dividers stay pale
+     -- black between every row would read as a table, not a card. */
+  border: 1px solid var(--color-dark);
   border-radius: 12px;
   background-color: #fff;
   overflow: hidden;
@@ -2346,7 +2349,9 @@ button.ui-btn-block {
   width: 5rem;
   height: 6.25rem;
   border-radius: 8px;
-  background-color: #faf5f6;
+  /* White like .pcard-media: these thumbnails are object-fit contain, so a
+     tinted box would show as a coloured letterbox around the envelope art. */
+  background-color: #fff;
   overflow: hidden;
 }
 
@@ -2367,32 +2372,37 @@ button.ui-btn-block {
 
 .prow-name {
   margin: 0;
-  font-family: var(--font-heading);
-  font-size: 1rem;
+  /* Body font, matching .pcard-name and admin .pattern-card-title. Declared
+     explicitly because Bootstrap gives h3 its own heading stack. */
+  font-family: var(--font-body);
+  font-size: 0.95rem;
   font-weight: 600;
   line-height: 1.3;
 }
 
-.prow-name a {
-  color: var(--site-plum);
+/* The redundant :not(.nav-link) lifts these to (0,3,1) so they outrank the
+   global `a:not(.btn):not(.nav-link)` brand-pink rule. Without it the plain
+   `.prow-name a` (0,1,1) loses and every row title renders pink. */
+.prow-name a:not(.nav-link) {
+  color: var(--card-ink);
   text-decoration: none;
 }
 
-.prow-name a:hover {
-  text-decoration: underline;
+.prow-name a:not(.nav-link):hover {
+  color: var(--site-plum);
 }
 
 .prow-designer {
   margin: 0.15rem 0 0;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
-.prow-designer a {
+.prow-designer a:not(.nav-link) {
   color: var(--color-muted);
   text-decoration: none;
 }
 
-.prow-designer a:hover {
+.prow-designer a:not(.nav-link):hover {
   color: var(--site-plum);
   text-decoration: underline;
 }
@@ -2404,12 +2414,18 @@ button.ui-btn-block {
   margin-top: 0.45rem;
 }
 
+/* Same admin .category-chip treatment as .pcard-tag, so grid and list read as
+   one component in two layouts. */
 .prow-tag {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--card-chip-border);
   border-radius: 999px;
-  background-color: var(--site-blush);
-  padding: 0.15rem 0.55rem;
+  background-color: var(--card-chip-bg);
+  padding: 0.15rem 0.6rem;
   font-size: 0.75rem;
-  color: var(--site-plum);
+  color: var(--card-ink);
+  white-space: nowrap;
 }
 
 .prow-meta {
@@ -2436,7 +2452,7 @@ button.ui-btn-block {
 
 .prow-meta-value {
   margin: 0;
-  color: var(--color-dark);
+  color: var(--card-ink);
 }
 
 /* The metadata column is the first thing to go when rows get tight; the same
