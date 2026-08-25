@@ -1921,11 +1921,12 @@ button.ui-btn-block {
 .patterns-page {
   display: flex;
   flex-direction: column;
-  /* White like .home-body, painted on the full-width wrapper rather than
+  /* Same warm off-white as .site-header, so the page continues the header field
+     rather than stopping at it. Painted on the full-width wrapper rather than
      .patterns-shell -- the shell is capped at 1320px, so colouring it would
      leave the body's --color-light showing as grey gutters on wide screens.
      .phero sits inside this and paints its own peach band over it. */
-  background-color: #fff;
+  background-color: var(--site-header-bg);
 }
 
 .patterns-shell {
