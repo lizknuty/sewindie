@@ -78,6 +78,16 @@ export async function POST(request: Request) {
   })
   const takenUrls = new Set(existing.map((p) => normalizeUrl(p.url)).filter((u): u is string => Boolean(u)))
 
+  // Where an adapter defines a narrower identity than the URL, the URL set above
+  // is not enough on its own. Grasser serves one pattern under several category
+  // paths, so a row already in the catalogue under one path would sail past a
+  // URL-only check and duplicate the pattern. Keyed separately so a store
+  // without an identityKey behaves exactly as before.
+  const identityKey = adapter.identityKey?.bind(adapter)
+  const takenIdentities = new Set(
+    identityKey ? existing.map((p) => identityKey(p.url)).filter((k): k is string => Boolean(k)) : [],
+  )
+
   const toCreate: { name: string; designer_id: number; url: string; thumbnail_url: string | null; release_date: Date | null }[] = []
   const rejected: { name: string; reason: string }[] = []
 
@@ -117,8 +127,16 @@ export async function POST(request: Request) {
       rejected.push({ name: label, reason: "Already in the catalogue" })
       continue
     }
+
+    const identity = identityKey?.(url) ?? null
+    if (identity && takenIdentities.has(identity)) {
+      rejected.push({ name: label, reason: "Already in the catalogue under a different path" })
+      continue
+    }
+
     // Also blocks duplicates within this same payload.
     takenUrls.add(normalized)
+    if (identity) takenIdentities.add(identity)
 
     const imageUrl = typeof row.imageUrl === "string" && row.imageUrl.trim() ? row.imageUrl.trim() : null
 

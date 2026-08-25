@@ -49,4 +49,10 @@ export type DesignerAdapter = {
   matchHosts: string[]
   /** Fetches the designer's full public catalogue. */
   fetchCatalogue(): Promise<ScrapedPattern[]>
+  /**
+   * Optional narrower identity than the full URL, for stores that serve one
+   * product under several paths. Returns null when a URL yields no usable key,
+   * which falls back to normal URL matching. See `IdentityKeyFn` in compare.ts.
+   */
+  identityKey?(url: string | null | undefined): string | null
 }

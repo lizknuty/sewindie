@@ -8,7 +8,7 @@ export default function PatternsHero({ initialSearch }: { initialSearch: string 
       <div className="phero-inner">
         <div className="phero-copy">
           <h1 className="phero-title text-balance">Find your next sewing project.</h1>
-          <p className="phero-lede text-pretty">Search thousands of independent sewing patterns.</p>
+          <p className="phero-lede text-pretty">Search thousands of patterns from independent designers.</p>
           <PatternSearch initialSearch={initialSearch} />
         </div>
 
