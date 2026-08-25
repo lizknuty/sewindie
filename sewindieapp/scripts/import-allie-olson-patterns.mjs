@@ -175,8 +175,21 @@ async function main() {
   for (const p of products) {
     stampCount.set(p.published_at, (stampCount.get(p.published_at) ?? 0) + 1)
   }
-  const releaseDateFor = (p) =>
-    stampCount.get(p.published_at) === 1 && p.published_at ? new Date(p.published_at) : null
+  // Uniqueness alone is not sufficient: a stamp can be unique and still be
+  // nonsense, so bound it. Nothing in the future, nothing before the store
+  // plausibly existed, nothing unparseable.
+  //
+  // Ponderosa Pants' 2026-03-10 looks wrong beside the 2019-2023 rows and I
+  // checked it as a suspected future date. It is not -- it is simply their
+  // newest pattern (created 2026-01-08) and it passes this bound.
+  const EARLIEST = new Date("2015-01-01")
+  const releaseDateFor = (p) => {
+    if (!p.published_at || stampCount.get(p.published_at) !== 1) return null
+    const d = new Date(p.published_at)
+    if (Number.isNaN(d.getTime())) return null
+    if (d > new Date() || d < EARLIEST) return null
+    return d
+  }
 
   const shared = [...stampCount.entries()].filter(([, n]) => n > 1)
   console.log(`\n=== published_at triage ===`)
