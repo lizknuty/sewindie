@@ -97,9 +97,8 @@ export default function CategoryTiles({ popular, all }: CategoryTilesProps) {
               onClick={() => toggleCategory(cat.id)}
               aria-pressed={isActive}
             >
-              <Icon size={30} className="pcats-tile-icon" />
+              <Icon size={38} className="pcats-tile-icon" />
               <span className="pcats-tile-name">{cat.name}</span>
-              <span className="pcats-tile-count">{cat.count.toLocaleString()}</span>
             </button>
           )
         })}
@@ -114,9 +113,9 @@ export default function CategoryTiles({ popular, all }: CategoryTilesProps) {
           aria-controls="pcats-all"
         >
           {showAll ? (
-            <X size={30} className="pcats-tile-icon" aria-hidden="true" />
+            <X size={38} className="pcats-tile-icon" aria-hidden="true" />
           ) : (
-            <LayoutGrid size={30} className="pcats-tile-icon" aria-hidden="true" />
+            <LayoutGrid size={38} className="pcats-tile-icon" aria-hidden="true" />
           )}
           <span className="pcats-tile-name">{showAll ? "Hide categories" : "View all categories"}</span>
         </button>

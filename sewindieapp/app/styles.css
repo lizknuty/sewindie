@@ -32,6 +32,17 @@
      (verified: alpha 0 outside the artwork), so unlike hero.png it composites
      over this band with no letterboxing to hide. */
   --patterns-hero-bg: #fdeef0;
+
+  /* Pattern cards, mirroring admin.css's card treatment: --card-ink is
+     --admin-text, and the chip pair is --admin-bg / --admin-border. Duplicated
+     as literals for the same reason as --site-plum above -- the --admin-*
+     tokens are scoped to .admin-shell, and admin.css is imported only by the
+     admin layout, so it is not in scope on public pages.
+     Note --color-muted above is already the same value as --admin-muted, so
+     the designer line needs no separate token. */
+  --card-ink: #2b2426;
+  --card-chip-bg: #fbf8f7;
+  --card-chip-border: #efe3e6;
 }
 
 body {
@@ -1946,7 +1957,8 @@ button.ui-btn-block {
   font-weight: 700;
   line-height: 1.12;
   letter-spacing: -0.02em;
-  color: var(--site-plum);
+  /* Same ink as .home-hero-title so both heroes read as one voice. */
+  color: var(--home-ink);
   max-width: 18em;
 }
 
@@ -2116,12 +2128,16 @@ button.ui-btn-block {
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* Top-aligned, not centred: the label reserves two lines, so centring would
+     re-centre each tile's group and drop the icon on wrapped tiles below the
+     others. Anchoring at the top keeps all eight icons on one baseline. */
   justify-content: flex-start;
-  gap: 0.35rem;
+  gap: 0.5rem;
+  min-height: 6.5rem;
   border: 1px solid #eadfe0;
   border-radius: 10px;
   background-color: #fff;
-  padding: 0.9rem 0.5rem 0.8rem;
+  padding: 1rem 0.6rem;
   text-align: center;
   cursor: pointer;
   transition: border-color 0.15s ease, background-color 0.15s ease;
@@ -2144,29 +2160,16 @@ button.ui-btn-block {
 
 .pcats-tile-name {
   font-family: var(--font-heading);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 600;
   line-height: 1.25;
   color: var(--site-plum);
   /* Category names are database values, so long ones like
-     "Sweater / Sweatshirt" have to wrap inside a narrow track. */
+     "Sweater / Sweatshirt" have to wrap inside a narrow track. Reserving two
+     lines keeps every label's first line on the same baseline whether it wraps
+     or not, so the icons stay in a straight row. */
   text-wrap: balance;
-}
-
-.pcats-tile-count {
-  font-size: 0.75rem;
-  color: var(--color-muted);
-  font-variant-numeric: tabular-nums;
-  /* Pushed to the bottom so counts align across tiles whose labels wrap to a
-     different number of lines. */
-  margin-top: auto;
-  padding-top: 0.15rem;
-}
-
-/* The disclosure tile has no count, so its label sits optically centred with
-   the ones that do. */
-.pcats-tile-all .pcats-tile-name {
-  margin-bottom: auto;
+  min-height: 2.4em;
 }
 
 .pcats-all {
@@ -2273,28 +2276,32 @@ button.ui-btn-block {
 }
 
 /* ---- Grid / list toggle ---- */
+/* Mirrors the admin .view-toggle: hairline container with square icon buttons
+   divided by a rule, rather than pill-shaped padded buttons. */
 .pview {
   display: inline-flex;
   border: 1px solid #eadfe0;
-  border-radius: 8px;
+  border-radius: 10px;
   background-color: #fff;
-  padding: 0.2rem;
-  gap: 0.2rem;
+  overflow: hidden;
 }
 
 .pview-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
   border: none;
-  border-radius: 6px;
   background: none;
-  padding: 0.4rem 0.75rem;
-  font-family: var(--font-heading);
-  font-size: 0.85rem;
-  font-weight: 600;
+  padding: 0;
   color: var(--color-muted);
   cursor: pointer;
+}
+
+/* Divider between the two, not around them. */
+.pview-btn + .pview-btn {
+  border-left: 1px solid #eadfe0;
 }
 
 .pview-btn:hover {
@@ -2310,7 +2317,10 @@ button.ui-btn-block {
 .prow-list {
   display: flex;
   flex-direction: column;
-  border: 1px solid #eadfe0;
+  /* Same black hairline as .pcard so the list surface stands off the page
+     background exactly as the grid cards do. The inner row dividers stay pale
+     -- black between every row would read as a table, not a card. */
+  border: 1px solid var(--color-dark);
   border-radius: 12px;
   background-color: #fff;
   overflow: hidden;
@@ -2339,7 +2349,9 @@ button.ui-btn-block {
   width: 5rem;
   height: 6.25rem;
   border-radius: 8px;
-  background-color: #faf5f6;
+  /* White like .pcard-media: these thumbnails are object-fit contain, so a
+     tinted box would show as a coloured letterbox around the envelope art. */
+  background-color: #fff;
   overflow: hidden;
 }
 
@@ -2360,32 +2372,37 @@ button.ui-btn-block {
 
 .prow-name {
   margin: 0;
-  font-family: var(--font-heading);
-  font-size: 1rem;
+  /* Body font, matching .pcard-name and admin .pattern-card-title. Declared
+     explicitly because Bootstrap gives h3 its own heading stack. */
+  font-family: var(--font-body);
+  font-size: 0.95rem;
   font-weight: 600;
   line-height: 1.3;
 }
 
-.prow-name a {
-  color: var(--site-plum);
+/* The redundant :not(.nav-link) lifts these to (0,3,1) so they outrank the
+   global `a:not(.btn):not(.nav-link)` brand-pink rule. Without it the plain
+   `.prow-name a` (0,1,1) loses and every row title renders pink. */
+.prow-name a:not(.nav-link) {
+  color: var(--card-ink);
   text-decoration: none;
 }
 
-.prow-name a:hover {
-  text-decoration: underline;
+.prow-name a:not(.nav-link):hover {
+  color: var(--site-plum);
 }
 
 .prow-designer {
   margin: 0.15rem 0 0;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
-.prow-designer a {
+.prow-designer a:not(.nav-link) {
   color: var(--color-muted);
   text-decoration: none;
 }
 
-.prow-designer a:hover {
+.prow-designer a:not(.nav-link):hover {
   color: var(--site-plum);
   text-decoration: underline;
 }
@@ -2397,12 +2414,18 @@ button.ui-btn-block {
   margin-top: 0.45rem;
 }
 
+/* Same admin .category-chip treatment as .pcard-tag, so grid and list read as
+   one component in two layouts. */
 .prow-tag {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--card-chip-border);
   border-radius: 999px;
-  background-color: var(--site-blush);
-  padding: 0.15rem 0.55rem;
+  background-color: var(--card-chip-bg);
+  padding: 0.15rem 0.6rem;
   font-size: 0.75rem;
-  color: var(--site-plum);
+  color: var(--card-ink);
+  white-space: nowrap;
 }
 
 .prow-meta {
@@ -2429,7 +2452,7 @@ button.ui-btn-block {
 
 .prow-meta-value {
   margin: 0;
-  color: var(--color-dark);
+  color: var(--card-ink);
 }
 
 /* The metadata column is the first thing to go when rows get tight; the same
@@ -2681,41 +2704,48 @@ button.ui-btn-block {
 .pcard-body {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.85rem 1rem 1rem;
+  gap: 0.4rem;
+  padding: 0.75rem 0.85rem 0.85rem;
   /* Grow so the tag row can be pushed to the bottom, keeping tags on a shared
      baseline when titles in a row wrap to different line counts. */
   flex: 1 1 auto;
 }
 
 .pcard-name {
-  font-family: var(--font-heading);
-  font-size: 0.98rem;
+  /* Body font, matching .pattern-card-title, which declares no font-family and
+     so inherits it. Set explicitly here rather than omitted because Bootstrap
+     gives h3 its own heading stack. */
+  font-family: var(--font-body);
+  font-size: 0.9rem;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.3;
   margin: 0;
 }
 
-.pcard-name a {
-  color: var(--color-dark);
+/* The redundant :not(.nav-link) lifts these to (0,3,1) so they outrank the
+   global `a:not(.btn):not(.nav-link)` brand-pink rule, per the convention used
+   by the header, footer, and homepage rules above. Without it the plain
+   `.pcard-name a` (0,1,1) loses and every card title renders pink. */
+.pcard-name a:not(.nav-link) {
+  color: var(--card-ink);
   text-decoration: none;
 }
 
-.pcard-name a:hover {
+.pcard-name a:not(.nav-link):hover {
   color: var(--site-plum);
 }
 
 .pcard-designer {
-  font-size: 0.84rem;
+  font-size: 0.8rem;
   margin: 0;
 }
 
-.pcard-designer a {
+.pcard-designer a:not(.nav-link) {
   color: var(--color-muted);
   text-decoration: none;
 }
 
-.pcard-designer a:hover {
+.pcard-designer a:not(.nav-link):hover {
   color: var(--site-plum);
   text-decoration: underline;
 }
@@ -2728,12 +2758,18 @@ button.ui-btn-block {
   padding-top: 0.6rem;
 }
 
+/* Matches admin .category-chip: tinted fill with a hairline border and dark
+   text, rather than the blush-on-plum fill these used before. */
 .pcard-tag {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--card-chip-border);
   border-radius: 999px;
-  background-color: var(--site-blush);
-  padding: 0.16rem 0.5rem;
-  font-size: 0.72rem;
-  color: var(--site-plum);
+  background-color: var(--card-chip-bg);
+  padding: 0.15rem 0.6rem;
+  font-size: 0.75rem;
+  color: var(--card-ink);
+  white-space: nowrap;
 }
 
 /* ---- Pagination (shared with /designers/[id]) ---- */
