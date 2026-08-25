@@ -113,16 +113,37 @@ async function fetchProducts() {
   return all.filter((p) => !EXCLUDE.has(p.product_type))
 }
 
-async function headOk(url) {
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+// A 429 says "you are asking too fast", not "this url is dead" — treating it as
+// a verdict would abort a perfectly good repair, or worse, look like evidence a
+// live product is missing. Retry it with backoff, honouring Retry-After, and
+// only report a status once the store actually commits to one. 5xx gets the
+// same treatment since it is equally transient.
+async function headOk(url, attempt = 0) {
+  const MAX_ATTEMPTS = 4
   try {
     const res = await fetch(url, {
       method: "GET",
       headers: { "User-Agent": UA },
       signal: AbortSignal.timeout(20000),
     })
-    return { status: res.status, type: res.headers.get("content-type") ?? "" }
+
+    const transient = res.status === 429 || res.status >= 500
+    if (transient && attempt < MAX_ATTEMPTS) {
+      const retryAfter = Number(res.headers.get("retry-after")) || 0
+      const wait = retryAfter > 0 ? retryAfter * 1000 : 2000 * 2 ** attempt
+      await sleep(wait)
+      return headOk(url, attempt + 1)
+    }
+
+    return { status: res.status, type: res.headers.get("content-type") ?? "", attempts: attempt + 1 }
   } catch (error) {
-    return { status: 0, type: error.message }
+    if (attempt < MAX_ATTEMPTS) {
+      await sleep(2000 * 2 ** attempt)
+      return headOk(url, attempt + 1)
+    }
+    return { status: 0, type: error.message, attempts: attempt + 1 }
   }
 }
 
@@ -342,12 +363,18 @@ async function main() {
     const urls = [...new Set(planned.filter((p) => p.needsUrl).map((p) => p.urlTo))]
     const thumbs = [...new Set(planned.filter((p) => p.needsThumb).map((p) => p.thumbTo))]
     console.log(`\n=== live check: ${urls.length} urls + ${thumbs.length} images ===`)
-    let bad = 0
-    for (const url of urls) {
-      const res = await headOk(url)
-      const ok = res.status === 200
-      if (!ok) bad++
-      console.log(`  ${ok ? "ok " : "BAD"} ${res.status}  ${url}`)
+  let bad = 0
+  let throttled = 0
+  for (const url of urls) {
+    const res = await headOk(url)
+    const ok = res.status === 200
+    if (!ok) bad++
+    if (res.status === 429) throttled++
+    const retries = res.attempts > 1 ? ` (after ${res.attempts} attempts)` : ""
+    console.log(`  ${ok ? "ok " : "BAD"} ${res.status}  ${url}${retries}`)
+    // Space out requests so the check itself does not trigger the throttling
+    // it is trying to measure.
+    await sleep(400)
     }
     for (const image of thumbs) {
       const res = await headOk(image)
@@ -369,11 +396,17 @@ async function main() {
       process.exitCode = 1
       return
     }
-    if (bad > 0) {
-      console.log(`\nABORTED: ${bad} replacement target(s) did not resolve. No rows written.`)
-      process.exitCode = 1
-      return
+  if (bad > 0) {
+    console.log(`\nABORTED: ${bad} replacement target(s) did not resolve. No rows written.`)
+    if (throttled > 0) {
+      console.log(
+        `  ${throttled} of those were HTTP 429 (rate limited) even after backoff, which is a\n` +
+          `  property of how fast this ran, not evidence the product is gone. Wait and re-run.`,
+      )
     }
+    process.exitCode = 1
+    return
+  }
 
     let written = 0
     for (let i = 0; i < planned.length; i += BATCH) {
