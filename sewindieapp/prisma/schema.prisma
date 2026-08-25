@@ -62,6 +62,8 @@ model Designer {
   logo_url  String?
   email     String?     @db.VarChar(255)
   address   String?     @db.VarChar(255)
+  tagline   String?     @db.VarChar(255)
+  about     String?     @db.Text
   facebook  String?
   instagram String?
   pinterest String?
@@ -109,6 +111,7 @@ model Pattern {
   difficulty             String?                  @db.VarChar(25)
   release_date           DateTime?                @db.Date
   status                 PatternStatus            @default(PUBLISHED)
+  collections            CollectionPattern[]
   favorites              Favorite[]
   designer               Designer                 @relation(fields: [designer_id], references: [id])
   PatternAttribute       PatternAttribute[]
@@ -204,6 +207,7 @@ model User {
   status            UserStatus        @default(ACTIVE)
   lastLogin         DateTime?
   BlogPost          BlogPost[]
+  collections       Collection[]
   favorites         Favorite[]
   ratings           Rating[]
   UserMeasurement   UserMeasurement[]
@@ -233,6 +237,38 @@ model Rating {
   user      User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@unique([userId, patternId])
+}
+
+/// A user-curated list of patterns. Visibility defaults to PRIVATE so a
+/// half-built list is never exposed; only PUBLIC collections surface on the
+/// designer pages. Collections may mix patterns from any number of designers.
+model Collection {
+  id          Int                  @id @default(autoincrement())
+  userId      Int
+  name        String               @db.VarChar(120)
+  description String?              @db.Text
+  visibility  CollectionVisibility @default(PRIVATE)
+  createdAt   DateTime             @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime             @default(now()) @updatedAt @db.Timestamp(6)
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  patterns    CollectionPattern[]
+
+  @@index([userId])
+  @@index([visibility])
+}
+
+/// Join row for Collection <-> Pattern. The compound unique makes "add to
+/// collection" idempotent, so double-clicking the picker cannot duplicate a row.
+model CollectionPattern {
+  id           Int        @id @default(autoincrement())
+  collectionId Int
+  patternId    Int
+  addedAt      DateTime   @default(now()) @db.Timestamp(6)
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  pattern      Pattern    @relation(fields: [patternId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, patternId])
+  @@index([patternId])
 }
 
 model PatternFormat {
@@ -365,4 +401,9 @@ enum PatternStatus {
 enum DesignerStatus {
   PUBLISHED
   INACTIVE
+}
+
+enum CollectionVisibility {
+  PUBLIC
+  PRIVATE
 }
