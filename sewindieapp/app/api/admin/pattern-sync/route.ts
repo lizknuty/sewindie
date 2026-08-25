@@ -57,7 +57,9 @@ export async function POST(request: Request) {
     select: { id: true, name: true, url: true },
   })
 
-  const { rows, summary } = comparePatterns(scraped, existing)
+  const { rows, summary } = comparePatterns(scraped, existing, {
+    identityKey: adapter.identityKey?.bind(adapter),
+  })
 
   return NextResponse.json({
     designer: { id: designer.id, name: designer.name },

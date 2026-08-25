@@ -106,6 +106,22 @@ async function main() {
       }
     }
 
+    // The identityKey hook added for Grasser is opt-in per adapter. Prove that
+    // the five designers above are untouched by it -- i.e. that no adapter other
+    // than Grasser defines one, so comparePatterns still matches them on URL.
+    console.log(`\n=== identityKey opt-in scope ===`)
+    const { ADAPTERS } = await import("../app/lib/pattern-sync/registry.ts")
+    const optedIn = ADAPTERS.filter((a) => typeof a.identityKey === "function").map((a) => a.slug)
+    for (const a of ADAPTERS) {
+      console.log(`  ${a.slug.padEnd(26)} identityKey=${typeof a.identityKey === "function" ? "YES" : "no"}`)
+    }
+    if (optedIn.length !== 1 || optedIn[0] !== "grasser") {
+      console.log(`  PROBLEM: expected only "grasser" to define identityKey, got [${optedIn.join(", ")}]`)
+      anyProblem = true
+    } else {
+      console.log(`  only grasser opts in, so the designers above keep pure URL matching`)
+    }
+
     console.log(`\n${anyProblem ? "FAILED: see PROBLEM lines above" : "PASS: no regressions, no collisions"}`)
   } finally {
     await prisma.$disconnect()

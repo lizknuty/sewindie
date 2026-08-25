@@ -65,10 +65,27 @@ export function normalizeName(name: string): string {
     .replace(/\s+/g, " ")
 }
 
+/**
+ * Optional per-adapter identity override.
+ *
+ * Most stores keep a product at one stable URL, so the URL *is* the identity.
+ * A few don't: Grasser serves the same pattern under several category paths and
+ * has since changed which one is canonical, so its stored URLs are split across
+ * two forms that both refer to one pattern. For stores like that an adapter can
+ * supply a narrower key -- the URL's final slug -- which stays stable while the
+ * surrounding path moves.
+ *
+ * Returning null falls back to the normal URL then name matching.
+ */
+export type IdentityKeyFn = (url: string | null | undefined) => string | null
+
 export function comparePatterns(
   scraped: ScrapedPattern[],
   existing: ExistingPattern[],
+  options: { identityKey?: IdentityKeyFn } = {},
 ): { rows: ComparedPattern[]; summary: CompareSummary } {
+  const { identityKey } = options
+  const byIdentity = new Map<string, ExistingPattern>()
   const byUrl = new Map<string, ExistingPattern>()
   const byName = new Map<string, ExistingPattern>()
   // Some catalogue rows were saved by an older import that cut the name off,
@@ -79,6 +96,9 @@ export function comparePatterns(
   const truncated: { prefix: string; pattern: ExistingPattern }[] = []
 
   for (const pattern of existing) {
+    const identity = identityKey?.(pattern.url) ?? null
+    if (identity && !byIdentity.has(identity)) byIdentity.set(identity, pattern)
+
     const url = normalizeUrl(pattern.url)
     if (url && !byUrl.has(url)) byUrl.set(url, pattern)
 
@@ -100,12 +120,20 @@ export function comparePatterns(
 
   for (const item of scraped) {
     const url = normalizeUrl(item.url)
-    if (url) {
-      if (seenInFeed.has(url)) continue
-      seenInFeed.add(url)
+    const identity = identityKey?.(item.url) ?? null
+
+    // Dedupe on whichever key this store treats as identity. Using the identity
+    // key here matters as much as it does for matching: Grasser links the same
+    // pattern from several category paths, so URL-only deduping would let one
+    // pattern through twice under different paths.
+    const feedKey = identity ? `id:${identity}` : url
+    if (feedKey) {
+      if (seenInFeed.has(feedKey)) continue
+      seenInFeed.add(feedKey)
     }
 
-    const urlHit = url ? byUrl.get(url) : undefined
+    const identityHit = identity ? byIdentity.get(identity) : undefined
+    const urlHit = identityHit ?? (url ? byUrl.get(url) : undefined)
     if (urlHit) {
       rows.push({ ...item, status: "EXISTING", matchedPattern: { id: urlHit.id, name: urlHit.name } })
       continue
