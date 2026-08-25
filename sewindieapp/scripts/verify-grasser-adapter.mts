@@ -118,14 +118,14 @@ const newRows = rows.filter((r) => r.status === "NEW")
 const takenUrls = new Set(existing.map((p) => normalizeUrl(p.url)).filter(Boolean))
 ok("no NEW row collides with a stored URL", !newRows.some((r) => takenUrls.has(normalizeUrl(r.url)!)))
 ok("no NEW row collides with a stored identity", !newRows.some((r) => storedSlugs.has(grasserSlug(r.url)!)))
+// `summary.existing + recognisedGap() >= 0` used to sit here, which was always
+// true and therefore never a check at all. What is actually worth asserting is
+// that the three statuses partition the catalogue exactly.
 ok(
-  "new + existing accounts for the whole catalogue",
-  summary.existing + recognisedGap() >= 0,
-  `unlisted stored rows: ${[...storedSlugs].filter((s) => !scrapedSlugs.has(s!)).length}`,
+  "every scraped row lands in exactly one status",
+  rows.length === summary.found && summary.new + summary.possibleMatches + summary.existing === rows.length,
 )
-function recognisedGap() {
-  return 0
-}
+console.log(`  stored rows no longer listed upstream: ${[...storedSlugs].filter((s) => !scrapedSlugs.has(s!)).length}`)
 
 console.log(`\n  sample new rows:`)
 newRows.slice(0, 5).forEach((r) => console.log(`     ${r.name}  ${r.url.replace("https://en-grasser.com", "")}`))
