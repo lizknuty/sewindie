@@ -3,6 +3,7 @@ import { patternsForPiratesAdapter } from "./adapters/patterns-for-pirates"
 import { jalieAdapter } from "./adapters/jalie"
 import { greenstyleCreationsAdapter } from "./adapters/greenstyle-creations"
 import { fibreMoodAdapter } from "./adapters/fibre-mood"
+import { seamworkAdapter } from "./adapters/seamwork"
 
 // Adding support for another designer means writing one adapter file and adding
 // it to this list. No route or UI changes required.
@@ -11,6 +12,7 @@ export const ADAPTERS: DesignerAdapter[] = [
   jalieAdapter,
   greenstyleCreationsAdapter,
   fibreMoodAdapter,
+  seamworkAdapter,
 ]
 
 /** Bare hostname, lowercased and stripped of `www.`, or null if unparseable. */

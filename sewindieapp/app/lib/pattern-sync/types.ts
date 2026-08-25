@@ -10,15 +10,18 @@
  * flagged in the UI rather than filtered out, so an admin decides case by case:
  *  - "bundle": several patterns sold together (P4P bundles, Jalie GALAXIE packs)
  *  - "addon":  an expansion that needs a base pattern bought separately
+ *  - "bonus":  a free variation of a design that is also sold on its own
+ *              (Seamwork ships "<Design> Bonus" alongside the main pattern)
  *  - "other":  filed under the store's pattern type but not a pattern at all
  *              (a coloring book, a single optional pattern piece)
  */
-export type ProductKind = "pattern" | "bundle" | "addon" | "other"
+export type ProductKind = "pattern" | "bundle" | "addon" | "bonus" | "other"
 
 /** Human-readable chip text for a non-standalone product. */
 export const KIND_LABELS: Record<Exclude<ProductKind, "pattern">, string> = {
   bundle: "Bundle",
   addon: "Add-on",
+  bonus: "Bonus",
   other: "Not a pattern",
 }
 
