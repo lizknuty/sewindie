@@ -27,6 +27,11 @@
   --home-hero-bg: #fdede7;
   --home-ink: #1f1f1f;
   --home-ink-soft: #5c5153;
+
+  /* Patterns hero. patterns-hero.png has a genuinely transparent background
+     (verified: alpha 0 outside the artwork), so unlike hero.png it composites
+     over this band with no letterboxing to hide. */
+  --patterns-hero-bg: #fdeef0;
 }
 
 body {
@@ -1902,31 +1907,68 @@ button.ui-btn-block {
    are shared with the designer detail page, so those classes are generic
    (pcard-*, pager-*) rather than named for this route.
    =========================================================================== */
+/* The page itself is unconstrained so the hero band can run edge to edge (the
+   same approach as .home-page); .patterns-shell re-applies the content width to
+   everything below it. */
 .patterns-page {
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 2rem 1.25rem 4rem;
-}
-
-.patterns-head {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  margin-bottom: 1.5rem;
 }
 
-.patterns-title {
+.patterns-shell {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 1.75rem 1.25rem 4rem;
+}
+
+/* ---- Hero ---- */
+.phero {
+  background-color: var(--patterns-hero-bg);
+}
+
+.phero-inner {
+  display: flex;
+  flex-direction: column;
+  max-width: 1320px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.phero-copy {
+  padding: 2.75rem 1.25rem 0;
+}
+
+.phero-title {
+  margin: 0;
   font-family: var(--font-heading);
-  font-size: 1.9rem;
-  font-weight: 600;
-  color: var(--color-dark);
-  margin: 0;
+  font-size: clamp(1.9rem, 5.5vw, 3rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--site-plum);
+  max-width: 18em;
 }
 
-.patterns-subtitle {
-  font-size: 0.94rem;
-  color: var(--color-muted);
-  margin: 0;
+.phero-lede {
+  margin: 0.9rem 0 1.4rem;
+  max-width: 26rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--home-ink-soft);
+}
+
+.phero-media {
+  position: relative;
+  /* The art is 3:2; the aspect box gives next/image's fill something to
+     measure against. */
+  aspect-ratio: 3 / 2;
+  width: 100%;
+}
+
+.phero-image {
+  object-fit: contain;
+  object-position: center bottom;
 }
 
 /* Single column until there's room for a sidebar; on mobile the filter panel
@@ -1949,6 +1991,15 @@ button.ui-btn-block {
   justify-content: space-between;
   gap: 0.75rem;
   margin-bottom: 1.25rem;
+}
+
+/* Sort and layout travel together at the right end, so they stay paired when
+   the count wraps to its own line. */
+.patterns-toolbar-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .patterns-count {
@@ -1977,51 +2028,424 @@ button.ui-btn-block {
   border: 0;
 }
 
-/* ---- Search ---- */
+/* ---- Search ----
+   One continuous pill: the input carries the outline and the round submit sits
+   inside it, so the pair reads as a single control. */
 .pattern-search {
   display: flex;
-  gap: 0.5rem;
-  max-width: 30rem;
-  margin-bottom: 1.5rem;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: 27rem;
+  border: 1px solid #e6d3d6;
+  border-radius: 999px;
+  background-color: #fff;
+  padding: 0.3rem 0.35rem 0.3rem 0.4rem;
+}
+
+/* Focus lands on the inner input, so lift the ring to the whole pill. */
+.pattern-search:focus-within {
+  border-color: var(--site-plum);
+  box-shadow: 0 0 0 3px rgba(138, 63, 92, 0.13);
 }
 
 .pattern-search-input {
   flex: 1 1 auto;
   min-width: 0;
-  border: 1px solid #ded0d2;
-  border-radius: 999px;
-  background-color: #fff;
-  padding: 0.55rem 1rem;
+  border: none;
+  background-color: transparent;
+  padding: 0.5rem 0.5rem 0.5rem 0.85rem;
   font-family: inherit;
-  font-size: 0.94rem;
+  font-size: 0.95rem;
   color: var(--color-dark);
 }
 
 .pattern-search-input:focus {
   outline: none;
-  border-color: var(--site-plum);
-  box-shadow: 0 0 0 3px rgba(138, 63, 92, 0.13);
+}
+
+/* Clear the WebKit search affordances that would sit next to our own button. */
+.pattern-search-input::-webkit-search-decoration,
+.pattern-search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .pattern-search-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  justify-content: center;
   flex-shrink: 0;
-  border: 1px solid var(--site-plum);
+  width: 2.65rem;
+  height: 2.65rem;
+  border: none;
   border-radius: 999px;
   background-color: var(--site-plum);
-  padding: 0.55rem 1.1rem;
-  font-family: var(--font-heading);
-  font-size: 0.9rem;
-  font-weight: 600;
   color: #fff;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.pattern-search-btn:hover,
+.pattern-search-btn:focus-visible {
+  background-color: var(--site-plum-hover);
+}
+
+/* ---- Popular category tiles ---- */
+.pcats {
+  margin-bottom: 1.5rem;
+}
+
+.pcats-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.pcats-heading {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-dark);
+}
+
+.pcats-all-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--site-plum);
   cursor: pointer;
 }
 
-.pattern-search-btn:hover {
-  background-color: var(--site-plum-hover);
-  border-color: var(--site-plum-hover);
+.pcats-all-toggle:hover {
+  text-decoration: underline;
+}
+
+/* Wrapping flex rather than fixed columns: the tiles are label-width, so they
+   reflow to fill the row at any breakpoint without leaving gaps. */
+.pcats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.pcats-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  flex: 1 1 8.5rem;
+  min-width: 8.5rem;
+  border: 1px solid #eadfe0;
+  border-radius: 10px;
+  background-color: #fff;
+  padding: 0.8rem 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.pcats-tile:hover {
+  border-color: var(--site-plum);
+  background-color: var(--site-blush);
+}
+
+.pcats-tile-on {
+  border-color: var(--site-plum);
+  background-color: var(--site-blush);
+}
+
+.pcats-tile-name {
+  font-family: var(--font-heading);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--site-plum);
+}
+
+.pcats-tile-count {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.pcats-all {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+  border-top: 1px solid #eadfe0;
+  padding-top: 0.85rem;
+}
+
+.pcats-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid #eadfe0;
+  border-radius: 999px;
+  background-color: #fff;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.84rem;
+  color: var(--color-dark);
+  cursor: pointer;
+}
+
+.pcats-chip:hover {
+  border-color: var(--site-plum);
+  background-color: var(--site-blush);
+}
+
+.pcats-chip-on {
+  border-color: var(--site-plum);
+  background-color: var(--site-plum);
+  color: #fff;
+}
+
+.pcats-chip-count {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Inherit on the active chip so the count stays legible on plum. */
+.pcats-chip-on .pcats-chip-count {
+  color: inherit;
+  opacity: 0.75;
+}
+
+/* ---- Active filter bar ---- */
+.pactive {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #f0dfe2;
+  border-radius: 10px;
+  background-color: #fdf6f7;
+  padding: 0.7rem 0.9rem;
+}
+
+.pactive-label {
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-dark);
+}
+
+.pactive-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  /* Takes the slack so "Clear all" is pushed to the far end. */
+  flex: 1 1 auto;
+}
+
+.pactive-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid #e7ccd2;
+  border-radius: 999px;
+  background-color: #fff;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.83rem;
+  color: var(--site-plum);
+  cursor: pointer;
+}
+
+.pactive-chip:hover {
+  background-color: var(--site-blush);
+  border-color: var(--site-plum);
+}
+
+.pactive-clear {
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: var(--font-heading);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--site-plum);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ---- Grid / list toggle ---- */
+.pview {
+  display: inline-flex;
+  border: 1px solid #eadfe0;
+  border-radius: 8px;
+  background-color: #fff;
+  padding: 0.2rem;
+  gap: 0.2rem;
+}
+
+.pview-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  padding: 0.4rem 0.75rem;
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  cursor: pointer;
+}
+
+.pview-btn:hover {
+  color: var(--site-plum);
+}
+
+.pview-btn-on {
+  background-color: var(--site-blush);
+  color: var(--site-plum);
+}
+
+/* ---- List view rows ---- */
+.prow-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #eadfe0;
+  border-radius: 12px;
+  background-color: #fff;
+  overflow: hidden;
+}
+
+.prow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-top: 1px solid #f2e7e8;
+  padding: 0.85rem 1rem;
+}
+
+/* The divider belongs between rows, not above the first one. */
+.prow:first-child {
+  border-top: none;
+}
+
+.prow:hover {
+  background-color: #fdf8f9;
+}
+
+.prow-media {
+  position: relative;
+  flex-shrink: 0;
+  width: 5rem;
+  height: 6.25rem;
+  border-radius: 8px;
+  background-color: #faf5f6;
+  overflow: hidden;
+}
+
+.prow-media-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 0.72rem;
+  color: var(--color-muted);
+  text-align: center;
+}
+
+.prow-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.prow-name {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.prow-name a {
+  color: var(--site-plum);
+  text-decoration: none;
+}
+
+.prow-name a:hover {
+  text-decoration: underline;
+}
+
+.prow-designer {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+}
+
+.prow-designer a {
+  color: var(--color-muted);
+  text-decoration: none;
+}
+
+.prow-designer a:hover {
+  color: var(--site-plum);
+  text-decoration: underline;
+}
+
+.prow-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.45rem;
+}
+
+.prow-tag {
+  border-radius: 999px;
+  background-color: var(--site-blush);
+  padding: 0.15rem 0.55rem;
+  font-size: 0.75rem;
+  color: var(--site-plum);
+}
+
+.prow-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  width: 13rem;
+  margin: 0;
+}
+
+.prow-meta-item {
+  display: flex;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.prow-meta-label {
+  flex-shrink: 0;
+  width: 4.2rem;
+  color: var(--color-muted);
+}
+
+.prow-meta-value {
+  margin: 0;
+  color: var(--color-dark);
+}
+
+/* The metadata column is the first thing to go when rows get tight; the same
+   values are on the pattern page. */
+@media (max-width: 767px) {
+  .prow-meta {
+    display: none;
+  }
 }
 
 /* ---- Filter rail ---- */
@@ -2618,7 +3042,11 @@ button.ui-btn-block {
 }
 
 @media (min-width: 768px) {
-  .patterns-page,
+  /* The content wrapper owns the gutters now that .patterns-page is full-bleed
+     for the hero band; .phero-copy matches so the headline lines up with the
+     tiles below it. */
+  .patterns-shell,
+  .phero-copy,
   .pdetail {
     padding-left: 2rem;
     padding-right: 2rem;
@@ -2639,5 +3067,26 @@ button.ui-btn-block {
   .patterns-filters {
     position: sticky;
     top: 1.5rem;
+  }
+
+  /* Copy and art sit side by side once there's room; below this the art stacks
+     under the search field. */
+  .phero-inner {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .phero-copy {
+    flex: 1 1 52%;
+    padding: 3.25rem 2rem;
+  }
+
+  .phero-media {
+    flex: 1 1 48%;
+    /* Shorter than the 3:2 box used when stacked, so the band stays a banner
+       rather than growing to half the viewport width in height. */
+    aspect-ratio: 16 / 10;
+    align-self: stretch;
+    min-height: 20rem;
   }
 }
