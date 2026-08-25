@@ -32,6 +32,17 @@
      (verified: alpha 0 outside the artwork), so unlike hero.png it composites
      over this band with no letterboxing to hide. */
   --patterns-hero-bg: #fdeef0;
+
+  /* Pattern cards, mirroring admin.css's card treatment: --card-ink is
+     --admin-text, and the chip pair is --admin-bg / --admin-border. Duplicated
+     as literals for the same reason as --site-plum above -- the --admin-*
+     tokens are scoped to .admin-shell, and admin.css is imported only by the
+     admin layout, so it is not in scope on public pages.
+     Note --color-muted above is already the same value as --admin-muted, so
+     the designer line needs no separate token. */
+  --card-ink: #2b2426;
+  --card-chip-bg: #fbf8f7;
+  --card-chip-border: #efe3e6;
 }
 
 body {
@@ -2677,41 +2688,48 @@ button.ui-btn-block {
 .pcard-body {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.85rem 1rem 1rem;
+  gap: 0.4rem;
+  padding: 0.75rem 0.85rem 0.85rem;
   /* Grow so the tag row can be pushed to the bottom, keeping tags on a shared
      baseline when titles in a row wrap to different line counts. */
   flex: 1 1 auto;
 }
 
 .pcard-name {
-  font-family: var(--font-heading);
-  font-size: 0.98rem;
+  /* Body font, matching .pattern-card-title, which declares no font-family and
+     so inherits it. Set explicitly here rather than omitted because Bootstrap
+     gives h3 its own heading stack. */
+  font-family: var(--font-body);
+  font-size: 0.9rem;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.3;
   margin: 0;
 }
 
-.pcard-name a {
-  color: var(--color-dark);
+/* The redundant :not(.nav-link) lifts these to (0,3,1) so they outrank the
+   global `a:not(.btn):not(.nav-link)` brand-pink rule, per the convention used
+   by the header, footer, and homepage rules above. Without it the plain
+   `.pcard-name a` (0,1,1) loses and every card title renders pink. */
+.pcard-name a:not(.nav-link) {
+  color: var(--card-ink);
   text-decoration: none;
 }
 
-.pcard-name a:hover {
+.pcard-name a:not(.nav-link):hover {
   color: var(--site-plum);
 }
 
 .pcard-designer {
-  font-size: 0.84rem;
+  font-size: 0.8rem;
   margin: 0;
 }
 
-.pcard-designer a {
+.pcard-designer a:not(.nav-link) {
   color: var(--color-muted);
   text-decoration: none;
 }
 
-.pcard-designer a:hover {
+.pcard-designer a:not(.nav-link):hover {
   color: var(--site-plum);
   text-decoration: underline;
 }
@@ -2724,12 +2742,18 @@ button.ui-btn-block {
   padding-top: 0.6rem;
 }
 
+/* Matches admin .category-chip: tinted fill with a hairline border and dark
+   text, rather than the blush-on-plum fill these used before. */
 .pcard-tag {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--card-chip-border);
   border-radius: 999px;
-  background-color: var(--site-blush);
-  padding: 0.16rem 0.5rem;
-  font-size: 0.72rem;
-  color: var(--site-plum);
+  background-color: var(--card-chip-bg);
+  padding: 0.15rem 0.6rem;
+  font-size: 0.75rem;
+  color: var(--card-ink);
+  white-space: nowrap;
 }
 
 /* ---- Pagination (shared with /designers/[id]) ---- */
