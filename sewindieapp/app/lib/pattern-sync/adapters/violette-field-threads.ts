@@ -22,10 +22,11 @@ import type { DesignerAdapter, ProductKind, ScrapedPattern } from "../types"
 //  2. NO product_type FILTER. Greenstyle and Fibre Mood can trust
 //     `product_type` to separate patterns from merch. Here it is unreliable:
 //     1067 "PDF", 3 lowercase "pdf", 11 empty, 5 "Bundle", 2 "Accessory
-//     Patterns" and 1 "Dress". Filtering on it would silently drop 19 real
-//     patterns, "Posie Girls Top & Dress" among them. The store sells nothing
-//     but patterns, so everything is kept and the odd non-pattern is flagged
-//     by `classify` instead.
+//     Patterns" and 1 "Dress". A case-insensitive `pdf` filter would silently
+//     drop 19 real patterns ("Posie Girls Top & Dress" among them); a
+//     case-sensitive one would drop 22. The store sells nothing but patterns,
+//     so everything is kept and the odd non-pattern is flagged by `classify`
+//     instead.
 //
 //  3. TITLES ARE VERBATIM. 79 existing rows differ from the store only by
 //     capitalisation -- "Complete Bundle Of 3" in the database against
@@ -78,7 +79,7 @@ function familyOf(title: string): string {
  * `bundle` tag is the more useful answer -- it is a multi-pattern purchase.
  *
  * The `bundle` tag is a strict superset of what the title reveals: 321 products
- * carry it against 318 whose titles say so, and nothing says "bundle" in its
+ * carry it against 319 whose titles say so, and nothing says "bundle" in its
  * title without also being tagged. Both signals are still consulted so a
  * missing tag upstream can't quietly turn a bundle into a standalone pattern.
  */
@@ -119,6 +120,21 @@ function classify(product: ShopifyProduct, title: string): ProductKind {
  * family. That keeps 909 dates and discards 180, and every one of the 46
  * currently-new rows keeps a real date.
  */
+/**
+ * Belonging to one family is necessary but not sufficient: a lone product with a
+ * corrupt stamp passes the family test trivially, since a set of one is always
+ * consistent. Nothing in the store trips this today (0 future-dated, oldest is
+ * the 2012 launch), so this is purely a guard against a scheduled or mistyped
+ * publish date arriving later and sorting itself to the top of "newest".
+ */
+function isPlausible(stamp: string): boolean {
+  const at = new Date(stamp).getTime()
+  if (Number.isNaN(at)) return false
+  // The business has no patterns predating its 2012 launch.
+  if (at < Date.UTC(2011, 0, 1)) return false
+  return at <= Date.now()
+}
+
 function resolveReleaseDates(products: ShopifyProduct[]): Map<ShopifyProduct, string | null> {
   const byStamp = new Map<string, ShopifyProduct[]>()
   for (const product of products) {
@@ -138,7 +154,7 @@ function resolveReleaseDates(products: ShopifyProduct[]): Map<ShopifyProduct, st
     }
     const sharers = byStamp.get(stamp) ?? [product]
     const families = new Set(sharers.map((item) => familyOf(item.title ?? "")))
-    resolved.set(product, families.size <= 1 ? stamp : null)
+    resolved.set(product, families.size <= 1 && isPlausible(stamp) ? stamp : null)
   }
   return resolved
 }
