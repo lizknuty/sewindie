@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react'
 import PatternThumbnail from '@/components/PatternThumbnail'
 import { prisma } from '@/lib/prisma'
 import FavoritesAndRatings from '@/components/FavoritesAndRatings'
+import AddToCollection from '@/components/AddToCollection'
 
 type Pattern = {
   id: number;
@@ -110,6 +111,8 @@ export default async function PatternPage({ params }: PageProps) {
             </p>
 
             <FavoritesAndRatings patternId={pattern.id} />
+
+            <AddToCollection patternId={pattern.id} />
 
             <section className="pdetail-section">
               <h2 className="pdetail-section-title">Details</h2>
