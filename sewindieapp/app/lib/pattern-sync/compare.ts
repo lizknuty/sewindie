@@ -30,6 +30,11 @@ export type CompareSummary = {
  * Canonical form of a URL for identity checks: lowercase host without `www.`,
  * no trailing slash, no query string or fragment. Query params on WooCommerce
  * product links are tracking noise, not identity.
+ *
+ * The one exception is Shopify's `variant` param, which is kept. Some stores
+ * sell one product with Paper/Digital variants where the catalogue wants a row
+ * per format, so `?variant=` is the only thing telling those rows apart. Every
+ * other param is still dropped, so tracking noise can't fragment identity.
  */
 export function normalizeUrl(url: string | null | undefined): string | null {
   if (!url) return null
@@ -39,7 +44,8 @@ export function normalizeUrl(url: string | null | undefined): string | null {
     const parsed = new URL(withScheme)
     const host = parsed.hostname.toLowerCase().replace(/^www\./, "")
     const path = parsed.pathname.replace(/\/+$/, "").toLowerCase()
-    return `${host}${path}`
+    const variant = parsed.searchParams.get("variant")?.trim()
+    return variant ? `${host}${path}?variant=${variant.toLowerCase()}` : `${host}${path}`
   } catch {
     return null
   }
@@ -65,6 +71,12 @@ export function comparePatterns(
 ): { rows: ComparedPattern[]; summary: CompareSummary } {
   const byUrl = new Map<string, ExistingPattern>()
   const byName = new Map<string, ExistingPattern>()
+  // Some catalogue rows were saved by an older import that cut the name off,
+  // leaving a literal "..." behind ("Amelia Jumpsuit Digital..."). Those can
+  // never match by exact name, so without this the same design would come back
+  // as brand new and quietly duplicate the row. Longest prefix wins so the most
+  // specific truncated row is the one reported.
+  const truncated: { prefix: string; pattern: ExistingPattern }[] = []
 
   for (const pattern of existing) {
     const url = normalizeUrl(pattern.url)
@@ -72,7 +84,15 @@ export function comparePatterns(
 
     const name = normalizeName(pattern.name)
     if (name && !byName.has(name)) byName.set(name, pattern)
+
+    const trimmedName = pattern.name.trim()
+    if (/(?:\.{3}|\u2026)$/.test(trimmedName)) {
+      const prefix = normalizeName(trimmedName.replace(/(?:\.{3}|\u2026)+$/, ""))
+      // Short prefixes would swallow unrelated patterns, so require some length.
+      if (prefix.length >= 8) truncated.push({ prefix, pattern })
+    }
   }
+  truncated.sort((a, b) => b.prefix.length - a.prefix.length)
 
   // Guards against a store listing the same product twice across pages.
   const seenInFeed = new Set<string>()
@@ -91,7 +111,9 @@ export function comparePatterns(
       continue
     }
 
-    const nameHit = byName.get(normalizeName(item.name))
+    const scrapedName = normalizeName(item.name)
+    const nameHit =
+      byName.get(scrapedName) ?? truncated.find((entry) => scrapedName.startsWith(entry.prefix))?.pattern
     if (nameHit) {
       // Same name, different URL. Could be a pattern added earlier under an old
       // link, or a genuinely different product that happens to share a name --
