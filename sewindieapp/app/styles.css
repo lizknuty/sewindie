@@ -28,11 +28,6 @@
   --home-ink: #1f1f1f;
   --home-ink-soft: #5c5153;
 
-  /* Patterns hero. patterns-hero.png has a genuinely transparent background
-     (verified: alpha 0 outside the artwork), so unlike hero.png it composites
-     over this band with no letterboxing to hide. */
-  --patterns-hero-bg: #fdeef0;
-
   /* Pattern cards, mirroring admin.css's card treatment: --card-ink is
      --admin-text, --card-border and --card-chip-border are --admin-border, and
      --card-chip-bg is --admin-bg. Duplicated as literals for the same reason as
@@ -1926,6 +1921,11 @@ button.ui-btn-block {
 .patterns-page {
   display: flex;
   flex-direction: column;
+  /* White like .home-body, painted on the full-width wrapper rather than
+     .patterns-shell -- the shell is capped at 1320px, so colouring it would
+     leave the body's --color-light showing as grey gutters on wide screens.
+     .phero sits inside this and paints its own peach band over it. */
+  background-color: #fff;
 }
 
 .patterns-shell {
@@ -1936,8 +1936,11 @@ button.ui-btn-block {
 }
 
 /* ---- Hero ---- */
+/* Same peach band as .home-hero. patterns-hero.png has a genuinely transparent
+   background (verified: alpha 0 outside the artwork), so it composites over
+   this colour directly with no baked-in backdrop to match. */
 .phero {
-  background-color: var(--patterns-hero-bg);
+  background-color: var(--home-hero-bg);
 }
 
 .phero-inner {
@@ -2136,7 +2139,9 @@ button.ui-btn-block {
   justify-content: flex-start;
   gap: 0.5rem;
   min-height: 6.5rem;
-  border: 1px solid #eadfe0;
+  /* Hairline grey, same as .pcard. The tiles are white on a now-white page, so
+     this outline is what separates them from the background. */
+  border: 1px solid var(--card-border);
   border-radius: 10px;
   background-color: #fff;
   padding: 1rem 0.6rem;
@@ -2179,7 +2184,7 @@ button.ui-btn-block {
   flex-wrap: wrap;
   gap: 0.4rem;
   margin-top: 0.75rem;
-  border-top: 1px solid #eadfe0;
+  border-top: 1px solid var(--card-border);
   padding-top: 0.85rem;
 }
 
@@ -2187,7 +2192,7 @@ button.ui-btn-block {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  border: 1px solid #eadfe0;
+  border: 1px solid var(--card-border);
   border-radius: 999px;
   background-color: #fff;
   padding: 0.35rem 0.75rem;
@@ -2282,7 +2287,7 @@ button.ui-btn-block {
    divided by a rule, rather than pill-shaped padded buttons. */
 .pview {
   display: inline-flex;
-  border: 1px solid #eadfe0;
+  border: 1px solid var(--card-border);
   border-radius: 10px;
   background-color: #fff;
   overflow: hidden;
@@ -2303,7 +2308,7 @@ button.ui-btn-block {
 
 /* Divider between the two, not around them. */
 .pview-btn + .pview-btn {
-  border-left: 1px solid #eadfe0;
+  border-left: 1px solid var(--card-border);
 }
 
 .pview-btn:hover {
@@ -2465,7 +2470,7 @@ button.ui-btn-block {
 
 /* ---- Filter rail ---- */
 .pfilters {
-  border: 1px solid #eadfe0;
+  border: 1px solid var(--card-border);
   border-radius: 12px;
   background-color: #fff;
   padding: 1.1rem 1.15rem;
