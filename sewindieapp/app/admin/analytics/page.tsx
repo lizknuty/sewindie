@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Heart, Users, ClipboardCheck, Star, Scissors, Palette, ArrowRight, BarChart3 } from "lucide-react"
+import { Heart, Users, ClipboardCheck, Star, Scissors, Palette, ArrowRight, BarChart3, DownloadCloud } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import MetricCard from "@/admin/components/dashboard/MetricCard"
 
@@ -39,6 +39,12 @@ const REPORTS = [
     icon: ClipboardCheck,
     title: "Content Coverage",
     sub: "Catalogue gaps by field and the patterns that need attention first.",
+  },
+  {
+    href: "/admin/analytics/pattern-sync",
+    icon: DownloadCloud,
+    title: "Designer Pattern Sync",
+    sub: "Check a designer's store for new patterns and import the ones you want.",
   },
 ]
 

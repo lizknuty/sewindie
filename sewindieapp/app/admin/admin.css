@@ -3349,3 +3349,141 @@ th.admin-measure-col-size {
     padding: 1.1rem 1rem 1.2rem;
   }
 }
+
+/* Designer pattern sync report. */
+.admin-sync {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.1rem 1.25rem 1.3rem;
+}
+
+.admin-sync-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.admin-sync-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--admin-muted);
+}
+
+.admin-sync .admin-select {
+  max-width: 22rem;
+  margin-bottom: 0;
+}
+
+.admin-sync-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.admin-sync-rejected {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.82rem;
+  color: var(--admin-muted);
+  line-height: 1.55;
+}
+
+.admin-sync-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+}
+
+.admin-sync-table {
+  margin-bottom: 0;
+}
+
+.admin-sync-table tbody tr.is-selected td {
+  background-color: var(--admin-rose-tint);
+}
+
+.admin-sync-check {
+  width: 2.5rem;
+  text-align: center;
+}
+
+.admin-sync-check input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--admin-rose);
+  cursor: pointer;
+}
+
+.admin-sync-pattern {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.admin-sync-thumb {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--admin-border);
+  background-color: var(--admin-surface-2, rgba(0, 0, 0, 0.03));
+}
+
+.admin-sync-thumb.is-empty {
+  display: inline-block;
+}
+
+.admin-sync-name {
+  display: block;
+  font-weight: 550;
+  color: var(--admin-text);
+  line-height: 1.35;
+}
+
+.admin-sync-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.16rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--admin-border);
+  white-space: nowrap;
+}
+
+.admin-sync-tag.is-new {
+  color: var(--admin-rose);
+  background-color: var(--admin-rose-tint);
+  border-color: var(--admin-rose);
+}
+
+.admin-sync-tag.is-maybe {
+  color: var(--admin-muted);
+  white-space: normal;
+}
+
+.admin-shell a.admin-sync-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.82rem;
+  color: var(--admin-rose);
+  text-decoration: none;
+}
+
+.admin-shell a.admin-sync-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 767.98px) {
+  .admin-sync .admin-select {
+    max-width: 100%;
+  }
+  .admin-sync-controls {
+    align-items: stretch;
+  }
+}
