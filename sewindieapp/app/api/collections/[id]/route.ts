@@ -80,7 +80,10 @@ export async function PATCH(
     const userId = await getUserId(session.user.email)
     const result = await prisma.collection.updateMany({
       where: { id: collectionId, userId },
-      data,
+      // updatedAt is set explicitly rather than via Prisma's `@updatedAt`,
+      // because `prisma db pull` strips that attribute from the schema. Doing
+      // it here keeps the timestamp correct regardless of introspection.
+      data: { ...data, updatedAt: new Date() },
     })
 
     if (result.count === 0) {

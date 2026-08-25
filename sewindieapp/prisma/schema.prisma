@@ -111,6 +111,7 @@ model Pattern {
   difficulty             String?                  @db.VarChar(25)
   release_date           DateTime?                @db.Date
   status                 PatternStatus            @default(PUBLISHED)
+  // `prisma db pull` renames this to `CollectionPattern`. Restore `collections`.
   collections            CollectionPattern[]
   favorites              Favorite[]
   designer               Designer                 @relation(fields: [designer_id], references: [id])
@@ -207,6 +208,7 @@ model User {
   status            UserStatus        @default(ACTIVE)
   lastLogin         DateTime?
   BlogPost          BlogPost[]
+  // `prisma db pull` renames this to `Collection`. Restore `collections`.
   collections       Collection[]
   favorites         Favorite[]
   ratings           Rating[]
@@ -242,15 +244,27 @@ model Rating {
 /// A user-curated list of patterns. Visibility defaults to PRIVATE so a
 /// half-built list is never exposed; only PUBLIC collections surface on the
 /// designer pages. Collections may mix patterns from any number of designers.
+///
+/// AFTER `prisma db pull`: introspection cannot infer relation field names and
+/// will rewrite `user` -> `User` and `patterns` -> `CollectionPattern`. Rename
+/// them back. Six fields need this in total: two here, two on
+/// CollectionPattern below, plus User.collections and Pattern.collections.
+/// Everything else here is already byte-identical to introspection output, so
+/// those six renames are the only manual fix required. Run
+/// `node scripts/fix-collection-relations.mjs` to apply them automatically.
+///
+/// `updatedAt` intentionally has no `@updatedAt` attribute -- introspection
+/// strips it, so the API routes set the value explicitly instead. See the
+/// touch() helper in app/api/collections/[id]/route.ts.
 model Collection {
   id          Int                  @id @default(autoincrement())
   userId      Int
   name        String               @db.VarChar(120)
-  description String?              @db.Text
+  description String?
   visibility  CollectionVisibility @default(PRIVATE)
   createdAt   DateTime             @default(now()) @db.Timestamp(6)
-  updatedAt   DateTime             @default(now()) @updatedAt @db.Timestamp(6)
-  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt   DateTime             @default(now()) @db.Timestamp(6)
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   patterns    CollectionPattern[]
 
   @@index([userId])
@@ -259,13 +273,16 @@ model Collection {
 
 /// Join row for Collection <-> Pattern. The compound unique makes "add to
 /// collection" idempotent, so double-clicking the picker cannot duplicate a row.
+///
+/// AFTER `prisma db pull`: rename `Collection` -> `collection` and
+/// `Pattern` -> `pattern` below.
 model CollectionPattern {
   id           Int        @id @default(autoincrement())
   collectionId Int
   patternId    Int
   addedAt      DateTime   @default(now()) @db.Timestamp(6)
-  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  pattern      Pattern    @relation(fields: [patternId], references: [id], onDelete: Cascade)
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  pattern      Pattern    @relation(fields: [patternId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([collectionId, patternId])
   @@index([patternId])
