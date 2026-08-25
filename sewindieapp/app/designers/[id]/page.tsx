@@ -109,7 +109,7 @@ export default async function DesignerPage({ params, searchParams }: PageProps) 
             patterns: { some: { pattern: { designer_id: designerId } } },
           },
           include: {
-            user: { select: { name: true, username: true } },
+            user: { select: { name: true } },
             _count: { select: { patterns: true } },
             // Preview thumbnails are restricted to this designer's patterns so
             // the tab stays on-topic, per the agreed behaviour.
@@ -262,7 +262,7 @@ export default async function DesignerPage({ params, searchParams }: PageProps) 
                       name={collection.name}
                       description={collection.description}
                       patternCount={collection._count.patterns}
-                      ownerName={collection.user.name || collection.user.username}
+                      ownerName={collection.user.name?.trim() || "A SewIndie sewist"}
                       matchLabel={`${matches} from ${designer.name}`}
                       previews={collection.patterns.map((cp) => cp.pattern)}
                     />

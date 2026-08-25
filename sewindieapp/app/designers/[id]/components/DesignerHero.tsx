@@ -88,6 +88,8 @@ export default function DesignerHero({
                 height={160}
                 className="dhero-logo-img"
                 unoptimized
+                // Always above the fold, and usually the LCP element.
+                priority
               />
             </div>
           )}

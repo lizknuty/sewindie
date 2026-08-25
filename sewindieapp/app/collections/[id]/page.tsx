@@ -20,7 +20,7 @@ export default async function CollectionPage({ params }: PageProps) {
   const collection = await prisma.collection.findUnique({
     where: { id: collectionId },
     include: {
-      user: { select: { id: true, name: true, username: true, email: true } },
+      user: { select: { id: true, name: true, email: true } },
       patterns: {
         orderBy: { addedAt: "desc" },
         include: {
@@ -50,7 +50,7 @@ export default async function CollectionPage({ params }: PageProps) {
     notFound()
   }
 
-  const ownerName = collection.user.name || collection.user.username
+  const ownerName = collection.user.name?.trim() || "A SewIndie sewist"
   const count = collection.patterns.length
 
   return (

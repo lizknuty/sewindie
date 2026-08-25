@@ -35,21 +35,26 @@ export default function CollectionCard({
         {previews.length === 0 ? (
           <span className="ccard-mosaic-empty">No patterns yet</span>
         ) : (
-          // Fixed four cells so every card is the same height whether the
-          // collection holds one pattern or fifty.
+          // Always four cells: padding the tail with empty tiles keeps the 2x2
+          // frame square, so a two-pattern collection doesn't leave a visible
+          // half-height gap where the bottom row should be.
           <span className="ccard-mosaic-grid">
-            {previews.slice(0, 4).map((p) => (
-              <span key={p.id} className="ccard-mosaic-cell">
-                {p.thumbnail_url ? (
-                  <PatternThumbnail
-                    src={p.thumbnail_url}
-                    alt={`${p.name} thumbnail`}
-                    fill
-                    sizes="120px"
-                  />
-                ) : null}
-              </span>
-            ))}
+            {Array.from({ length: 4 }).map((_, i) => {
+              const p = previews[i]
+              return (
+                <span key={p ? `p-${p.id}` : `empty-${i}`} className="ccard-mosaic-cell">
+                  {p ? (
+                    <PatternThumbnail
+                      src={p.thumbnail_url}
+                      alt={`${p.name} thumbnail`}
+                      fill
+                      sizes="160px"
+                      className="ccard-mosaic-img"
+                    />
+                  ) : null}
+                </span>
+              )
+            })}
           </span>
         )}
       </Link>

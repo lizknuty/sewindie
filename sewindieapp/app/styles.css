@@ -3484,9 +3484,11 @@ button.ui-btn-block {
 
 .ccard-mosaic {
   display: block;
-  aspect-ratio: 4 / 3;
+  /* Square, so the four cells inside are square too. A 4/3 frame made each
+  tile noticeably wider than tall, which crops these portrait thumbnails hard. */
+  aspect-ratio: 1 / 1;
   background: var(--card-chip-bg);
-}
+  }
 
 /* Always a 2x2 frame, so a collection with one pattern is the same height as
    one with forty and the grid rows stay even. */
@@ -3504,8 +3506,14 @@ button.ui-btn-block {
   position: relative;
   overflow: hidden;
   background: var(--card-chip-bg);
-}
+  }
 
+  /* next/image with `fill` sets width/height 100% and leaves object-fit at its
+  `fill` default, which stretches these portrait thumbnails into the cells. */
+  .ccard-mosaic-img {
+  object-fit: cover;
+  }
+  
 .ccard-mosaic-empty {
   display: flex;
   align-items: center;
