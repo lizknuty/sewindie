@@ -29,25 +29,27 @@ export default function PatternViewToggle({ view }: { view: ViewMode }) {
     // A radiogroup rather than two toggle buttons: exactly one layout is
     // always active, which is what aria-checked communicates.
     <div className="pview" role="radiogroup" aria-label="Result layout">
+      {/* Icon-only, matching the admin .view-toggle. The visible label is gone,
+          so aria-label carries the accessible name. */}
       <button
         type="button"
         role="radio"
         aria-checked={view === "grid"}
+        aria-label="Grid view"
         className={`pview-btn ${view === "grid" ? "pview-btn-on" : ""}`}
         onClick={() => setView("grid")}
       >
-        <LayoutGrid size={15} aria-hidden="true" />
-        Grid
+        <LayoutGrid size={18} aria-hidden="true" />
       </button>
       <button
         type="button"
         role="radio"
         aria-checked={view === "list"}
+        aria-label="List view"
         className={`pview-btn ${view === "list" ? "pview-btn-on" : ""}`}
         onClick={() => setView("list")}
       >
-        <List size={15} aria-hidden="true" />
-        List
+        <List size={18} aria-hidden="true" />
       </button>
     </div>
   )

@@ -1946,7 +1946,8 @@ button.ui-btn-block {
   font-weight: 700;
   line-height: 1.12;
   letter-spacing: -0.02em;
-  color: var(--site-plum);
+  /* Same ink as .home-hero-title so both heroes read as one voice. */
+  color: var(--home-ink);
   max-width: 18em;
 }
 
@@ -2116,12 +2117,16 @@ button.ui-btn-block {
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* Top-aligned, not centred: the label reserves two lines, so centring would
+     re-centre each tile's group and drop the icon on wrapped tiles below the
+     others. Anchoring at the top keeps all eight icons on one baseline. */
   justify-content: flex-start;
-  gap: 0.35rem;
+  gap: 0.5rem;
+  min-height: 6.5rem;
   border: 1px solid #eadfe0;
   border-radius: 10px;
   background-color: #fff;
-  padding: 0.9rem 0.5rem 0.8rem;
+  padding: 1rem 0.6rem;
   text-align: center;
   cursor: pointer;
   transition: border-color 0.15s ease, background-color 0.15s ease;
@@ -2144,29 +2149,16 @@ button.ui-btn-block {
 
 .pcats-tile-name {
   font-family: var(--font-heading);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 600;
   line-height: 1.25;
   color: var(--site-plum);
   /* Category names are database values, so long ones like
-     "Sweater / Sweatshirt" have to wrap inside a narrow track. */
+     "Sweater / Sweatshirt" have to wrap inside a narrow track. Reserving two
+     lines keeps every label's first line on the same baseline whether it wraps
+     or not, so the icons stay in a straight row. */
   text-wrap: balance;
-}
-
-.pcats-tile-count {
-  font-size: 0.75rem;
-  color: var(--color-muted);
-  font-variant-numeric: tabular-nums;
-  /* Pushed to the bottom so counts align across tiles whose labels wrap to a
-     different number of lines. */
-  margin-top: auto;
-  padding-top: 0.15rem;
-}
-
-/* The disclosure tile has no count, so its label sits optically centred with
-   the ones that do. */
-.pcats-tile-all .pcats-tile-name {
-  margin-bottom: auto;
+  min-height: 2.4em;
 }
 
 .pcats-all {
@@ -2273,28 +2265,32 @@ button.ui-btn-block {
 }
 
 /* ---- Grid / list toggle ---- */
+/* Mirrors the admin .view-toggle: hairline container with square icon buttons
+   divided by a rule, rather than pill-shaped padded buttons. */
 .pview {
   display: inline-flex;
   border: 1px solid #eadfe0;
-  border-radius: 8px;
+  border-radius: 10px;
   background-color: #fff;
-  padding: 0.2rem;
-  gap: 0.2rem;
+  overflow: hidden;
 }
 
 .pview-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
   border: none;
-  border-radius: 6px;
   background: none;
-  padding: 0.4rem 0.75rem;
-  font-family: var(--font-heading);
-  font-size: 0.85rem;
-  font-weight: 600;
+  padding: 0;
   color: var(--color-muted);
   cursor: pointer;
+}
+
+/* Divider between the two, not around them. */
+.pview-btn + .pview-btn {
+  border-left: 1px solid #eadfe0;
 }
 
 .pview-btn:hover {
