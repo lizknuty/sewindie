@@ -34,13 +34,15 @@
   --patterns-hero-bg: #fdeef0;
 
   /* Pattern cards, mirroring admin.css's card treatment: --card-ink is
-     --admin-text, and the chip pair is --admin-bg / --admin-border. Duplicated
-     as literals for the same reason as --site-plum above -- the --admin-*
-     tokens are scoped to .admin-shell, and admin.css is imported only by the
-     admin layout, so it is not in scope on public pages.
+     --admin-text, --card-border and --card-chip-border are --admin-border, and
+     --card-chip-bg is --admin-bg. Duplicated as literals for the same reason as
+     --site-plum above -- the --admin-* tokens are scoped to .admin-shell, and
+     admin.css is imported only by the admin layout, so it is not in scope on
+     public pages.
      Note --color-muted above is already the same value as --admin-muted, so
      the designer line needs no separate token. */
   --card-ink: #2b2426;
+  --card-border: #efe3e6;
   --card-chip-bg: #fbf8f7;
   --card-chip-border: #efe3e6;
 }
@@ -2317,10 +2319,8 @@ button.ui-btn-block {
 .prow-list {
   display: flex;
   flex-direction: column;
-  /* Same black hairline as .pcard so the list surface stands off the page
-     background exactly as the grid cards do. The inner row dividers stay pale
-     -- black between every row would read as a table, not a card. */
-  border: 1px solid var(--color-dark);
+  /* Same hairline as .pcard and admin .pattern-card. */
+  border: 1px solid var(--card-border);
   border-radius: 12px;
   background-color: #fff;
   overflow: hidden;
@@ -2660,7 +2660,8 @@ button.ui-btn-block {
   display: flex;
   flex-direction: column;
   height: 100%;
-  border: 1px solid var(--color-dark);
+  /* Same hairline as admin .pattern-card. */
+  border: 1px solid var(--card-border);
   border-radius: 12px;
   background-color: #fff;
   overflow: hidden;
