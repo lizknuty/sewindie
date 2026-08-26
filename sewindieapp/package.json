@@ -10,7 +10,9 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "db:pull": "prisma db pull && node scripts/fix-schema-after-pull.mjs && prisma generate",
+    "db:check": "node scripts/fix-schema-after-pull.mjs --check"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
