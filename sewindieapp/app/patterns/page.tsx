@@ -6,7 +6,7 @@ import PatternSorter from '@/components/PatternSorter'
 import PatternFilters from '@/components/PatternFilters'
 import PatternCard from '@/components/PatternCard'
 import PaginationControls from '@/components/PaginationControls'
-import PatternsHero from '@/components/PatternsHero'
+import BrowseHero from '@/components/BrowseHero'
 import CategoryTiles from '@/components/CategoryTiles'
 import ActiveFilterChips from '@/components/ActiveFilterChips'
 import PatternViewToggle from '@/components/PatternViewToggle'
@@ -219,7 +219,15 @@ export default async function PatternsPage({ searchParams }: PageProps) {
 
     return (
       <div className="patterns-page">
-        <PatternsHero initialSearch={search} />
+        <BrowseHero
+          title="Find your next sewing project."
+          lede="Search thousands of independent sewing patterns."
+          initialSearch={search}
+          searchPlaceholder="Search patterns, designers, or keywords..."
+          searchLabel="Search patterns or designers"
+          searchInputId="pattern-search-input"
+          imageSrc="/patterns-hero.png"
+        />
 
         <div className="patterns-shell">
           <CategoryTiles popular={popularCategories} all={browsableCategories} />

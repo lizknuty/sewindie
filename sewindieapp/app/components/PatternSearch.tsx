@@ -7,9 +7,18 @@ import { Search } from "lucide-react"
 
 interface PatternSearchProps {
   initialSearch: string | string[]
+  /** Overridable so /designers can say "Search designers..." with the same control. */
+  placeholder?: string
+  label?: string
+  inputId?: string
 }
 
-const PatternSearch: React.FC<PatternSearchProps> = ({ initialSearch }) => {
+const PatternSearch: React.FC<PatternSearchProps> = ({
+  initialSearch,
+  placeholder = "Search patterns, designers, or keywords...",
+  label = "Search patterns or designers",
+  inputId = "pattern-search-input",
+}) => {
   const [search, setSearch] = useState(Array.isArray(initialSearch) ? initialSearch[0] || "" : initialSearch)
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -34,15 +43,15 @@ const PatternSearch: React.FC<PatternSearchProps> = ({ initialSearch }) => {
 
   return (
     <form onSubmit={handleSearch} className="pattern-search" role="search">
-      <label htmlFor="pattern-search-input" className="sr-only">
-        Search patterns or designers
+      <label htmlFor={inputId} className="sr-only">
+        {label}
       </label>
       <input
-        id="pattern-search-input"
+        id={inputId}
         type="search"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search patterns, designers, or keywords..."
+        placeholder={placeholder}
         className="pattern-search-input"
       />
       {/* Icon-only submit, so the accessible name comes from sr-only text

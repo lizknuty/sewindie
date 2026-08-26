@@ -2,16 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
-
-/** "Fibre Mood" -> "FM"; falls back to the first character for one-word names. */
-function initialsFor(name: string) {
-  const words = name.trim().split(/\s+/).filter(Boolean)
-  if (words.length === 0) return "?"
-  return words
-    .slice(0, 2)
-    .map((word) => word[0]!.toUpperCase())
-    .join("")
-}
+import { initialsFor } from "@/lib/designer-initials"
 
 /**
  * Designer logo with an initials fallback.

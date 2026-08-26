@@ -1,44 +1,43 @@
-import React from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
+import React from "react"
+import Link from "next/link"
+import DesignerLogo from "./DesignerLogo"
 
 type DesignerCardProps = {
-  id: number;
-  name: string;
-  logo_url: string | null;
+  id: number
+  name: string
+  logo_url: string | null
+  patternCount: number
 }
 
-export default function DesignerCard({ id, name, logo_url }: DesignerCardProps) {
+/**
+ * Grid card for the designers index, mirroring PatternCard's shell (white
+ * surface, hairline border, lift on hover) so the two browse pages read as one
+ * system. Replaces the Bootstrap `.card` markup this used before.
+ */
+export default function DesignerCard({ id, name, logo_url, patternCount }: DesignerCardProps) {
   if (!id || !name) {
-    console.error('Invalid designer data:', { id, name });
-    return null;
+    console.error("Invalid designer data:", { id, name })
+    return null
   }
 
   return (
-    <div className="card h-100" style={{ backgroundColor: 'white' }}>
-      <div className="card-body d-flex flex-column justify-content-center align-items-center">
-        <div className="mb-3" style={{ width: '100px', height: '100px', position: 'relative' }}>
-          {logo_url ? (
-            <Image
-              src={logo_url}
-              alt={`${name} logo`}
-              fill
-              sizes="100px"
-              style={{ objectFit: 'contain' }}
-              className="rounded"
-            />
-          ) : (
-            <div className="w-100 h-100 bg-light d-flex justify-content-center align-items-center rounded">
-              <span className="text-muted fs-1">{name[0]}</span>
-            </div>
-          )}
-        </div>
-        <h2 className="card-title h5 text-center mb-2">
-          <Link href={`/designers/${id}`} className="text-decoration-none">
-            {name}
-          </Link>
-        </h2>
+    <article className="dcard">
+      <Link href={`/designers/${id}`} className="dcard-media" aria-label={name}>
+        <DesignerLogo
+          name={name}
+          logoUrl={logo_url}
+          variant="card"
+          sizes="(min-width: 1200px) 20vw, (min-width: 992px) 25vw, (min-width: 576px) 50vw, 100vw"
+        />
+      </Link>
+      <div className="dcard-body">
+        <h3 className="dcard-name">
+          <Link href={`/designers/${id}`}>{name}</Link>
+        </h3>
+        <p className="dcard-count">
+          {patternCount.toLocaleString()} {patternCount === 1 ? "pattern" : "patterns"}
+        </p>
       </div>
-    </div>
+    </article>
   )
 }

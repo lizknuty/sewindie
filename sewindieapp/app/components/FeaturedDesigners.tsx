@@ -19,7 +19,15 @@ export type FeaturedDesigner = {
  * trackpad, and touch behaviour for free, and the arrows are a thin wrapper
  * over scrollBy.
  */
-export default function FeaturedDesigners({ designers }: { designers: FeaturedDesigner[] }) {
+export default function FeaturedDesigners({
+  designers,
+  // Null on /designers itself, where a "View all" pointing at the current page
+  // would be a link to nowhere.
+  viewAllHref = "/designers",
+}: {
+  designers: FeaturedDesigner[]
+  viewAllHref?: string | null
+}) {
   const railRef = useRef<HTMLUListElement>(null)
   const [atStart, setAtStart] = useState(true)
   const [atEnd, setAtEnd] = useState(false)
@@ -62,9 +70,11 @@ export default function FeaturedDesigners({ designers }: { designers: FeaturedDe
           Featured Designers
         </h2>
         <div className="home-section-tools">
-          <Link href="/designers" className="home-view-all">
-            View all
-          </Link>
+          {viewAllHref && (
+            <Link href={viewAllHref} className="home-view-all">
+              View all
+            </Link>
+          )}
           <div className="home-rail-nav">
             <button
               type="button"
