@@ -1094,15 +1094,19 @@ a:not(.btn):not(.nav-link):focus {
   gap: 1rem;
 }
 
-.home-body a.home-view-all:not(.nav-link) {
+/* The designers index renders the same FeaturedDesigners rail, so these rules
+   can't stay scoped to .home-body alone -- outside it the global
+   `a:not(.btn):not(.nav-link)` rule would repaint every rail link brand pink.
+   :is() keeps the specificity identical to the original .home-body prefix. */
+:is(.home-body, .designers-shell) a.home-view-all:not(.nav-link) {
   color: var(--site-plum);
   font-size: 0.88rem;
   text-decoration: none;
   white-space: nowrap;
 }
 
-.home-body a.home-view-all:not(.nav-link):hover,
-.home-body a.home-view-all:not(.nav-link):focus {
+:is(.home-body, .designers-shell) a.home-view-all:not(.nav-link):hover,
+:is(.home-body, .designers-shell) a.home-view-all:not(.nav-link):focus {
   color: var(--site-plum-hover);
   text-decoration: underline;
 }
@@ -1160,7 +1164,7 @@ a:not(.btn):not(.nav-link):focus {
   width: 112px;
 }
 
-.home-body a.home-designer-link:not(.nav-link) {
+:is(.home-body, .designers-shell) a.home-designer-link:not(.nav-link) {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1179,8 +1183,10 @@ a:not(.btn):not(.nav-link):focus {
   transition: box-shadow 0.15s ease;
 }
 
-.home-body a.home-designer-link:not(.nav-link):hover .home-designer-avatar,
-.home-body a.home-designer-link:not(.nav-link):focus-visible .home-designer-avatar {
+:is(.home-body, .designers-shell) a.home-designer-link:not(.nav-link):hover .home-designer-avatar,
+:is(.home-body, .designers-shell)
+  a.home-designer-link:not(.nav-link):focus-visible
+  .home-designer-avatar {
   box-shadow: 0 0 0 2px var(--site-plum);
 }
 
@@ -1210,7 +1216,7 @@ a:not(.btn):not(.nav-link):focus {
   text-align: center;
 }
 
-.home-body a.home-designer-link:not(.nav-link):hover .home-designer-name {
+:is(.home-body, .designers-shell) a.home-designer-link:not(.nav-link):hover .home-designer-name {
   text-decoration: underline;
 }
 
@@ -3946,5 +3952,251 @@ button.ui-btn-block {
   .dstat + .dstat {
     padding-left: 1.5rem;
     border-left: 1px solid var(--card-border);
+  }
+}
+
+/* ==========================================================================
+   Designers index (/designers)
+   Deliberately reuses the patterns page's chrome -- .phero for the hero band,
+   and .patterns-toolbar / .patterns-count / .patterns-pager-row / .patterns-empty
+   for the results header, pager, and empty state -- so the two browse pages
+   stay pixel-identical rather than drifting into two similar-but-different
+   toolbars. Only the cards themselves are new.
+   ========================================================================== */
+.designers-page {
+  display: flex;
+  flex-direction: column;
+  /* Same full-width wrapper treatment as .patterns-page: the shell is capped,
+     so colouring the shell instead would leave grey gutters on wide screens. */
+  background-color: var(--site-header-bg);
+}
+
+.designers-shell {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 1.75rem 1.25rem 4rem;
+}
+
+/* The rail sits directly above the results toolbar, so it needs the gap that
+   .home-section + .home-section provides between the homepage's rails. */
+.designers-results {
+  min-width: 0;
+  margin-top: 2.5rem;
+}
+
+/* ---- Designer grid card ---- */
+.dcard-grid {
+  display: grid;
+  /* Wider minimum than .pcard-grid's 200px: these cards are logo-led and a
+     narrow column squeezes long wordmarks like "Angela Wolf Pattern
+     Collection" into four cramped lines. */
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.dcard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  background-color: #fff;
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.dcard:hover {
+  border-color: var(--site-plum);
+  box-shadow: 0 10px 24px rgba(138, 63, 92, 0.12);
+  transform: translateY(-2px);
+}
+
+/* Landscape rather than .pcard-media's square: designer logos are wordmarks,
+   which are wider than they are tall. */
+.dcard-media {
+  display: block;
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background-color: #fff;
+}
+
+.dcard-logo {
+  position: absolute;
+  /* Inset rather than `inset: 0` so the logo never touches the card edge --
+     padding on the parent wouldn't work here, since next/image fill resolves
+     its own inset against the padding box. */
+  inset: 0.9rem;
+}
+
+/* contain, not cover: cropping a logo cuts off the wordmark. */
+.dcard-logo-img {
+  object-fit: contain;
+}
+
+.dcard-logo-initials {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  background-color: var(--site-blush);
+  color: var(--site-plum);
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.dcard-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.75rem 0.85rem 0.9rem;
+  border-top: 1px solid var(--card-border);
+  flex: 1 1 auto;
+}
+
+.dcard-name {
+  /* Body font, matching .pcard-name; declared explicitly because Bootstrap
+     gives h3 its own heading stack. */
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0;
+}
+
+/* The redundant :not(.nav-link) lifts this to (0,3,1) so it outranks the global
+   `a:not(.btn):not(.nav-link)` brand-pink rule, matching .pcard-name. */
+.dcard-name a:not(.nav-link) {
+  color: var(--card-ink);
+  text-decoration: none;
+}
+
+.dcard-name a:not(.nav-link):hover {
+  color: var(--site-plum);
+}
+
+.dcard-count {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Designer list row ---- */
+.drow-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  background-color: #fff;
+  overflow: hidden;
+}
+
+.drow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-top: 1px solid #f2e7e8;
+  padding: 0.85rem 1rem;
+}
+
+/* The divider belongs between rows, not above the first one. */
+.drow:first-child {
+  border-top: none;
+}
+
+.drow:hover {
+  background-color: #fdf8f9;
+}
+
+.drow-media {
+  position: relative;
+  flex-shrink: 0;
+  width: 6.25rem;
+  height: 4rem;
+  border-radius: 8px;
+  background-color: #fff;
+  overflow: hidden;
+}
+
+.drow-logo {
+  position: absolute;
+  inset: 0.4rem;
+}
+
+.drow-logo-img {
+  object-fit: contain;
+}
+
+.drow-logo-initials {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  background-color: var(--site-blush);
+  color: var(--site-plum);
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.drow-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.drow-name {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.drow-name a:not(.nav-link) {
+  color: var(--card-ink);
+  text-decoration: none;
+}
+
+.drow-name a:not(.nav-link):hover {
+  color: var(--site-plum);
+  text-decoration: underline;
+}
+
+.drow-count {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Hidden on narrow screens: the whole row already links to the designer, so
+   below ~576px this is a redundant second target competing for the space. */
+.drow-cta {
+  display: none;
+}
+
+@media (min-width: 576px) {
+  .designers-shell a.drow-cta:not(.nav-link) {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    border: 1px solid var(--card-border);
+    border-radius: 999px;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.8rem;
+    color: var(--site-plum);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .designers-shell a.drow-cta:not(.nav-link):hover,
+  .designers-shell a.drow-cta:not(.nav-link):focus-visible {
+    background-color: var(--site-blush);
+    border-color: var(--site-plum);
   }
 }
