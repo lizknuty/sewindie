@@ -14,6 +14,8 @@ interface DesignerFormProps {
     url?: string | null
     email?: string | null
     address?: string | null
+    tagline?: string | null
+    about?: string | null
     facebook?: string | null
     instagram?: string | null
     pinterest?: string | null
@@ -31,6 +33,8 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
     url: designer?.url || "",
     email: designer?.email || "",
     address: designer?.address || "",
+    tagline: designer?.tagline || "",
+    about: designer?.about || "",
     facebook: designer?.facebook || "",
     instagram: designer?.instagram || "",
     pinterest: designer?.pinterest || "",
@@ -150,6 +154,55 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
                 />
               </div>
             )}
+          </div>
+        </div>
+      </section>
+
+      <section className="admin-form-card">
+        <div className="admin-form-card-head">
+          <h2 className="admin-form-card-title">Public Copy</h2>
+          <p className="admin-form-card-desc">
+            Shown on the designer&apos;s public page. Both fall back to generic placeholder text when
+            left blank.
+          </p>
+        </div>
+
+        <div className="admin-form-grid">
+          <div className="admin-field admin-field--full">
+            <label htmlFor="tagline" className="admin-label">
+              Tagline
+            </label>
+            <input
+              type="text"
+              className="admin-input"
+              id="tagline"
+              name="tagline"
+              value={formData.tagline}
+              onChange={handleChange}
+              maxLength={255}
+              placeholder="One line describing what this designer is known for"
+            />
+            <p className="admin-hint">
+              Appears under the designer&apos;s name in the page header. Aim for a single sentence.
+            </p>
+          </div>
+
+          <div className="admin-field admin-field--full">
+            <label htmlFor="about" className="admin-label">
+              About
+            </label>
+            <textarea
+              className="admin-textarea"
+              id="about"
+              name="about"
+              rows={8}
+              value={formData.about}
+              onChange={handleChange}
+              placeholder="The longer story behind this designer."
+            />
+            <p className="admin-field-help">
+              Fills the About tab. Separate paragraphs with a blank line.
+            </p>
           </div>
         </div>
       </section>
