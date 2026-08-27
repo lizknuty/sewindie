@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import { redirect } from "next/navigation"
 import AdminSidebar from "@/admin/components/AdminSidebar"
-import SidebarToggle from "@/admin/components/SidebarToggle"
+import AdminShell from "@/admin/components/AdminShell"
 import "./admin.css"
 
 export default async function AdminLayout({
@@ -20,17 +20,8 @@ export default async function AdminLayout({
 
   const user = session!.user
 
-  return (
-    <div className="layout-container admin-shell">
-      <div id="admin-sidebar" className="sidebar-column">
-        <AdminSidebar user={user} />
-      </div>
-      <div className="content-wrapper">
-        <header className="content-header">
-          <SidebarToggle targetId="admin-sidebar" />
-        </header>
-        <main className="content-main">{children}</main>
-      </div>
-    </div>
-  )
+  // The shell is a client component because it owns the mobile drawer state;
+  // the sidebar is passed in as a prop so this layout stays a server component
+  // and keeps doing the session check above on the server.
+  return <AdminShell sidebar={<AdminSidebar user={user} />}>{children}</AdminShell>
 }

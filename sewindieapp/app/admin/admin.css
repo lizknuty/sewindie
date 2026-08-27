@@ -59,6 +59,102 @@
   }
 }
 
+/* ---- Mobile drawer toggle ----
+   The old button styled itself with Tailwind utilities (p-2, rounded-md,
+   border-gray-300, ...), but this project has no Tailwind -- no config, no
+   dependency, no @tailwind directives -- so every one of those classes was
+   inert and the control rendered as a bare unstyled button. These are real
+   rules against the admin tokens. */
+.admin-shell .admin-sidebar-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 44px floor: the iOS Human Interface Guidelines minimum touch target. */
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.5rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  background-color: var(--admin-surface);
+  color: var(--admin-text);
+  cursor: pointer;
+  /* Suppresses the ~300ms tap delay and the grey flash on iOS Safari. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.admin-shell .admin-sidebar-toggle:hover {
+  background-color: var(--admin-rose-tint);
+  border-color: var(--admin-rose);
+}
+
+.admin-shell .admin-sidebar-toggle:focus-visible {
+  outline: 2px solid var(--admin-rose);
+  outline-offset: 2px;
+}
+
+/* ---- Mobile drawer stacking order ----
+   The global stylesheet leaves the two layers in the wrong order for a drawer:
+   .sidebar-column is z-index 1030 while the sticky .content-header is 1060, so
+   the header paints over the top of the drawer. Restacking all three together
+   here, scoped to the admin shell and to the widths where the drawer exists,
+   keeps the relationship readable in one place:
+
+     sidebar  1050  the drawer itself, above everything
+     backdrop 1040  dims the page and the header beneath it
+     header   1020  below the backdrop while the drawer is open
+
+   The toggle sits in the header and is therefore covered while the drawer is
+   open, which is why the drawer carries its own close button. */
+@media (max-width: 767.98px) {
+  .admin-shell .sidebar-column {
+    z-index: 1050;
+  }
+
+  .admin-shell .content-header {
+    z-index: 1020;
+  }
+
+  .admin-shell .admin-sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    background-color: rgba(43, 36, 38, 0.5);
+  }
+}
+
+/* Above 768px the sidebar is permanent, so the drawer's close button would be
+   a control for a drawer that cannot be closed. */
+.admin-shell .admin-sidebar-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  background-color: var(--admin-surface);
+  color: var(--admin-text);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.admin-shell .admin-sidebar-close:focus-visible {
+  outline: 2px solid var(--admin-rose);
+  outline-offset: 2px;
+}
+
+@media (min-width: 768px) {
+  .admin-shell .admin-sidebar-close {
+    display: none;
+  }
+}
+
 /* =========================================================
    Sidebar
    ========================================================= */
