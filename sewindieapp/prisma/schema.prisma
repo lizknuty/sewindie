@@ -38,6 +38,7 @@ model Designer {
   status           DesignerStatus    @default(PUBLISHED)
   FeaturedDesigner FeaturedDesigner?
   patterns         Pattern[]
+  PatternSyncRun   PatternSyncRun[]
   SizeChart        SizeChart[]
 }
 
@@ -125,6 +126,19 @@ model PatternSuggestedFabric {
   suggestedFabric    SuggestedFabric @relation(fields: [suggestedfabric_id], references: [id], map: "PatternSuggestedFabric_suggested_fabric_id_fkey")
 
   @@unique([pattern_id, suggestedfabric_id], map: "PatternSuggestedFabric_pattern_id_suggested_fabric_id_key")
+}
+
+model PatternSyncRun {
+  id               Int      @id @default(autoincrement())
+  designer_id      Int
+  ran_at           DateTime @default(now())
+  found            Int
+  new_count        Int
+  possible_matches Int
+  existing         Int
+  Designer         Designer @relation(fields: [designer_id], references: [id], onDelete: Cascade)
+
+  @@index([designer_id, ran_at])
 }
 
 model SuggestedFabric {

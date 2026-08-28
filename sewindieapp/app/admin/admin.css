@@ -3373,6 +3373,30 @@ th.admin-measure-col-size {
   color: var(--admin-muted);
 }
 
+.admin-sync-lastrun {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.75rem;
+  margin: 0.75rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.admin-sync-lastrun-time {
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.admin-sync-lastrun-time time {
+  border-bottom: 1px dotted var(--admin-border);
+  cursor: help;
+}
+
+.admin-sync-lastrun-outcome {
+  color: var(--admin-muted);
+}
+
 .admin-sync .admin-select {
   max-width: 22rem;
   margin-bottom: 0;
