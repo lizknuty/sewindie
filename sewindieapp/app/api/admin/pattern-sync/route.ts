@@ -61,10 +61,31 @@ export async function POST(request: Request) {
     identityKey: adapter.identityKey?.bind(adapter),
   })
 
+  // Record that the script ran, with the outcome, so the page can show when a
+  // designer was last checked. This is bookkeeping: if it fails, the admin still
+  // gets their results, so a write error must never turn a good check into a 500.
+  let lastRun: { ranAt: string } | null = null
+  try {
+    const run = await prisma.patternSyncRun.create({
+      data: {
+        designer_id: designer.id,
+        found: summary.found,
+        new_count: summary.new,
+        possible_matches: summary.possibleMatches,
+        existing: summary.existing,
+      },
+      select: { ran_at: true },
+    })
+    lastRun = { ranAt: run.ran_at.toISOString() }
+  } catch (error) {
+    console.error("failed to record pattern sync run", error)
+  }
+
   return NextResponse.json({
     designer: { id: designer.id, name: designer.name },
     adapter: { slug: adapter.slug, label: adapter.label },
     summary: { ...summary, inCatalogue: existing.length },
+    lastRun,
     // Only actionable rows travel to the client; EXISTING is just a count.
     rows: rows.filter((row) => row.status !== "EXISTING"),
   })

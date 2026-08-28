@@ -18,55 +18,10 @@ model Audience {
   PatternAudience PatternAudience[]
 }
 
-model BlogPost {
-  id            Int       @id @default(autoincrement())
-  title         String    @db.VarChar(255)
-  slug          String    @unique @db.VarChar(255)
-  excerpt       String?   @db.VarChar(500)
-  content       String
-  coverImageUrl String?
-  published     Boolean   @default(false)
-  publishedAt   DateTime? @db.Timestamp(6)
-  createdAt     DateTime  @default(now()) @db.Timestamp(6)
-  updatedAt     DateTime  @default(now()) @db.Timestamp(6)
-  authorId      Int?
-  User          User?     @relation(fields: [authorId], references: [id], onUpdate: NoAction)
-
-  @@index([published, publishedAt])
-  @@index([slug])
-}
-
 model Category {
   id              Int               @id @default(autoincrement())
   name            String            @db.VarChar(255)
   PatternCategory PatternCategory[]
-}
-
-model Collection {
-  id          Int                  @id @default(autoincrement())
-  userId      Int
-  name        String               @db.VarChar(120)
-  description String?
-  visibility  CollectionVisibility @default(PRIVATE)
-  createdAt   DateTime             @default(now()) @db.Timestamp(6)
-  updatedAt   DateTime             @default(now()) @db.Timestamp(6)
-  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  patterns    CollectionPattern[]
-
-  @@index([userId])
-  @@index([visibility])
-}
-
-model CollectionPattern {
-  id           Int        @id @default(autoincrement())
-  collectionId Int
-  patternId    Int
-  addedAt      DateTime   @default(now()) @db.Timestamp(6)
-  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  pattern      Pattern    @relation(fields: [patternId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([collectionId, patternId])
-  @@index([patternId])
 }
 
 model Designer {
@@ -81,10 +36,9 @@ model Designer {
   pinterest        String?
   youtube          String?
   status           DesignerStatus    @default(PUBLISHED)
-  tagline          String?           @db.VarChar(255)
-  about            String?
   FeaturedDesigner FeaturedDesigner?
   patterns         Pattern[]
+  PatternSyncRun   PatternSyncRun[]
   SizeChart        SizeChart[]
 }
 
@@ -94,57 +48,10 @@ model FabricType {
   PatternFabricType PatternFabricType[]
 }
 
-model Favorite {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  patternId Int
-  createdAt DateTime @default(now()) @db.Timestamp(6)
-  pattern   Pattern  @relation(fields: [patternId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  user      User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@unique([userId, patternId])
-}
-
-model FeaturedDesigner {
-  id          Int      @id @default(autoincrement())
-  designer_id Int      @unique
-  position    Int
-  createdAt   DateTime @default(now()) @db.Timestamp(6)
-  Designer    Designer @relation(fields: [designer_id], references: [id], onDelete: Cascade)
-
-  @@index([position])
-}
-
-model FeaturedPattern {
-  id         Int      @id @default(autoincrement())
-  pattern_id Int      @unique
-  position   Int
-  createdAt  DateTime @default(now()) @db.Timestamp(6)
-  Pattern    Pattern  @relation(fields: [pattern_id], references: [id], onDelete: Cascade)
-
-  @@index([position])
-}
-
 model Format {
   id            Int             @id @default(autoincrement())
   name          String          @db.VarChar(255)
   PatternFormat PatternFormat[]
-}
-
-model LinkCheck {
-  id         Int        @id @default(autoincrement())
-  url        String     @unique
-  host       String     @db.VarChar(255)
-  kind       LinkKind
-  status     LinkStatus
-  statusCode Int?
-  error      String?    @db.VarChar(500)
-  checkedAt  DateTime   @default(now())
-
-  @@index([checkedAt])
-  @@index([host])
-  @@index([kind, status])
-  @@index([status])
 }
 
 model Pattern {
@@ -158,7 +65,6 @@ model Pattern {
   difficulty             String?                  @db.VarChar(25)
   release_date           DateTime?                @db.Date
   status                 PatternStatus            @default(PUBLISHED)
-  collections            CollectionPattern[]
   favorites              Favorite[]
   FeaturedPattern        FeaturedPattern?
   designer               Designer                 @relation(fields: [designer_id], references: [id])
@@ -212,6 +118,79 @@ model PatternFabricType {
   @@unique([pattern_id, fabrictype_id], map: "PatternFabricType_pattern_id_fabric_type_id_key")
 }
 
+model PatternSuggestedFabric {
+  id                 Int             @id @default(autoincrement())
+  pattern_id         Int
+  suggestedfabric_id Int
+  pattern            Pattern         @relation(fields: [pattern_id], references: [id])
+  suggestedFabric    SuggestedFabric @relation(fields: [suggestedfabric_id], references: [id], map: "PatternSuggestedFabric_suggested_fabric_id_fkey")
+
+  @@unique([pattern_id, suggestedfabric_id], map: "PatternSuggestedFabric_pattern_id_suggested_fabric_id_key")
+}
+
+model PatternSyncRun {
+  id               Int      @id @default(autoincrement())
+  designer_id      Int
+  ran_at           DateTime @default(now())
+  found            Int
+  new_count        Int
+  possible_matches Int
+  existing         Int
+  Designer         Designer @relation(fields: [designer_id], references: [id], onDelete: Cascade)
+
+  @@index([designer_id, ran_at])
+}
+
+model SuggestedFabric {
+  id                     Int                      @id @default(autoincrement())
+  name                   String                   @db.VarChar(255)
+  PatternSuggestedFabric PatternSuggestedFabric[]
+}
+
+model User {
+  id                Int               @id @default(autoincrement())
+  name              String?           @db.VarChar(255)
+  email             String            @unique(map: "user_email_unique") @db.VarChar(255)
+  password          String            @db.VarChar(255)
+  createdAt         DateTime          @default(now()) @db.Timestamp(6)
+  updatedAt         DateTime          @updatedAt @db.Timestamp(6)
+  role              String?           @db.VarChar(50)
+  resetToken        String?
+  resetTokenExpires DateTime?         @db.Timestamp(6)
+  status            UserStatus        @default(ACTIVE)
+  lastLogin         DateTime?
+  BlogPost          BlogPost[]
+  favorites         Favorite[]
+  ratings           Rating[]
+  UserMeasurement   UserMeasurement[]
+
+  @@index([resetToken])
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  patternId Int
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  pattern   Pattern  @relation(fields: [patternId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user      User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([userId, patternId])
+}
+
+model Rating {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  patternId Int
+  score     Int
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
+  pattern   Pattern  @relation(fields: [patternId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user      User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([userId, patternId])
+}
+
 model PatternFormat {
   id         Int     @id @default(autoincrement())
   pattern_id Int
@@ -234,29 +213,7 @@ model PatternSizeChart {
   @@index([size_chart_id])
 }
 
-model PatternSuggestedFabric {
-  id                 Int             @id @default(autoincrement())
-  pattern_id         Int
-  suggestedfabric_id Int
-  pattern            Pattern         @relation(fields: [pattern_id], references: [id])
-  suggestedFabric    SuggestedFabric @relation(fields: [suggestedfabric_id], references: [id], map: "PatternSuggestedFabric_suggested_fabric_id_fkey")
-
-  @@unique([pattern_id, suggestedfabric_id], map: "PatternSuggestedFabric_pattern_id_suggested_fabric_id_key")
-}
-
-model Rating {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  patternId Int
-  score     Int
-  createdAt DateTime @default(now()) @db.Timestamp(6)
-  updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(6)
-  pattern   Pattern  @relation(fields: [patternId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  user      User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@unique([userId, patternId])
-}
-
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model SizeChart {
   id               Int                @id @default(autoincrement())
   designer_id      Int
@@ -310,33 +267,7 @@ model SizeChartRow {
   SizeChart               SizeChart @relation(fields: [size_chart_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
-model SuggestedFabric {
-  id                     Int                      @id @default(autoincrement())
-  name                   String                   @db.VarChar(255)
-  PatternSuggestedFabric PatternSuggestedFabric[]
-}
-
-model User {
-  id                Int               @id @default(autoincrement())
-  name              String?           @db.VarChar(255)
-  email             String            @unique(map: "user_email_unique") @db.VarChar(255)
-  password          String            @db.VarChar(255)
-  createdAt         DateTime          @default(now()) @db.Timestamp(6)
-  updatedAt         DateTime          @updatedAt @db.Timestamp(6)
-  role              String?           @db.VarChar(50)
-  resetToken        String?
-  resetTokenExpires DateTime?         @db.Timestamp(6)
-  status            UserStatus        @default(ACTIVE)
-  lastLogin         DateTime?
-  BlogPost          BlogPost[]
-  collections       Collection[]
-  favorites         Favorite[]
-  ratings           Rating[]
-  UserMeasurement   UserMeasurement[]
-
-  @@index([resetToken])
-}
-
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model UserMeasurement {
   id         Int      @id @default(autoincrement())
   user_id    Int
@@ -352,9 +283,75 @@ model UserMeasurement {
   @@index([user_id])
 }
 
-enum CollectionVisibility {
-  PUBLIC
-  PRIVATE
+model BlogPost {
+  id            Int       @id @default(autoincrement())
+  title         String    @db.VarChar(255)
+  slug          String    @unique @db.VarChar(255)
+  excerpt       String?   @db.VarChar(500)
+  content       String
+  coverImageUrl String?
+  published     Boolean   @default(false)
+  publishedAt   DateTime? @db.Timestamp(6)
+  createdAt     DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime  @default(now()) @db.Timestamp(6)
+  authorId      Int?
+  User          User?     @relation(fields: [authorId], references: [id], onUpdate: NoAction)
+
+  @@index([published, publishedAt])
+  @@index([slug])
+}
+
+model LinkCheck {
+  id         Int        @id @default(autoincrement())
+  url        String     @unique
+  host       String     @db.VarChar(255)
+  kind       LinkKind
+  status     LinkStatus
+  statusCode Int?
+  error      String?    @db.VarChar(500)
+  checkedAt  DateTime   @default(now())
+
+  @@index([checkedAt])
+  @@index([host])
+  @@index([kind, status])
+  @@index([status])
+}
+
+model FeaturedDesigner {
+  id          Int      @id @default(autoincrement())
+  designer_id Int      @unique
+  position    Int
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  Designer    Designer @relation(fields: [designer_id], references: [id], onDelete: Cascade)
+
+  @@index([position])
+}
+
+model FeaturedPattern {
+  id         Int      @id @default(autoincrement())
+  pattern_id Int      @unique
+  position   Int
+  createdAt  DateTime @default(now()) @db.Timestamp(6)
+  Pattern    Pattern  @relation(fields: [pattern_id], references: [id], onDelete: Cascade)
+
+  @@index([position])
+}
+
+enum MeasurementUnit {
+  inches
+  cm
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING
+}
+
+enum PatternStatus {
+  PUBLISHED
+  IN_TESTING
+  DISCONTINUED
 }
 
 enum DesignerStatus {
@@ -371,21 +368,4 @@ enum LinkStatus {
   OK
   BROKEN
   UNREACHABLE
-}
-
-enum MeasurementUnit {
-  inches
-  cm
-}
-
-enum PatternStatus {
-  PUBLISHED
-  IN_TESTING
-  DISCONTINUED
-}
-
-enum UserStatus {
-  ACTIVE
-  SUSPENDED
-  PENDING
 }

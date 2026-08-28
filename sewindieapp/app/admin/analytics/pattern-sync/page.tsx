@@ -17,15 +17,42 @@ async function getDesignerOptions() {
     orderBy: { name: "asc" },
   })
 
+  // Latest run per designer: order newest-first, then `distinct` keeps only the
+  // first row seen for each designer_id -- i.e. the most recent check. The
+  // (designer_id, ran_at) index backs both the ordering and the distinct.
+  const latestRuns = await prisma.patternSyncRun.findMany({
+    distinct: ["designer_id"],
+    orderBy: { ran_at: "desc" },
+    select: {
+      designer_id: true,
+      ran_at: true,
+      found: true,
+      new_count: true,
+      possible_matches: true,
+      existing: true,
+    },
+  })
+  const lastRunByDesigner = new Map(latestRuns.map((run) => [run.designer_id, run]))
+
   // Resolving adapters on the server keeps the scraping code out of the client
   // bundle -- the browser only needs to know which designers are supported.
   return designers.map((designer) => {
     const adapter = getAdapterForDesigner(designer)
+    const run = lastRunByDesigner.get(designer.id)
     return {
       id: designer.id,
       name: designer.name,
       patternCount: designer._count.patterns,
       adapterLabel: adapter?.label ?? null,
+      lastRun: run
+        ? {
+            ranAt: run.ran_at.toISOString(),
+            found: run.found,
+            new: run.new_count,
+            possibleMatches: run.possible_matches,
+            existing: run.existing,
+          }
+        : null,
     }
   })
 }
