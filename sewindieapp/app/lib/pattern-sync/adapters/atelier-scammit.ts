@@ -37,8 +37,13 @@ const STORE = "https://www.atelier-scammit.com"
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
 
-const REQUEST_TIMEOUT_MS = 18_000
-const CONCURRENCY = 10
+// Tuned to fit the 60s route budget: this PrestaShop store serves each page in
+// ~1.3s, and the catalogue is ~85 products across 16 categories. Fetching every
+// category page AND every product page concurrently (see discoverProductUrls)
+// keeps the whole crawl around ~30s. A sequential category crawl blew past 60s
+// and produced 504s in production. Matches the oliverands-store tuning.
+const REQUEST_TIMEOUT_MS = 12_000
+const CONCURRENCY = 16
 const MAX_RETRIES = 3
 const RETRY_BASE_DELAY_MS = 300
 const MAX_CATEGORY_PAGES = 6
@@ -158,23 +163,29 @@ async function mapWithConcurrency<T, R>(items: T[], limit: number, fn: (item: T)
 
 // Discover product URLs by crawling every category listing (paginated) and
 // taking the union of canonical product links. Exported for the verify script.
+//
+// Every category page is fetched CONCURRENTLY (16 categories x up to 6 pages =
+// ~96 cheap fetches). A sequential crawl here was the main cause of the 504:
+// it cost ~50s on its own before a single product page was fetched. Fetching
+// all candidate pages in one pool drops discovery to ~20s. Pages past a
+// category's real last page just 404 -> caught -> empty string, contributing
+// no product URLs, so over-requesting is harmless.
 export async function discoverProductUrls(): Promise<string[]> {
   const homepage = await fetchText(`${STORE}/`)
   const categoryUrls = [...new Set([...homepage.matchAll(CATEGORY_URL_RE)].map((m) => m[1]))]
 
-  const productUrls = new Set<string>()
+  const candidatePages: string[] = []
   for (const categoryUrl of categoryUrls) {
     for (let page = 1; page <= MAX_CATEGORY_PAGES; page++) {
-      let html: string
-      try {
-        html = await fetchText(categoryUrl + (page > 1 ? `?page=${page}` : ""))
-      } catch {
-        break
-      }
-      const before = productUrls.size
-      for (const match of html.matchAll(PRODUCT_URL_RE)) productUrls.add(match[0])
-      if (productUrls.size === before) break // no new products on this page -> stop paginating
+      candidatePages.push(categoryUrl + (page > 1 ? `?page=${page}` : ""))
     }
+  }
+
+  const htmls = await mapWithConcurrency(candidatePages, CONCURRENCY, (url) => fetchText(url).catch(() => ""))
+
+  const productUrls = new Set<string>()
+  for (const html of htmls) {
+    for (const match of html.matchAll(PRODUCT_URL_RE)) productUrls.add(match[0])
   }
   return [...productUrls]
 }
