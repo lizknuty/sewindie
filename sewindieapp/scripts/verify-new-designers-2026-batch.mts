@@ -106,7 +106,10 @@ async function main() {
   console.log("\n--- Elemeno: og/JSON-LD/slug fallback chain ---")
   {
     ok("Elemeno: slug is trailing segment", elemeno.elemenoSlug("https://www.elemenopatterns.com/product-page/cross-back-dress") === "cross-back-dress")
-    ok("Elemeno: slugToTitle title-cases", elemeno.slugToTitle("cross-back-dress") === "Cross-back Dress")
+    // Hyphens are word separators (intra-word hyphens are already gone from the
+    // slug), so every word is capitalised: "cross-back-dress" -> "Cross Back Dress".
+    ok("Elemeno: slugToTitle title-cases every word", elemeno.slugToTitle("cross-back-dress") === "Cross Back Dress")
+    ok("Elemeno: slugToTitle handles the hipster-romper shell", elemeno.slugToTitle("hipster-romper") === "Hipster Romper")
     const ogPage = elemeno.parseProductPage({ url: "https://www.elemenopatterns.com/product-page/ruffle-romper", html: '<meta property="og:title" content="Ruffle Romper | elemenopatterns"><meta property="og:image" content="https://img/r.jpg">' })
     ok("Elemeno: og:title wins, suffix stripped", ogPage.name === "Ruffle Romper")
     ok("Elemeno: og:image used", ogPage.imageUrl === "https://img/r.jpg")
@@ -147,7 +150,11 @@ async function main() {
   console.log(`  ${esCat.length} designs: ${esCat.map((p) => p.name).join(", ")}`)
   assertCommonShape("ES", esCat, /^https:\/\/experimentalspace\.com\//)
   ok("ES: ~6 sewing designs (4-10)", esCat.length >= 4 && esCat.length <= 10)
-  ok("ES: no knitting designs leaked (no 'sweater'/'cardigan')", esCat.every((p) => !/\b(sweater|cardigan|shawl|beanie)\b/i.test(p.name)))
+  // The knitting *category* must be excluded, but a name containing "sweater"
+  // is NOT proof of knitting: "Casey Sweater" is a woven sewing pattern
+  // (URL .../casey-sweater-sewing-pattern-pdf/). Assert on the source category
+  // instead -- every kept product must be a sewing pattern, none from knitting.
+  ok("ES: all products are sewing patterns (knitting category excluded)", esCat.every((p) => /-sewing-pattern/.test(p.url)))
 
   console.log("\n--- live: Elemeno Patterns (Wix) ---")
   const elemenoCat = await elemeno.elemenoPatternsAdapter.fetchCatalogue()
@@ -163,7 +170,9 @@ async function main() {
   console.log(`  ${scammitCat.length} products (pattern=${scammitPatterns.length}, other=${scammitOther.length})`)
   assertCommonShape("Scammit", scammitCat, /^https:\/\/www\.atelier-scammit\.com\/[a-z0-9-]+\/\d+-/)
   ok("Scammit: ~83 products (70-95)", scammitCat.length >= 70 && scammitCat.length <= 95)
-  ok("Scammit: every product has an image", scammitCat.every((p) => !!p.imageUrl))
+  // Real patterns must have an image; non-patterns (gift cards) legitimately
+  // don't, so scope the image requirement to kind "pattern".
+  ok("Scammit: every PATTERN has an image", scammitPatterns.every((p) => !!p.imageUrl))
   ok("Scammit: no ALL-CAPS names left (title-cased)", scammitCat.every((p) => p.name !== p.name.toUpperCase() || p.name.length <= 3))
   ok("Scammit: at least one non-pattern flagged (woven labels)", scammitOther.length >= 1)
 

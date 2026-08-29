@@ -70,14 +70,16 @@ export function elemenoSlug(url: string): string {
     .pop() as string
 }
 
-// "cross-back-dress" -> "Cross-back Dress". Fallback name when a page has no
-// usable meta (hidden/sold-out shells). Exported for unit tests.
+// "hipster-romper" -> "Hipster Romper". Fallback name when a page has no
+// usable meta (hidden/sold-out shells). Hyphens are word separators here (the
+// slug has already lost any real intra-word hyphens), so title-case every word.
+// Exported for unit tests.
 export function slugToTitle(slug: string): string {
   return slug
     .split("-")
-    .map((word, i) => (i === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word))
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ")
-    .replace(/^\w/, (c) => c.toUpperCase())
     .trim()
 }
 
