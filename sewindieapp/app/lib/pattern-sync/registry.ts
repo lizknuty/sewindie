@@ -7,6 +7,9 @@ import { seamworkAdapter } from "./adapters/seamwork"
 import { violetteFieldThreadsAdapter } from "./adapters/violette-field-threads"
 import { grasserAdapter } from "./adapters/grasser"
 import { peekabooPatternShopAdapter } from "./adapters/peekaboo-pattern-shop"
+import { ellieAndMacAdapter } from "./adapters/ellie-and-mac"
+import { fiveOutOfFourAdapter } from "./adapters/five-out-of-four"
+import { brindilleAndTwigAdapter } from "./adapters/brindille-and-twig"
 
 // Adding support for another designer means writing one adapter file and adding
 // it to this list. No route or UI changes required.
@@ -19,6 +22,9 @@ export const ADAPTERS: DesignerAdapter[] = [
   violetteFieldThreadsAdapter,
   grasserAdapter,
   peekabooPatternShopAdapter,
+  ellieAndMacAdapter,
+  fiveOutOfFourAdapter,
+  brindilleAndTwigAdapter,
 ]
 
 /** Bare hostname, lowercased and stripped of `www.`, or null if unparseable. */
