@@ -68,8 +68,13 @@ export async function POST(request: Request) {
   }
 
   // Hosts this designer is allowed to own, so a bad payload can't attach a
-  // link for some other site to this designer.
-  const allowedHosts = new Set(adapter.matchHosts.map((host) => host.replace(/^www\./, "").toLowerCase()))
+  // link for some other site to this designer. Defaults to the adapter's match
+  // hosts, but an adapter whose patterns live on a different domain than the
+  // designer's own site (e.g. Liesl + Co, sold on the shared oliverands.com
+  // store) overrides this with `importHosts`.
+  const allowedHosts = new Set(
+    (adapter.importHosts ?? adapter.matchHosts).map((host) => host.replace(/^www\./, "").toLowerCase()),
+  )
 
   // Current URLs for this designer, so a double-submit can't duplicate rows.
   const existing = await prisma.pattern.findMany({
