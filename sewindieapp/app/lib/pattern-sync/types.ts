@@ -42,11 +42,22 @@ export type DesignerAdapter = {
   slug: string
   label: string
   /**
-   * Hostnames this adapter is responsible for. Used both to match a SewIndie
-   * designer record to its adapter and to validate URLs before import, so a
-   * buggy adapter can never write a pattern pointing at another domain.
+   * Hostnames this adapter is responsible for. Used to match a SewIndie
+   * designer record to its adapter, and -- unless `importHosts` overrides it --
+   * to validate URLs before import, so a buggy adapter can never write a
+   * pattern pointing at another domain.
    */
   matchHosts: string[]
+  /**
+   * Hostnames that imported pattern URLs are allowed to live on, when that
+   * differs from `matchHosts`. Needed only when a designer's own site is NOT
+   * where its patterns are actually sold: Liesl + Co's site (lieslandco.com) is
+   * a marketing page, but its catalogue lives on the shared oliverands.com
+   * store. Keeping oliverands.com out of `matchHosts` is deliberate -- the
+   * separate "Oliver and S" designer owns that host, and adding it here would
+   * hijack that designer's adapter resolution. Falls back to `matchHosts`.
+   */
+  importHosts?: string[]
   /** Fetches the designer's full public catalogue. */
   fetchCatalogue(): Promise<ScrapedPattern[]>
   /**
