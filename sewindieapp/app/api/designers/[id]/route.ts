@@ -48,6 +48,20 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Name and Website URL are required" }, { status: 400 })
     }
 
+    // These columns are VarChar(255) in the database. A value longer than that
+    // makes Postgres reject the write ("value too long"), which previously
+    // surfaced only as a generic 500. Validate up front with a clear message.
+    const maxLen: Record<string, number> = { name: 255, email: 255, address: 255, tagline: 255 }
+    for (const [field, limit] of Object.entries(maxLen)) {
+      const value = data[field]
+      if (typeof value === "string" && value.length > limit) {
+        return NextResponse.json(
+          { error: `${field[0].toUpperCase()}${field.slice(1)} must be ${limit} characters or fewer (got ${value.length}).` },
+          { status: 400 },
+        )
+      }
+    }
+
     const updatedDesigner = await prisma.designer.update({
       where: { id: designerId },
       data: {
@@ -56,12 +70,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         logo_url: data.logo_url || null,
         email: data.email || null,
         address: data.address || null,
-        tagline: data.tagline || null,
-        about: data.about || null,
         facebook: data.facebook || null,
         instagram: data.instagram || null,
         pinterest: data.pinterest || null,
         youtube: data.youtube || null,
+        tagline: data.tagline || null,
+        about: data.about || null,
         ...(data.status ? { status: data.status } : {}),
       },
     })
@@ -70,7 +84,23 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   } catch (error) {
     const resolvedParams = await params
     console.error(`Error updating designer with ID ${resolvedParams.id}:`, error)
-    return NextResponse.json({ error: "Failed to update designer" }, { status: 500 })
+
+    // Map known Prisma errors to actionable messages instead of a blanket 500,
+    // so failures like "value too long" (P2000) or a unique conflict (P2002)
+    // are visible to the admin instead of a generic "Failed to update designer".
+    const code = (error as { code?: string })?.code
+    if (code === "P2000") {
+      return NextResponse.json({ error: "One of the fields is too long for the database." }, { status: 400 })
+    }
+    if (code === "P2002") {
+      return NextResponse.json({ error: "A designer with that value already exists." }, { status: 409 })
+    }
+    if (code === "P2025") {
+      return NextResponse.json({ error: "Designer not found." }, { status: 404 })
+    }
+
+    const detail = error instanceof Error ? error.message : "Unknown error"
+    return NextResponse.json({ error: "Failed to update designer", detail }, { status: 500 })
   }
 }
 

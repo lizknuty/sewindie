@@ -35,6 +35,8 @@ model Designer {
   instagram        String?
   pinterest        String?
   youtube          String?
+  tagline          String?           @db.VarChar(255)
+  about            String?
   status           DesignerStatus    @default(PUBLISHED)
   FeaturedDesigner FeaturedDesigner?
   patterns         Pattern[]

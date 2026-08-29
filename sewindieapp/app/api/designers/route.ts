@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     if (!authorized) return response
 
     const body = await request.json()
-    const { name, url, logo_url, email, address, tagline, about, facebook, instagram, pinterest, youtube, status } =
+    const { name, url, logo_url, email, address, facebook, instagram, pinterest, youtube, tagline, about, status } =
       body
 
     if (!name || !url) {
@@ -63,12 +63,12 @@ export async function POST(request: NextRequest) {
         logo_url: logo_url || null,
         email: email || null,
         address: address || null,
-        tagline: tagline || null,
-        about: about || null,
         facebook: facebook || null,
         instagram: instagram || null,
         pinterest: pinterest || null,
         youtube: youtube || null,
+        tagline: tagline || null,
+        about: about || null,
         status: status || "PUBLISHED",
       },
     })
