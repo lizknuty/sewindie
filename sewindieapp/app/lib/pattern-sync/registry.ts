@@ -34,6 +34,7 @@ export const ADAPTERS: DesignerAdapter[] = [
   folkwearAdapter,
   sinclairPatternsAdapter,
   loveNotionsAdapter,
+  itchToStitchAdapter,
 ]
 
 /** Bare hostname, lowercased and stripped of `www.`, or null if unparseable. */
