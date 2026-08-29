@@ -18,6 +18,8 @@ interface DesignerFormProps {
     instagram?: string | null
     pinterest?: string | null
     youtube?: string | null
+    tagline?: string | null
+    about?: string | null
     status?: "PUBLISHED" | "INACTIVE" | null
   }
 }
@@ -35,6 +37,8 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
     instagram: designer?.instagram || "",
     pinterest: designer?.pinterest || "",
     youtube: designer?.youtube || "",
+    tagline: designer?.tagline || "",
+    about: designer?.about || "",
     status: designer?.status || "PUBLISHED",
   })
 
@@ -150,6 +154,46 @@ export default function DesignerForm({ designer }: DesignerFormProps) {
                 />
               </div>
             )}
+          </div>
+        </div>
+      </section>
+
+      <section className="admin-form-card">
+        <div className="admin-form-card-head">
+          <h2 className="admin-form-card-title">Profile</h2>
+          <p className="admin-form-card-desc">Short public-facing copy shown on the designer&apos;s page.</p>
+        </div>
+
+        <div className="admin-form-grid">
+          <div className="admin-field admin-field--full">
+            <label htmlFor="tagline" className="admin-label">
+              Tagline
+            </label>
+            <input
+              type="text"
+              className="admin-input"
+              id="tagline"
+              name="tagline"
+              maxLength={255}
+              placeholder="A short one-line description"
+              value={formData.tagline}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="admin-field admin-field--full">
+            <label htmlFor="about" className="admin-label">
+              About
+            </label>
+            <textarea
+              className="admin-textarea"
+              id="about"
+              name="about"
+              rows={5}
+              placeholder="A longer description of this designer"
+              value={formData.about}
+              onChange={handleChange}
+            />
           </div>
         </div>
       </section>

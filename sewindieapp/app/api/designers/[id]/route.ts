@@ -51,7 +51,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     // These columns are VarChar(255) in the database. A value longer than that
     // makes Postgres reject the write ("value too long"), which previously
     // surfaced only as a generic 500. Validate up front with a clear message.
-    const maxLen: Record<string, number> = { name: 255, email: 255, address: 255 }
+    const maxLen: Record<string, number> = { name: 255, email: 255, address: 255, tagline: 255 }
     for (const [field, limit] of Object.entries(maxLen)) {
       const value = data[field]
       if (typeof value === "string" && value.length > limit) {
@@ -74,6 +74,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         instagram: data.instagram || null,
         pinterest: data.pinterest || null,
         youtube: data.youtube || null,
+        tagline: data.tagline || null,
+        about: data.about || null,
         ...(data.status ? { status: data.status } : {}),
       },
     })

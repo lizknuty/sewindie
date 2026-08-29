@@ -49,7 +49,8 @@ export async function POST(request: NextRequest) {
     if (!authorized) return response
 
     const body = await request.json()
-    const { name, url, logo_url, email, address, facebook, instagram, pinterest, youtube, status } = body
+    const { name, url, logo_url, email, address, facebook, instagram, pinterest, youtube, tagline, about, status } =
+      body
 
     if (!name || !url) {
       return NextResponse.json({ error: "Name and URL are required" }, { status: 400 })
@@ -66,6 +67,8 @@ export async function POST(request: NextRequest) {
         instagram: instagram || null,
         pinterest: pinterest || null,
         youtube: youtube || null,
+        tagline: tagline || null,
+        about: about || null,
         status: status || "PUBLISHED",
       },
     })
