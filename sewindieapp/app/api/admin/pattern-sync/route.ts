@@ -78,7 +78,7 @@ export async function POST(request: Request) {
     })
     lastRun = { ranAt: run.ran_at.toISOString() }
   } catch (error) {
-    console.error("failed to record pattern sync run", error)
+    console.error("[v0] failed to record pattern sync run", error)
   }
 
   return NextResponse.json({
