@@ -1,13 +1,13 @@
 import { PrismaClient } from "@prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 import pg from "pg"
+import { lieslAndCoAdapter } from "../app/lib/pattern-sync/adapters/liesl-and-co"
 import {
-  lieslAndCoAdapter,
-  lieslSlug,
-  extractLieslName,
-  extractLieslImage,
-  classifyLiesl,
-} from "../app/lib/pattern-sync/adapters/liesl-and-co"
+  oliverandsSlug,
+  extractName,
+  extractImage,
+  classifyProduct,
+} from "../app/lib/pattern-sync/adapters/oliverands-store"
 import { getAdapterForDesigner } from "../app/lib/pattern-sync/registry"
 import { comparePatterns } from "../app/lib/pattern-sync/compare"
 
@@ -34,24 +34,35 @@ async function main() {
   ok("importHosts allows oliverands.com", (lieslAndCoAdapter.importHosts ?? []).some((h) => /oliverands\.com/i.test(h)))
   ok("matchHosts does NOT contain oliverands.com", !lieslAndCoAdapter.matchHosts.some((h) => /oliverands/i.test(h)))
 
-  // --- offline: pure parsing helpers -------------------------------------
-  console.log("\n--- parsing helpers ---")
-  ok("slug strips .html and path", lieslSlug("https://oliverands.com/shop/bistro-dress-sewing-pattern.html") === "bistro-dress-sewing-pattern")
-  ok("slug keeps digital- prefix (distinct product)", lieslSlug("https://oliverands.com/shop/digital-bistro-dress-sewing-pattern.html") === "digital-bistro-dress-sewing-pattern")
+  // --- offline: shared oliverands-store parsing helpers ------------------
+  console.log("\n--- parsing helpers (shared oliverands-store) ---")
+  ok("slug strips .html and path", oliverandsSlug("https://oliverands.com/shop/bistro-dress-sewing-pattern.html") === "bistro-dress-sewing-pattern")
+  ok("slug keeps digital- prefix (distinct product)", oliverandsSlug("https://oliverands.com/shop/digital-bistro-dress-sewing-pattern.html") === "digital-bistro-dress-sewing-pattern")
   ok(
     "name strips ' | Shop | Oliver + S' suffix",
-    extractLieslName("<title>Digital Bistro Dress Sewing Pattern | Shop | Oliver + S</title>") ===
+    extractName("<title>Digital Bistro Dress Sewing Pattern | Shop | Oliver + S</title>") ===
       "Digital Bistro Dress Sewing Pattern",
   )
   ok(
     "image prefers _Garment and absolutises protocol-relative URL",
-    extractLieslImage(
-      '<img src="//o.osimg.net/images/product/L123/L123_Dressed.jpg"><img src="//o.osimg.net/images/product/L123/L123_Garment.jpg">',
+    extractImage(
+      "var dataLayer=[{item_id:'L123'}];" +
+        '<img src="//o.osimg.net/images/product/L123/L123_Dressed.jpg"><img src="//o.osimg.net/images/product/L123/L123_Garment.jpg">',
     ) === "https://o.osimg.net/images/product/L123/L123_Garment.jpg",
   )
-  ok("image skips thumbnails", extractLieslImage('<img src="//o.osimg.net/images/product/L1/L1_thumb.jpg">') === null)
-  ok("family pack classified as bundle", classifyLiesl("Metro + School Bus Family Pack Sewing Patterns") === "bundle")
-  ok("standard pattern classified as pattern", classifyLiesl("Bistro Dress Sewing Pattern") === "pattern")
+  // The core cross-contamination guard: a related-products image (different SKU)
+  // must be ignored in favour of the page's own SKU image.
+  ok(
+    "image is scoped to the page's own SKU (ignores related-products carousel)",
+    extractImage(
+      "var dataLayer=[{item_id:'OLV-OS004SS'}];" +
+        '<img src="//o.osimg.net/images/product/OLV-OS004SS/OLV-OS004SS_Dressed.jpg">' +
+        '<a href="//o.osimg.net/images/product/OLV-OS001TP/OLV-OS001TP_Garment.jpg"></a>',
+    ) === "https://o.osimg.net/images/product/OLV-OS004SS/OLV-OS004SS_Dressed.jpg",
+  )
+  ok("image is null when the page has no SKU", extractImage('<img src="//o.osimg.net/images/product/L1/L1_thumb.jpg">') === null)
+  ok("family pack classified as bundle", classifyProduct("Metro + School Bus Family Pack Sewing Patterns") === "bundle")
+  ok("standard pattern classified as pattern", classifyProduct("Bistro Dress Sewing Pattern") === "pattern")
 
   // --- live: full catalogue crawl ----------------------------------------
   console.log("\n--- live crawl (oliverands.com, brand-filtered) ---")

@@ -23,6 +23,7 @@ import { greenPepperAdapter } from "./adapters/green-pepper"
 import { wardrobeByMeAdapter } from "./adapters/wardrobe-by-me"
 import { baraStudioAdapter } from "./adapters/bara-studio"
 import { lieslAndCoAdapter } from "./adapters/liesl-and-co"
+import { oliverAndSAdapter } from "./adapters/oliver-and-s"
 import { moodFabricsAdapter } from "./adapters/mood-fabrics"
 
 // Adding support for another designer means writing one adapter file and adding
@@ -52,6 +53,7 @@ export const ADAPTERS: DesignerAdapter[] = [
   wardrobeByMeAdapter,
   baraStudioAdapter,
   lieslAndCoAdapter,
+  oliverAndSAdapter,
   moodFabricsAdapter,
 ]
 
