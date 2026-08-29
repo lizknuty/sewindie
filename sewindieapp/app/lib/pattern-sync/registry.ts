@@ -30,6 +30,10 @@ import { emporiaAdapter } from "./adapters/emporia"
 import { experimentalSpaceAdapter } from "./adapters/experimental-space"
 import { elemenoPatternsAdapter } from "./adapters/elemeno-patterns"
 import { atelierScammitAdapter } from "./adapters/atelier-scammit"
+import { grainlineStudioAdapter } from "./adapters/grainline-studio"
+import { freshPressPatternsAdapter } from "./adapters/fresh-press-patterns"
+import { hallaPatternsAdapter } from "./adapters/halla-patterns"
+import { goldfinchTextileStudioAdapter } from "./adapters/goldfinch-textile-studio"
 
 // Adding support for another designer means writing one adapter file and adding
 // it to this list. No route or UI changes required.
@@ -65,6 +69,10 @@ export const ADAPTERS: DesignerAdapter[] = [
   experimentalSpaceAdapter,
   elemenoPatternsAdapter,
   atelierScammitAdapter,
+  grainlineStudioAdapter,
+  freshPressPatternsAdapter,
+  hallaPatternsAdapter,
+  goldfinchTextileStudioAdapter,
 ]
 
 /** Bare hostname, lowercased and stripped of `www.`, or null if unparseable. */
