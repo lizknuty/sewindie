@@ -25,6 +25,11 @@ import { baraStudioAdapter } from "./adapters/bara-studio"
 import { lieslAndCoAdapter } from "./adapters/liesl-and-co"
 import { oliverAndSAdapter } from "./adapters/oliver-and-s"
 import { moodFabricsAdapter } from "./adapters/mood-fabrics"
+import { atelierJupeAdapter } from "./adapters/atelier-jupe"
+import { emporiaAdapter } from "./adapters/emporia"
+import { experimentalSpaceAdapter } from "./adapters/experimental-space"
+import { elemenoPatternsAdapter } from "./adapters/elemeno-patterns"
+import { atelierScammitAdapter } from "./adapters/atelier-scammit"
 
 // Adding support for another designer means writing one adapter file and adding
 // it to this list. No route or UI changes required.
@@ -55,6 +60,11 @@ export const ADAPTERS: DesignerAdapter[] = [
   lieslAndCoAdapter,
   oliverAndSAdapter,
   moodFabricsAdapter,
+  atelierJupeAdapter,
+  emporiaAdapter,
+  experimentalSpaceAdapter,
+  elemenoPatternsAdapter,
+  atelierScammitAdapter,
 ]
 
 /** Bare hostname, lowercased and stripped of `www.`, or null if unparseable. */
