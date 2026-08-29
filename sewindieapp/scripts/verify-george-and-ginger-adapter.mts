@@ -58,7 +58,12 @@ ok("no residual '(YouTube Exclusive)' damaged to 'Youtube'", !scraped.some((p) =
 // Bundle classification: "Bundle"/"Collection"/"Pack" flagged; "Set" NOT.
 const bundles = scraped.filter((p) => p.kind === "bundle")
 console.log(`  bundles flagged: ${bundles.length}`)
-ok("a healthy number of bundles are flagged", bundles.length >= 25 && bundles.length <= 45, `${bundles.length}`)
+// Only "Bundle" / "Collection" / "Pack" titles are true multi-pattern bundles.
+// "Set" is deliberately NOT a bundle signal here -- G&G sells single garment
+// "Sets" ("The Unwind Set", "The Rave Shirt Set") as one pattern, so folding
+// "Set" in would wrongly flag ~17 real patterns. That leaves ~15 genuine
+// bundles, which is the healthy band.
+ok("a healthy number of bundles are flagged", bundles.length >= 10 && bundles.length <= 25, `${bundles.length}`)
 const set = scraped.find((p) => /\bThe Unwind Set\b/i.test(p.name))
 if (set) ok('"The Unwind Set" is NOT flagged as a bundle', set.kind === "pattern", `got ${set.kind}`)
 const collection = scraped.find((p) => /Polar Dress Collection/i.test(p.name))
