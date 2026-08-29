@@ -13,6 +13,10 @@ import { brindilleAndTwigAdapter } from "./adapters/brindille-and-twig"
 import { booAndLuAdapter } from "./adapters/boo-and-lu"
 import { folkwearAdapter } from "./adapters/folkwear"
 import { sinclairPatternsAdapter } from "./adapters/sinclair-patterns"
+import { loveNotionsAdapter } from "./adapters/love-notions"
+import { itchToStitchAdapter } from "./adapters/itch-to-stitch"
+import { iAmPatternsAdapter } from "./adapters/i-am-patterns"
+import { georgeAndGingerAdapter } from "./adapters/george-and-ginger"
 
 // Adding support for another designer means writing one adapter file and adding
 // it to this list. No route or UI changes required.
@@ -31,6 +35,10 @@ export const ADAPTERS: DesignerAdapter[] = [
   booAndLuAdapter,
   folkwearAdapter,
   sinclairPatternsAdapter,
+  loveNotionsAdapter,
+  itchToStitchAdapter,
+  iAmPatternsAdapter,
+  georgeAndGingerAdapter,
 ]
 
 /** Bare hostname, lowercased and stripped of `www.`, or null if unparseable. */
