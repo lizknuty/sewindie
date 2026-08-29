@@ -23,6 +23,7 @@ import { greenPepperAdapter } from "./adapters/green-pepper"
 import { wardrobeByMeAdapter } from "./adapters/wardrobe-by-me"
 import { baraStudioAdapter } from "./adapters/bara-studio"
 import { lieslAndCoAdapter } from "./adapters/liesl-and-co"
+import { moodFabricsAdapter } from "./adapters/mood-fabrics"
 
 // Adding support for another designer means writing one adapter file and adding
 // it to this list. No route or UI changes required.
@@ -51,6 +52,7 @@ export const ADAPTERS: DesignerAdapter[] = [
   wardrobeByMeAdapter,
   baraStudioAdapter,
   lieslAndCoAdapter,
+  moodFabricsAdapter,
 ]
 
 /** Bare hostname, lowercased and stripped of `www.`, or null if unparseable. */
