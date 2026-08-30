@@ -39,6 +39,10 @@ import { forgetMeNotPatternsAdapter } from "./adapters/forget-me-not-patterns"
 import { fridayPatternCompanyAdapter } from "./adapters/friday-pattern-company"
 import { frenchNavyAdapter } from "./adapters/french-navy"
 import { fitiyooAdapter } from "./adapters/fitiyoo"
+import { halfmoonAtelierAdapter } from "./adapters/halfmoon-atelier"
+import { greyfriarsAndGraceAdapter } from "./adapters/greyfriars-and-grace"
+import { homerAndHowellsAdapter } from "./adapters/homer-and-howells"
+import { inTheFoldsAdapter } from "./adapters/in-the-folds"
 
 // Adding support for another designer means writing one adapter file and adding
 // it to this list. No route or UI changes required.
@@ -83,6 +87,10 @@ export const ADAPTERS: DesignerAdapter[] = [
   fridayPatternCompanyAdapter,
   frenchNavyAdapter,
   fitiyooAdapter,
+  halfmoonAtelierAdapter,
+  greyfriarsAndGraceAdapter,
+  homerAndHowellsAdapter,
+  inTheFoldsAdapter,
 ]
 
 /** Bare hostname, lowercased and stripped of `www.`, or null if unparseable. */
