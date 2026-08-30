@@ -34,6 +34,11 @@ import { grainlineStudioAdapter } from "./adapters/grainline-studio"
 import { freshPressPatternsAdapter } from "./adapters/fresh-press-patterns"
 import { hallaPatternsAdapter } from "./adapters/halla-patterns"
 import { goldfinchTextileStudioAdapter } from "./adapters/goldfinch-textile-studio"
+import { fieldworkPatternsAdapter } from "./adapters/fieldwork-patterns"
+import { forgetMeNotPatternsAdapter } from "./adapters/forget-me-not-patterns"
+import { fridayPatternCompanyAdapter } from "./adapters/friday-pattern-company"
+import { frenchNavyAdapter } from "./adapters/french-navy"
+import { fitiyooAdapter } from "./adapters/fitiyoo"
 
 // Adding support for another designer means writing one adapter file and adding
 // it to this list. No route or UI changes required.
@@ -73,6 +78,11 @@ export const ADAPTERS: DesignerAdapter[] = [
   freshPressPatternsAdapter,
   hallaPatternsAdapter,
   goldfinchTextileStudioAdapter,
+  fieldworkPatternsAdapter,
+  forgetMeNotPatternsAdapter,
+  fridayPatternCompanyAdapter,
+  frenchNavyAdapter,
+  fitiyooAdapter,
 ]
 
 /** Bare hostname, lowercased and stripped of `www.`, or null if unparseable. */
