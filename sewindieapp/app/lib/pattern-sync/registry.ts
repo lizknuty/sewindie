@@ -49,6 +49,15 @@ import { maisonFauveAdapter } from "./adapters/maison-fauve"
 import { lenalinePatternsAdapter } from "./adapters/lenaline-patterns"
 import { lesPerlinesAdapter } from "./adapters/les-perlines"
 import { madeMyWardrobeAdapter } from "./adapters/made-my-wardrobe"
+import { patternFantastiqueAdapter } from "./adapters/pattern-fantastique"
+import { patternPaperScissorsAdapter } from "./adapters/pattern-paper-scissors"
+import { patternScoutStudioAdapter } from "./adapters/pattern-scout-studio"
+import { petiteStitcheryAdapter } from "./adapters/petite-stitchery"
+import { puffAndPencilAdapter } from "./adapters/puff-and-pencil"
+import { patternNicheAdapter } from "./adapters/pattern-niche"
+import { primroseDawnAdapter } from "./adapters/primrose-dawn"
+import { patternUnionAdapter } from "./adapters/pattern-union"
+import { paulineAliceAdapter } from "./adapters/pauline-alice"
 
 // Adding support for another designer means writing one adapter file and adding
 // it to this list. No route or UI changes required.
@@ -103,6 +112,15 @@ export const ADAPTERS: DesignerAdapter[] = [
   lenalinePatternsAdapter,
   lesPerlinesAdapter,
   madeMyWardrobeAdapter,
+  patternFantastiqueAdapter,
+  patternPaperScissorsAdapter,
+  patternScoutStudioAdapter,
+  petiteStitcheryAdapter,
+  puffAndPencilAdapter,
+  patternNicheAdapter,
+  primroseDawnAdapter,
+  patternUnionAdapter,
+  paulineAliceAdapter,
 ]
 
 /** Bare hostname, lowercased and stripped of `www.`, or null if unparseable. */
