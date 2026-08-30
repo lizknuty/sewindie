@@ -43,6 +43,12 @@ import { halfmoonAtelierAdapter } from "./adapters/halfmoon-atelier"
 import { greyfriarsAndGraceAdapter } from "./adapters/greyfriars-and-grace"
 import { homerAndHowellsAdapter } from "./adapters/homer-and-howells"
 import { inTheFoldsAdapter } from "./adapters/in-the-folds"
+import { kdornbierDesignsAdapter } from "./adapters/kdornbier-designs"
+import { littleRosyCheeksAdapter } from "./adapters/little-rosy-cheeks"
+import { maisonFauveAdapter } from "./adapters/maison-fauve"
+import { lenalinePatternsAdapter } from "./adapters/lenaline-patterns"
+import { lesPerlinesAdapter } from "./adapters/les-perlines"
+import { madeMyWardrobeAdapter } from "./adapters/made-my-wardrobe"
 
 // Adding support for another designer means writing one adapter file and adding
 // it to this list. No route or UI changes required.
@@ -91,6 +97,12 @@ export const ADAPTERS: DesignerAdapter[] = [
   greyfriarsAndGraceAdapter,
   homerAndHowellsAdapter,
   inTheFoldsAdapter,
+  kdornbierDesignsAdapter,
+  littleRosyCheeksAdapter,
+  maisonFauveAdapter,
+  lenalinePatternsAdapter,
+  lesPerlinesAdapter,
+  madeMyWardrobeAdapter,
 ]
 
 /** Bare hostname, lowercased and stripped of `www.`, or null if unparseable. */
