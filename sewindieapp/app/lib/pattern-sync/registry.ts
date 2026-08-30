@@ -58,6 +58,13 @@ import { patternNicheAdapter } from "./adapters/pattern-niche"
 import { primroseDawnAdapter } from "./adapters/primrose-dawn"
 import { patternUnionAdapter } from "./adapters/pattern-union"
 import { paulineAliceAdapter } from "./adapters/pauline-alice"
+import { sewHouseSevenAdapter } from "./adapters/sew-house-seven"
+import { patternEmporiumAdapter } from "./adapters/pattern-emporium"
+import { sewDiyAdapter } from "./adapters/sew-diy"
+import { charlotteEmmaAdapter } from "./adapters/charlotte-emma"
+import { sewDifferentAdapter } from "./adapters/sew-different"
+import { readyToSewAdapter } from "./adapters/ready-to-sew"
+import { roseCaldwellAdapter } from "./adapters/rose-caldwell"
 
 // Adding support for another designer means writing one adapter file and adding
 // it to this list. No route or UI changes required.
@@ -121,6 +128,13 @@ export const ADAPTERS: DesignerAdapter[] = [
   primroseDawnAdapter,
   patternUnionAdapter,
   paulineAliceAdapter,
+  sewHouseSevenAdapter,
+  patternEmporiumAdapter,
+  sewDiyAdapter,
+  charlotteEmmaAdapter,
+  sewDifferentAdapter,
+  readyToSewAdapter,
+  roseCaldwellAdapter,
 ]
 
 /** Bare hostname, lowercased and stripped of `www.`, or null if unparseable. */

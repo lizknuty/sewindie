@@ -49,7 +49,9 @@ export function metaContent(html: string, property: string): string | null {
 }
 
 // Find the first JSON-LD Product node (case-insensitive @type, supports @graph).
-export function jsonLdProduct(html: string): { name?: string; image?: string; date?: string } | null {
+export function jsonLdProduct(
+  html: string,
+): { name?: string; image?: string; date?: string; description?: string } | null {
   const blocks = [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)]
   for (const block of blocks) {
     try {
@@ -64,6 +66,7 @@ export function jsonLdProduct(html: string): { name?: string; image?: string; da
           name: product.name ? decodeEntities(String(product.name)) : undefined,
           image: image ? String(image) : undefined,
           date: product.releaseDate || product.datePublished || undefined,
+          description: product.description ? decodeEntities(String(product.description)) : undefined,
         }
       }
     } catch {
