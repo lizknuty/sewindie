@@ -21,7 +21,9 @@ import { fetchText, metaContent, jsonLdProduct, mapWithConcurrency } from "./scr
 
 const BASE = "https://www.rosiecaldwell.com"
 const PRODUCT_SITEMAP = `${BASE}/store-products-sitemap.xml`
-const CONCURRENCY = 4
+// Wix throttles bursty crawls (returning partial/challenge pages that lack the
+// image), so keep concurrency low and lean on the per-product retry below.
+const CONCURRENCY = 2
 
 // Positive signal that a product is a downloadable pattern/template.
 const PATTERN_SIGNAL = /\bpdf\b|digital (?:pdf )?(?:pattern|download)|\btemplate\b|\bpatterns?\b/i
@@ -34,6 +36,36 @@ const EXCLUDED_NAME = /commercial use licence|commercial use license|licen[cs]e 
 const PHYSICAL_SIGNAL = /lovingly handmade|handmade quilted|\bvintage\b|curtains?|\bwool\b|twill|cushion cover/i
 
 const BUNDLE = /\bbundle\b/i
+
+// Strip the trailing "(PDF )PATTERN" descriptor while preserving the store's
+// ALL-CAPS product styling. "TEMPLATE" is part of the product identity (e.g.
+// "GARLAND SHAPE TEMPLATE") so it is kept.
+export function cleanRoseName(name: string): string {
+  return (name ?? "")
+    .replace(/\s*\bpdf\s+pattern\s*$/i, "")
+    .replace(/\s*\bpdf\s*$/i, "")
+    .replace(/\s+/g, " ")
+    .trim()
+}
+
+// Wix serves product imagery from static.wixstatic.com; use it as a fallback
+// when a transient fetch misses the og:image/JSON-LD image. The match may be
+// protocol-relative or bare, so callers normalize it to an absolute URL.
+function wixStaticImage(html: string): string | null {
+  const m = html.match(/(?:https?:)?\/\/static\.wixstatic\.com\/media\/[A-Za-z0-9_.~/-]+\.(?:jpg|jpeg|png|webp)/i)
+  return m ? m[0] : null
+}
+
+// Force an image reference to an absolute https URL (Wix/JSON-LD values are
+// sometimes protocol-relative "//..." or scheme-less "static.wixstatic.com/…").
+function absoluteImage(src: string | null | undefined): string | null {
+  if (!src) return null
+  const trimmed = src.trim()
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+  if (trimmed.startsWith("//")) return `https:${trimmed}`
+  if (trimmed.startsWith("static.wixstatic.com")) return `https://${trimmed}`
+  return null
+}
 
 // Decide whether a product is a downloadable pattern from its name+description.
 export function isRosePattern(name: string, description: string): boolean {
@@ -53,9 +85,11 @@ async function discoverProductUrls(): Promise<string[]> {
   return [...new Set(urls)]
 }
 
-// Product slug from a Wix product-page URL (stable id).
+// Product slug from a Wix product-page URL (stable id): drop any query/hash,
+// then take the last path segment.
 function slugOf(url: string): string {
-  return url.replace(/[/#?].*$/, "").split("/").filter(Boolean).pop() ?? url
+  const path = url.replace(/[#?].*$/, "")
+  return path.split("/").filter(Boolean).pop() ?? url
 }
 
 export const roseCaldwellAdapter: DesignerAdapter = {
@@ -67,24 +101,38 @@ export const roseCaldwellAdapter: DesignerAdapter = {
     const urls = await discoverProductUrls()
 
     const scraped = await mapWithConcurrency(urls, CONCURRENCY, async (url): Promise<ScrapedPattern | null> => {
-      let html: string
-      try {
-        html = await fetchText(url)
-      } catch {
-        return null
+      // Under heavy concurrency Wix occasionally serves a partial/challenge page
+      // that lacks the image (or name). Re-fetch once when the extracted data is
+      // incomplete before giving up.
+      const extract = (html: string) => {
+        const ld = jsonLdProduct(html)
+        const rawName = ld?.name ?? metaContent(html, "og:title")?.replace(/\s*\|\s*Rosie Caldwell\s*$/i, "").trim()
+        const description = ld?.description ?? metaContent(html, "og:description") ?? ""
+        const imageUrl = absoluteImage(ld?.image ?? metaContent(html, "og:image") ?? wixStaticImage(html))
+        return { rawName, description, imageUrl }
       }
-      const ld = jsonLdProduct(html)
-      const name = ld?.name ?? metaContent(html, "og:title")?.replace(/\s*\|\s*Rosie Caldwell\s*$/i, "").trim()
-      if (!name) return null
-      const description = ld?.description ?? metaContent(html, "og:description") ?? ""
-      if (!isRosePattern(name, description)) return null
+
+      let data: ReturnType<typeof extract> | null = null
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (attempt > 0) await new Promise((r) => setTimeout(r, 400 * attempt))
+        let html: string
+        try {
+          html = await fetchText(url)
+        } catch {
+          continue
+        }
+        data = extract(html)
+        if (data.rawName && data.imageUrl) break
+      }
+      if (!data || !data.rawName) return null
+      if (!isRosePattern(data.rawName, data.description)) return null
 
       return {
-        name,
+        name: cleanRoseName(data.rawName),
         url,
-        imageUrl: ld?.image ?? metaContent(html, "og:image") ?? null,
-        releaseDate: ld?.date ?? null,
-        kind: BUNDLE.test(name) ? "bundle" : "pattern",
+        imageUrl: data.imageUrl ?? null,
+        releaseDate: null,
+        kind: BUNDLE.test(data.rawName) ? "bundle" : "pattern",
         sourceId: slugOf(url),
       }
     })

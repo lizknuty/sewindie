@@ -9,7 +9,7 @@ import { sewDiyAdapter, cleanSewDiyName } from "../app/lib/pattern-sync/adapters
 import { charlotteEmmaAdapter } from "../app/lib/pattern-sync/adapters/charlotte-emma"
 import { sewDifferentAdapter } from "../app/lib/pattern-sync/adapters/sew-different"
 import { readyToSewAdapter, cleanReadyToSewName } from "../app/lib/pattern-sync/adapters/ready-to-sew"
-import { roseCaldwellAdapter, isRosePattern } from "../app/lib/pattern-sync/adapters/rose-caldwell"
+import { roseCaldwellAdapter, isRosePattern, cleanRoseName } from "../app/lib/pattern-sync/adapters/rose-caldwell"
 import type { ScrapedPattern } from "../app/lib/pattern-sync/types"
 
 let passed = 0
@@ -59,17 +59,20 @@ async function main() {
   check("Rose: handmade blouse excluded", isRosePattern("The Emma Blouse - Coral", "lovingly handmade using vintage Laura Ashley cotton") === false)
   check("Rose: cushion excluded", isRosePattern("Quilted Bolster Cushion Cover", "Handmade quilted cushion cover with ruffle") === false)
   check("Rose: licence excluded", isRosePattern("Commercial Use Licence for one sewing pattern", "licence to sell finished items") === false)
+  check("Rose: strip PDF PATTERN tail", cleanRoseName("QUILTED ZIP POUCHES PDF PATTERN") === "QUILTED ZIP POUCHES")
+  check("Rose: keep TEMPLATE", cleanRoseName("GARLAND SHAPE TEMPLATE") === "GARLAND SHAPE TEMPLATE")
 
   console.log("\n=== LIVE CATALOGUES ===")
-  const [shs, pe, sewdiy, ce, sd, rts, rose] = await Promise.all([
-    sewHouseSevenAdapter.fetchCatalogue(),
-    patternEmporiumAdapter.fetchCatalogue(),
-    sewDiyAdapter.fetchCatalogue(),
-    charlotteEmmaAdapter.fetchCatalogue(),
-    sewDifferentAdapter.fetchCatalogue(),
-    readyToSewAdapter.fetchCatalogue(),
-    roseCaldwellAdapter.fetchCatalogue(),
-  ])
+  // Run sequentially, not with Promise.all: firing all seven crawlers at once
+  // creates an unrealistic burst that trips host rate-limiting (esp. Wix). In
+  // production each designer syncs on its own, so sequential mirrors reality.
+  const shs = await sewHouseSevenAdapter.fetchCatalogue()
+  const pe = await patternEmporiumAdapter.fetchCatalogue()
+  const sewdiy = await sewDiyAdapter.fetchCatalogue()
+  const ce = await charlotteEmmaAdapter.fetchCatalogue()
+  const sd = await sewDifferentAdapter.fetchCatalogue()
+  const rts = await readyToSewAdapter.fetchCatalogue()
+  const rose = await roseCaldwellAdapter.fetchCatalogue()
 
   assertCatalogue("Sew House Seven", shs, 30, 45)
   check("SHS: no (PDF)/(Printed) leak", !shs.some((p) => /\((pdf|printed|paper)\)/i.test(p.name)))

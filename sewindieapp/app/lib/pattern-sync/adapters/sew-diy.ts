@@ -15,10 +15,17 @@ import { crawlSquarespaceStore } from "./squarespace-store"
 const STORE = "https://www.sewdiy.com"
 const COLLECTION = "/shop"
 
-// "Eva Tops and Sundress PDF Sewing Pattern" -> "Eva Tops and Sundress".
+const BUNDLE = /\bbundle\b/i
+
+// Strip the format descriptor tail, which varies across singles and bundles:
+//   "Eva Tops and Sundress PDF Sewing Pattern"        -> "Eva Tops and Sundress"
+//   "... Digital Sewing Patterns"                     -> "..."
+//   "Work-From-Home Capsule Wardrobe PDF Pattern Bundle" -> "... Bundle"
+// Keep a trailing "Bundle" (real product distinction) but drop the redundant
+// (PDF|Digital) (Sewing) Pattern(s) words wherever they sit near the end.
 export function cleanSewDiyName(title: string): string {
   return (title ?? "")
-    .replace(/\s*\bpdf\s+(?:sewing\s+)?pattern\s*$/i, "")
+    .replace(/\s*\b(?:pdf|digital)\s+(?:sewing\s+)?patterns?\b/gi, " ")
     .replace(/\s+/g, " ")
     .trim()
 }
@@ -31,7 +38,7 @@ export const sewDiyAdapter: DesignerAdapter = {
   async fetchCatalogue(): Promise<ScrapedPattern[]> {
     return crawlSquarespaceStore(STORE, COLLECTION, {
       cleanName: (rawTitle) => cleanSewDiyName(rawTitle),
-      classify: () => "pattern",
+      classify: (rawTitle) => (BUNDLE.test(rawTitle) ? "bundle" : "pattern"),
     })
   },
 }
