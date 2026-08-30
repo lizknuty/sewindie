@@ -13,10 +13,21 @@
 
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
-const PER_PAGE = 100
-const MAX_PAGES = 12
-const REQUEST_TIMEOUT_MS = 20_000
+const MAX_PAGES = 40
+const REQUEST_TIMEOUT_MS = 25_000
+// Short timeout for the initial probe so a hanging path/size fails over fast
+// instead of burning the full request timeout on every retry.
+const PROBE_TIMEOUT_MS = 12_000
 const PAGE_DELAY_MS = 250
+const MAX_ATTEMPTS = 3
+const RETRY_BASE_DELAY_MS = 600
+// The versioned Store API path is preferred, but some stores only respond
+// reliably on the unversioned path (or vice-versa), so we fall back across both.
+const STORE_API_PATHS = ["/wp-json/wc/store/v1/products", "/wp-json/wc/store/products"] as const
+// Page-size candidates: 100 is fast for normal stores, but some stores have huge
+// per-product payloads where a large page times out, so we fall back to smaller
+// pages. The chosen size is reused for the rest of the pagination.
+const PER_PAGE_CANDIDATES = [100, 25] as const
 
 export type WooProduct = {
   id: number
@@ -44,27 +55,69 @@ export function decodeEntities(value: string): string {
     .replace(/&nbsp;/g, " ")
 }
 
+// Fetch one Store API page as an array. On a probe (page 1) a short timeout and
+// single attempt are used so a hanging endpoint fails over quickly; committed
+// pagination retries transient failures (5xx, 429, network/timeout).
+async function fetchWooPage(url: string, probe: boolean): Promise<WooProduct[]> {
+  const attempts = probe ? 1 : MAX_ATTEMPTS
+  const timeout = probe ? PROBE_TIMEOUT_MS : REQUEST_TIMEOUT_MS
+  let lastError: unknown
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      const res = await fetch(url, {
+        headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
+        signal: AbortSignal.timeout(timeout),
+        cache: "no-store",
+      })
+      if (res.ok) {
+        const body = (await res.json()) as unknown
+        return Array.isArray(body) ? (body as WooProduct[]) : []
+      }
+      lastError = new Error(`Woo Store API returned ${res.status} for ${url}`)
+    } catch (error) {
+      lastError = error
+    }
+    if (attempt < attempts) await sleep(RETRY_BASE_DELAY_MS * attempt)
+  }
+  throw lastError instanceof Error ? lastError : new Error(`Woo Store API request failed for ${url}`)
+}
+
 // Fetch every product from a WooCommerce Store API base URL (e.g.
 // "https://example.com"), following pagination until exhausted. Dedupes by id.
+// Probes each (endpoint path, page size) combination and commits to the first
+// that responds, so a store that only works on the unversioned path or only
+// with a smaller page size is still crawled fully.
 export async function fetchWooProducts(base: string): Promise<WooProduct[]> {
-  const byId = new Map<number, WooProduct>()
-  for (let page = 1; page <= MAX_PAGES; page++) {
-    const url = `${base.replace(/\/$/, "")}/wp-json/wc/store/v1/products?per_page=${PER_PAGE}&page=${page}`
-    const res = await fetch(url, {
-      headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      cache: "no-store",
-    })
-    if (!res.ok) {
-      if (page === 1) throw new Error(`Woo Store API returned ${res.status} for ${url}`)
-      break
+  const root = base.replace(/\/$/, "")
+  let lastError: unknown
+
+  for (const perPage of PER_PAGE_CANDIDATES) {
+    for (const path of STORE_API_PATHS) {
+      const pageUrl = (page: number) => `${root}${path}?per_page=${perPage}&page=${page}`
+      let firstPage: WooProduct[]
+      try {
+        firstPage = await fetchWooPage(pageUrl(1), true)
+      } catch (error) {
+        lastError = error
+        continue // this (path, size) errored/hung: try the next combination
+      }
+
+      const byId = new Map<number, WooProduct>()
+      for (const p of firstPage) if (p && typeof p.id === "number") byId.set(p.id, p)
+
+      // Continue paginating this working combination (with full retries).
+      if (firstPage.length === perPage) {
+        for (let page = 2; page <= MAX_PAGES; page++) {
+          await sleep(PAGE_DELAY_MS)
+          const batch = await fetchWooPage(pageUrl(page), false)
+          if (batch.length === 0) break
+          for (const p of batch) if (p && typeof p.id === "number") byId.set(p.id, p)
+          if (batch.length < perPage) break
+        }
+      }
+      return [...byId.values()]
     }
-    const body = (await res.json()) as unknown
-    const batch = Array.isArray(body) ? (body as WooProduct[]) : []
-    if (batch.length === 0) break
-    for (const p of batch) if (p && typeof p.id === "number") byId.set(p.id, p)
-    if (batch.length < PER_PAGE) break
-    await sleep(PAGE_DELAY_MS)
   }
-  return [...byId.values()]
+
+  throw lastError instanceof Error ? lastError : new Error(`Woo Store API failed for ${root}`)
 }
