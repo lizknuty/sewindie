@@ -65,6 +65,12 @@ import { charlotteEmmaAdapter } from "./adapters/charlotte-emma"
 import { sewDifferentAdapter } from "./adapters/sew-different"
 import { readyToSewAdapter } from "./adapters/ready-to-sew"
 import { roseCaldwellAdapter } from "./adapters/rose-caldwell"
+import { sewALittleSeamAdapter } from "./adapters/sew-a-little-seam"
+import { winsletsAdapter } from "./adapters/winslets"
+import { trueBiasAdapter } from "./adapters/true-bias"
+import { threadTheoryAdapter } from "./adapters/thread-theory"
+import { wildflowerDesignAdapter } from "./adapters/wildflower-design"
+import { winterWearDesignsAdapter } from "./adapters/winter-wear-designs"
 
 // Adding support for another designer means writing one adapter file and adding
 // it to this list. No route or UI changes required.
@@ -135,6 +141,12 @@ export const ADAPTERS: DesignerAdapter[] = [
   sewDifferentAdapter,
   readyToSewAdapter,
   roseCaldwellAdapter,
+  sewALittleSeamAdapter,
+  winsletsAdapter,
+  trueBiasAdapter,
+  threadTheoryAdapter,
+  wildflowerDesignAdapter,
+  winterWearDesignsAdapter,
 ]
 
 /** Bare hostname, lowercased and stripped of `www.`, or null if unparseable. */
