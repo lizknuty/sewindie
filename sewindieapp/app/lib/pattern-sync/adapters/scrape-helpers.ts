@@ -48,8 +48,25 @@ export function metaContent(html: string, property: string): string | null {
   return null
 }
 
+// JSON-LD `image` may be a string, an ImageObject ({url|contentUrl}), or an
+// array of either (Wix uses ImageObjects). Unwrap to the first usable URL
+// string; never stringify an object into "[object Object]".
+function jsonLdImageUrl(image: unknown): string | null {
+  const first = Array.isArray(image) ? image.find((v) => v != null) : image
+  if (!first) return null
+  if (typeof first === "string") return first
+  if (typeof first === "object") {
+    const obj = first as { url?: unknown; contentUrl?: unknown }
+    const url = obj.contentUrl ?? obj.url
+    if (typeof url === "string") return url
+  }
+  return null
+}
+
 // Find the first JSON-LD Product node (case-insensitive @type, supports @graph).
-export function jsonLdProduct(html: string): { name?: string; image?: string; date?: string } | null {
+export function jsonLdProduct(
+  html: string,
+): { name?: string; image?: string; date?: string; description?: string } | null {
   const blocks = [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)]
   for (const block of blocks) {
     try {
@@ -59,11 +76,12 @@ export function jsonLdProduct(html: string): { name?: string; image?: string; da
         typeof t === "string" ? t.toLowerCase() === "product" : Array.isArray(t) && t.some((x) => String(x).toLowerCase() === "product")
       const product = graph.find((node: { "@type"?: unknown }) => isProduct(node?.["@type"]))
       if (product) {
-        const image = Array.isArray(product.image) ? product.image[0] : product.image
+        const image = jsonLdImageUrl(product.image)
         return {
           name: product.name ? decodeEntities(String(product.name)) : undefined,
-          image: image ? String(image) : undefined,
+          image: image ?? undefined,
           date: product.releaseDate || product.datePublished || undefined,
+          description: product.description ? decodeEntities(String(product.description)) : undefined,
         }
       }
     } catch {
