@@ -23,7 +23,7 @@ export function cleanMeganNielsenName(rawTitle: string): string {
     .replace(/&#0?39;/g, "'")
     .replace(/&#8217;/g, "'")
     .replace(/\s*[-–—]\s*(pdf\s+)?sewing pattern\b.*$/i, "")
-    .replace(/\bsewing pattern\b\s*$/i, "")
+    .replace(/\b(sewing\s+)?pattern\b\s*$/i, "")
     .replace(/\s+/g, " ")
     .trim()
 }
