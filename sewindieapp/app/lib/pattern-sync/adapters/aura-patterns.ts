@@ -24,7 +24,7 @@ const COLLECTION_PATH = "/shop"
 const BUNDLE_TITLE = /\b(?:bundle|pack|collection)\b/i
 const NON_PATTERN_TITLE = /\bgift\s*cards?\b/i
 
-export function cleanName(rawTitle: string): string {
+export function cleanAuraName(rawTitle: string): string {
   let name = rawTitle.replace(/\s+/g, " ").trim()
   // Keep only the segment before the first pipe (drops "| XS-XXXL | Digital PDF | ...").
   const pipeIdx = name.indexOf("|")
@@ -49,6 +49,6 @@ export const auraPatternsAdapter: DesignerAdapter = {
   matchHosts: ["aurasewingpatterns.com", "www.aurasewingpatterns.com"],
 
   async fetchCatalogue(): Promise<ScrapedPattern[]> {
-    return crawlSquarespaceStore(STORE, COLLECTION_PATH, { cleanName, classify })
+    return crawlSquarespaceStore(STORE, COLLECTION_PATH, { cleanName: cleanAuraName, classify })
   },
 }
