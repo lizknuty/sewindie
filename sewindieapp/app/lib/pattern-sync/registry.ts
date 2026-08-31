@@ -111,6 +111,12 @@ import { papercutPatternsAdapter } from "./adapters/papercut-patterns"
 import { paradisePatternsAdapter } from "./adapters/paradise-patterns"
 import { madeForMermaidsAdapter } from "./adapters/made-for-mermaids"
 import { ohhhLuluAdapter } from "./adapters/ohhh-lulu"
+import { patternSewcietyAdapter } from "./adapters/pattern-sewciety"
+import { peppermintAdapter } from "./adapters/peppermint"
+import { mavenPatternsAdapter } from "./adapters/maven-patterns"
+import { julianaMartejevsAdapter } from "./adapters/juliana-martejevs"
+import { orageuseAdapter } from "./adapters/orageuse"
+import { sewLiberatedAdapter } from "./adapters/sew-liberated"
 
 // Adding support for another designer means writing one adapter file and adding
 // it to this list. No route or UI changes required.
@@ -227,6 +233,12 @@ export const ADAPTERS: DesignerAdapter[] = [
   paradisePatternsAdapter,
   madeForMermaidsAdapter,
   ohhhLuluAdapter,
+  patternSewcietyAdapter,
+  peppermintAdapter,
+  mavenPatternsAdapter,
+  julianaMartejevsAdapter,
+  orageuseAdapter,
+  sewLiberatedAdapter,
 ]
 
 /** Bare hostname, lowercased and stripped of `www.`, or null if unparseable. */
