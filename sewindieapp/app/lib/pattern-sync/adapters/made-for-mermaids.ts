@@ -8,6 +8,9 @@ import { fetchWooProducts, decodeEntities, type WooProduct } from "./woo-store"
 // heavy on collections/bundles). Category-driven classification. Exclude:
 //   - "Cut files" / "Texas Cut Files" (machine SVG cut files, not sewing)
 //   - gift cards / memberships
+//   - standalone tutorials ("FREE Tutorial- ...") and the free pattern checklist
+// NB the shop legitimately sells craft/home-sewing PDFs (fabric baskets, bows,
+// bibs, eye masks, pillow covers) alongside garments -- these ARE patterns, keep.
 // Classify:
 //   - "Bundles" category or name "Bundle" -> bundle
 //   - everything else -> pattern (incl. "FREE PDF PATTERN-" craft items)
@@ -29,6 +32,9 @@ function isNonPattern(product: WooProduct): boolean {
   const name = decodeEntities(product.name ?? "").toLowerCase()
   if (cats.some((c) => /cut file/.test(c))) return true
   if (/gift card|gift voucher|membership/.test(name)) return true
+  // Not patterns: standalone tutorials and the free planning checklist.
+  if (/^free tutorial\b|\btutorial-/.test(name)) return true
+  if (/\bchecklist\b|\bprintable\b/.test(name)) return true
   return false
 }
 
