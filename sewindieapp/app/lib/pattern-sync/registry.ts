@@ -71,6 +71,14 @@ import { trueBiasAdapter } from "./adapters/true-bias"
 import { threadTheoryAdapter } from "./adapters/thread-theory"
 import { wildflowerDesignAdapter } from "./adapters/wildflower-design"
 import { winterWearDesignsAdapter } from "./adapters/winter-wear-designs"
+import { aliceAndCoAdapter } from "./adapters/alice-and-co"
+import { allieOlsonAdapter } from "./adapters/allie-olson"
+import { annaAllenAdapter } from "./adapters/anna-allen"
+import { bellaLovesPatternsAdapter } from "./adapters/bella-loves-patterns"
+import { alinaDesignCoAdapter } from "./adapters/alina-design-co"
+import { amyNicoleStudioAdapter } from "./adapters/amy-nicole-studio"
+import { anneKerdilesAdapter } from "./adapters/anne-kerdiles"
+import { belowTheKowhaiAdapter } from "./adapters/below-the-kowhai"
 
 // Adding support for another designer means writing one adapter file and adding
 // it to this list. No route or UI changes required.
@@ -147,6 +155,14 @@ export const ADAPTERS: DesignerAdapter[] = [
   threadTheoryAdapter,
   wildflowerDesignAdapter,
   winterWearDesignsAdapter,
+  aliceAndCoAdapter,
+  allieOlsonAdapter,
+  annaAllenAdapter,
+  bellaLovesPatternsAdapter,
+  alinaDesignCoAdapter,
+  amyNicoleStudioAdapter,
+  anneKerdilesAdapter,
+  belowTheKowhaiAdapter,
 ]
 
 /** Bare hostname, lowercased and stripped of `www.`, or null if unparseable. */
