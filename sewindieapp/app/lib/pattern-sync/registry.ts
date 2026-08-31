@@ -95,6 +95,14 @@ import { helensClosetAdapter } from "./adapters/helens-closet"
 import { commonStitchAdapter } from "./adapters/common-stitch"
 import { christineHaynesAdapter } from "./adapters/christine-haynes"
 import { dressYourBodyAdapter } from "./adapters/dress-your-body"
+import { jenniferLaurenAdapter } from "./adapters/jennifer-lauren"
+import { jennuineDesignAdapter } from "./adapters/jennuine-design"
+import { madswickAdapter } from "./adapters/madswick"
+import { meganNielsenAdapter } from "./adapters/megan-nielsen"
+import { melilotAdapter } from "./adapters/melilot"
+import { mimoiAdapter } from "./adapters/mimoi"
+import { lydiaNaomiAdapter } from "./adapters/lydia-naomi"
+import { howToDoFashionAdapter } from "./adapters/how-to-do-fashion"
 
 // Adding support for another designer means writing one adapter file and adding
 // it to this list. No route or UI changes required.
@@ -195,6 +203,14 @@ export const ADAPTERS: DesignerAdapter[] = [
   commonStitchAdapter,
   christineHaynesAdapter,
   dressYourBodyAdapter,
+  jenniferLaurenAdapter,
+  jennuineDesignAdapter,
+  madswickAdapter,
+  meganNielsenAdapter,
+  melilotAdapter,
+  mimoiAdapter,
+  lydiaNaomiAdapter,
+  howToDoFashionAdapter,
 ]
 
 /** Bare hostname, lowercased and stripped of `www.`, or null if unparseable. */
