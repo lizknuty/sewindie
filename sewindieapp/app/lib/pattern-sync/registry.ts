@@ -117,6 +117,8 @@ import { mavenPatternsAdapter } from "./adapters/maven-patterns"
 import { julianaMartejevsAdapter } from "./adapters/juliana-martejevs"
 import { orageuseAdapter } from "./adapters/orageuse"
 import { sewLiberatedAdapter } from "./adapters/sew-liberated"
+import { ikateeAdapter } from "./adapters/ikatee"
+import { angelaKaneAdapter } from "./adapters/angela-kane"
 
 // Adding support for another designer means writing one adapter file and adding
 // it to this list. No route or UI changes required.
@@ -239,6 +241,8 @@ export const ADAPTERS: DesignerAdapter[] = [
   julianaMartejevsAdapter,
   orageuseAdapter,
   sewLiberatedAdapter,
+  ikateeAdapter,
+  angelaKaneAdapter,
 ]
 
 /** Bare hostname, lowercased and stripped of `www.`, or null if unparseable. */
