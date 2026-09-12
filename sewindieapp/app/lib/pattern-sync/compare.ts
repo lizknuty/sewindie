@@ -35,6 +35,13 @@ export type CompareSummary = {
  * sell one product with Paper/Digital variants where the catalogue wants a row
  * per format, so `?variant=` is the only thing telling those rows apart. Every
  * other param is still dropped, so tracking noise can't fragment identity.
+ *
+ * Shopify also serves the identical product at both `/products/<handle>` and
+ * `/collections/<collection>/products/<handle>`. Older imports stored the
+ * collection-scoped form while adapters emit the canonical bare form, which
+ * otherwise makes every such pattern look brand new. Collapsing the collection
+ * prefix to `/products/<handle>` (a Shopify-specific path shape) folds both
+ * onto one identity.
  */
 export function normalizeUrl(url: string | null | undefined): string | null {
   if (!url) return null
@@ -43,7 +50,10 @@ export function normalizeUrl(url: string | null | undefined): string | null {
     const withScheme = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
     const parsed = new URL(withScheme)
     const host = parsed.hostname.toLowerCase().replace(/^www\./, "")
-    const path = parsed.pathname.replace(/\/+$/, "").toLowerCase()
+    const path = parsed.pathname
+      .replace(/\/+$/, "")
+      .toLowerCase()
+      .replace(/^\/collections\/[^/]+\/products\//, "/products/")
     const variant = parsed.searchParams.get("variant")?.trim()
     return variant ? `${host}${path}?variant=${variant.toLowerCase()}` : `${host}${path}`
   } catch {
