@@ -71,6 +71,54 @@ import { trueBiasAdapter } from "./adapters/true-bias"
 import { threadTheoryAdapter } from "./adapters/thread-theory"
 import { wildflowerDesignAdapter } from "./adapters/wildflower-design"
 import { winterWearDesignsAdapter } from "./adapters/winter-wear-designs"
+import { aliceAndCoAdapter } from "./adapters/alice-and-co"
+import { allieOlsonAdapter } from "./adapters/allie-olson"
+import { annaAllenAdapter } from "./adapters/anna-allen"
+import { bellaLovesPatternsAdapter } from "./adapters/bella-loves-patterns"
+import { alinaDesignCoAdapter } from "./adapters/alina-design-co"
+import { amyNicoleStudioAdapter } from "./adapters/amy-nicole-studio"
+import { anneKerdilesAdapter } from "./adapters/anne-kerdiles"
+import { belowTheKowhaiAdapter } from "./adapters/below-the-kowhai"
+import { auraPatternsAdapter } from "./adapters/aura-patterns"
+import { birgittaHelmerssonAdapter } from "./adapters/birgitta-helmersson"
+import { blankSlatePatternsAdapter } from "./adapters/blank-slate-patterns"
+import { byHandLondonAdapter } from "./adapters/by-hand-london"
+import { camimadeAdapter } from "./adapters/camimade"
+import { cashmeretteAdapter } from "./adapters/cashmerette"
+import { chalkAndNotchAdapter } from "./adapters/chalk-and-notch"
+import { bobbinsAndButtonsAdapter } from "./adapters/bobbins-and-buttons"
+import { closetCoreAdapter } from "./adapters/closet-core"
+import { deerAndDoeAdapter } from "./adapters/deer-and-doe"
+import { dhurataDaviesAdapter } from "./adapters/dhurata-davies"
+import { heidiAndFinnAdapter } from "./adapters/heidi-and-finn"
+import { helensClosetAdapter } from "./adapters/helens-closet"
+import { commonStitchAdapter } from "./adapters/common-stitch"
+import { christineHaynesAdapter } from "./adapters/christine-haynes"
+import { dressYourBodyAdapter } from "./adapters/dress-your-body"
+import { jenniferLaurenAdapter } from "./adapters/jennifer-lauren"
+import { jennuineDesignAdapter } from "./adapters/jennuine-design"
+import { madswickAdapter } from "./adapters/madswick"
+import { meganNielsenAdapter } from "./adapters/megan-nielsen"
+import { melilotAdapter } from "./adapters/melilot"
+import { mimoiAdapter } from "./adapters/mimoi"
+import { lydiaNaomiAdapter } from "./adapters/lydia-naomi"
+import { howToDoFashionAdapter } from "./adapters/how-to-do-fashion"
+import { matchyMatchyAdapter } from "./adapters/matchy-matchy"
+import { namedClothingAdapter } from "./adapters/named-clothing"
+import { ninaLeeAdapter } from "./adapters/nina-lee"
+import { paperTheoryAdapter } from "./adapters/paper-theory"
+import { papercutPatternsAdapter } from "./adapters/papercut-patterns"
+import { paradisePatternsAdapter } from "./adapters/paradise-patterns"
+import { madeForMermaidsAdapter } from "./adapters/made-for-mermaids"
+import { ohhhLuluAdapter } from "./adapters/ohhh-lulu"
+import { patternSewcietyAdapter } from "./adapters/pattern-sewciety"
+import { peppermintAdapter } from "./adapters/peppermint"
+import { mavenPatternsAdapter } from "./adapters/maven-patterns"
+import { julianaMartejevsAdapter } from "./adapters/juliana-martejevs"
+import { orageuseAdapter } from "./adapters/orageuse"
+import { sewLiberatedAdapter } from "./adapters/sew-liberated"
+import { ikateeAdapter } from "./adapters/ikatee"
+import { angelaKaneAdapter } from "./adapters/angela-kane"
 
 // Adding support for another designer means writing one adapter file and adding
 // it to this list. No route or UI changes required.
@@ -147,6 +195,54 @@ export const ADAPTERS: DesignerAdapter[] = [
   threadTheoryAdapter,
   wildflowerDesignAdapter,
   winterWearDesignsAdapter,
+  aliceAndCoAdapter,
+  allieOlsonAdapter,
+  annaAllenAdapter,
+  bellaLovesPatternsAdapter,
+  alinaDesignCoAdapter,
+  amyNicoleStudioAdapter,
+  anneKerdilesAdapter,
+  belowTheKowhaiAdapter,
+  auraPatternsAdapter,
+  birgittaHelmerssonAdapter,
+  blankSlatePatternsAdapter,
+  byHandLondonAdapter,
+  camimadeAdapter,
+  cashmeretteAdapter,
+  chalkAndNotchAdapter,
+  bobbinsAndButtonsAdapter,
+  closetCoreAdapter,
+  deerAndDoeAdapter,
+  dhurataDaviesAdapter,
+  heidiAndFinnAdapter,
+  helensClosetAdapter,
+  commonStitchAdapter,
+  christineHaynesAdapter,
+  dressYourBodyAdapter,
+  jenniferLaurenAdapter,
+  jennuineDesignAdapter,
+  madswickAdapter,
+  meganNielsenAdapter,
+  melilotAdapter,
+  mimoiAdapter,
+  lydiaNaomiAdapter,
+  howToDoFashionAdapter,
+  matchyMatchyAdapter,
+  namedClothingAdapter,
+  ninaLeeAdapter,
+  paperTheoryAdapter,
+  papercutPatternsAdapter,
+  paradisePatternsAdapter,
+  madeForMermaidsAdapter,
+  ohhhLuluAdapter,
+  patternSewcietyAdapter,
+  peppermintAdapter,
+  mavenPatternsAdapter,
+  julianaMartejevsAdapter,
+  orageuseAdapter,
+  sewLiberatedAdapter,
+  ikateeAdapter,
+  angelaKaneAdapter,
 ]
 
 /** Bare hostname, lowercased and stripped of `www.`, or null if unparseable. */
