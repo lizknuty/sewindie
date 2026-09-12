@@ -1,4 +1,4 @@
-import type { DesignerAdapter, ProductKind, ScrapedPattern } from "../types"
+. import type { DesignerAdapter, ProductKind, ScrapedPattern } from "../types"
 import { fetchShopifyProducts, shopifyProductUrl, type ShopifyProduct } from "./shopify-feed"
 
 // ---------------------------------------------------------------------------
