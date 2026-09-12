@@ -8,8 +8,10 @@ import { fetchShopifyProducts, shopifyProductUrl, type ShopifyProduct } from "./
 // the "Sewing planner", and the untyped "Stitch Festival London 2023 ..."
 // printed reprints (event one-offs, not catalogue designs).
 //
-// WITHIN the Patterns type there are still two non-patterns to drop by name:
-//   "MADE TO MEASURE book" and "The Bodice Fitting Companion - PDF eBook".
+// WITHIN the Patterns type there are still non-patterns to drop by name:
+//   "MADE TO MEASURE book", "The Bodice Fitting Companion - PDF eBook", and a
+//   run of "... Webinar Recording" / sewalong webinar products (BHL types their
+//   video lessons as Patterns too).
 // The "BHL Draft It Yourself - <Name>" products ARE patterns (drafting
 // patterns) and are kept; we strip the "BHL Draft It Yourself -" prefix and a
 // trailing "Sewing Pattern" for display.
@@ -18,7 +20,7 @@ import { fetchShopifyProducts, shopifyProductUrl, type ShopifyProduct } from "./
 const STORE = "https://byhandlondon.com"
 
 const IS_PATTERN_TYPE = /patterns/i
-const EXCLUDE_TITLE = /\bbook\b|ebook|e-book|\bgift\s*cards?\b|\bplanner\b/i
+const EXCLUDE_TITLE = /\bbook\b|ebook|e-book|\bgift\s*cards?\b|\bplanner\b|\bwebinar\b|\bsewalong\b/i
 
 export function cleanByHandLondonName(title: string): string {
   const cleaned = (title ?? "")
