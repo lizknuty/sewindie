@@ -65,9 +65,17 @@ export function normalizeUrl(url: string | null | undefined): string | null {
  * Loose form of a name for fallback matching. Strips punctuation and dashes so
  * "Picnic Dress- Youth" and "Picnic Dress – Youth" collapse together, while
  * "Picnic Dress" stays distinct from "Picnic Dress Youth".
+ *
+ * Diacritics are folded first (NFD, then drop combining marks) so accented
+ * names match their unaccented stored form. French designers in particular are
+ * often saved without accents ("Leonie", "Canopee", "complement"), and without
+ * this the accented scrape ("Léonie") would normalize to "l onie" and never
+ * match. Folding also fixes the ç/é/ü/ñ family generally, not just French.
  */
 export function normalizeName(name: string): string {
   return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[\u2010-\u2015]/g, "-")
     .replace(/[^a-z0-9]+/g, " ")
