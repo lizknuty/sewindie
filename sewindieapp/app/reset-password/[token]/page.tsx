@@ -14,11 +14,9 @@ export default function ResetPasswordPage() {
   const [isTokenValid, setIsTokenValid] = useState<boolean | null>(null)
   const router = useRouter()
 
-  // Use the useParams hook instead of accessing params directly
   const params = useParams<{ token: string }>()
   const token = params.token
 
-  // Verify token on page load
   useEffect(() => {
     const verifyToken = async () => {
       try {
@@ -50,7 +48,6 @@ export default function ResetPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validate passwords match
     if (password !== confirmPassword) {
       setMessage({
         text: "Passwords do not match.",
@@ -75,11 +72,10 @@ export default function ResetPasswordPage() {
 
       if (response.ok) {
         setMessage({
-          text: "Password has been reset successfully!",
+          text: "Password has been reset successfully! Redirecting to login\u2026",
           type: "success",
         })
 
-        // Redirect to login after 2 seconds
         setTimeout(() => {
           router.push("/login")
         }, 2000)
@@ -99,95 +95,101 @@ export default function ResetPasswordPage() {
     }
   }
 
-  // Show loading state while verifying token
+  // Verifying the token
   if (isTokenValid === null) {
     return (
-      <div className="container py-5 text-center">
-        <div className="spinner-border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-        <p className="mt-3">Verifying your reset link...</p>
-      </div>
+      <main className="auth-shell">
+        <div className="auth-card auth-card-loading">Verifying your reset link&#8230;</div>
+      </main>
     )
   }
 
-  // Show error if token is invalid
+  // Invalid or expired token
   if (isTokenValid === false) {
     return (
-      <div className="container py-5">
-        <div className="row justify-content-center">
-          <div className="col-md-6 col-lg-4">
-            <div className="card shadow">
-              <div className="card-body p-4 text-center">
-                <div className="alert alert-danger">{message?.text || "Invalid or expired reset link."}</div>
-                <Link href="/forgot-password" className="btn btn-primary">
-                  Request New Reset Link
-                </Link>
-              </div>
-            </div>
+      <main className="auth-shell">
+        <div className="auth-card">
+          <div className="auth-head">
+            <span className="auth-brand">SewIndie</span>
+            <h1 className="auth-title text-balance">Link expired</h1>
+            <p className="auth-subtitle text-pretty">
+              {message?.text || "This reset link is invalid or has expired."}
+            </p>
           </div>
+          <Link href="/forgot-password" className="auth-submit auth-submit-link">
+            Request a new link
+          </Link>
         </div>
-      </div>
+      </main>
     )
   }
 
   return (
-    <div className="container py-5">
-      <div className="row justify-content-center">
-        <div className="col-md-6 col-lg-4">
-          <div className="card shadow">
-            <div className="card-body p-4">
-              <h2 className="text-center mb-4">Set New Password</h2>
-
-              {message && (
-                <div className={`alert ${message.type === "success" ? "alert-success" : "alert-danger"}`}>
-                  {message.text}
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label htmlFor="password" className="form-label">
-                    New Password
-                  </label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    disabled={isSubmitting}
-                    minLength={8}
-                  />
-                </div>
-
-                <div className="mb-3">
-                  <label htmlFor="confirmPassword" className="form-label">
-                    Confirm Password
-                  </label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    id="confirmPassword"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    disabled={isSubmitting}
-                    minLength={8}
-                  />
-                </div>
-
-                <div className="d-grid gap-2">
-                  <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                    {isSubmitting ? "Resetting..." : "Reset Password"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
+    <main className="auth-shell">
+      <div className="auth-card">
+        <div className="auth-head">
+          <span className="auth-brand">SewIndie</span>
+          <h1 className="auth-title text-balance">Set a new password</h1>
+          <p className="auth-subtitle text-pretty">
+            Choose a new password for your account.
+          </p>
         </div>
+
+        {message && (
+          <p
+            className={message.type === "success" ? "auth-notice" : "auth-error"}
+            role={message.type === "success" ? "status" : "alert"}
+          >
+            {message.text}
+          </p>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div className="auth-field">
+            <label htmlFor="password" className="auth-label">
+              New password
+            </label>
+            <input
+              type="password"
+              className="auth-input"
+              id="password"
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={isSubmitting}
+              minLength={8}
+            />
+          </div>
+
+          <div className="auth-field">
+            <label htmlFor="confirmPassword" className="auth-label">
+              Confirm password
+            </label>
+            <input
+              type="password"
+              className="auth-input"
+              id="confirmPassword"
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              disabled={isSubmitting}
+              minLength={8}
+            />
+          </div>
+
+          <button type="submit" className="auth-submit" disabled={isSubmitting}>
+            {isSubmitting ? "Resetting\u2026" : "Reset password"}
+          </button>
+        </form>
+
+        <p className="auth-alt">
+          <Link href="/login" className="auth-link">
+            Back to login
+          </Link>
+        </p>
       </div>
-    </div>
+    </main>
   )
 }

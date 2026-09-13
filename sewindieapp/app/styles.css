@@ -4333,6 +4333,24 @@ button.ui-btn-block {
   cursor: default;
 }
 
+/* The expired-token page has no form to submit -- its primary action is a link
+   to request a fresh link, so it borrows the submit button's look. The (0,2,0)
+   selector keeps it clear of the global `a:not(.btn):not(.nav-link)` brand-pink
+   rule without needing !important. */
+a.auth-submit.auth-submit-link {
+  display: block;
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+}
+
+a.auth-submit.auth-submit-link:hover,
+a.auth-submit.auth-submit-link:focus-visible {
+  color: #fff;
+  background-color: var(--site-plum-hover);
+  border-color: var(--site-plum-hover);
+}
+
 /* Success note handed over from create-account (?message=...). */
 .auth-notice {
   padding: 0.7rem 0.85rem;
