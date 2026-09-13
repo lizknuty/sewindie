@@ -4200,3 +4200,200 @@ button.ui-btn-block {
     border-color: var(--site-plum);
   }
 }
+
+/* =========================================================
+   Auth pages  (.auth-shell)
+   Centered card on the same blush field the browse heroes use
+   (--home-hero-bg), so /login reads as part of the site rather
+   than a bare Bootstrap form. Class-namespaced so it can be
+   reused by create-account / forgot-password / reset-password.
+   ========================================================= */
+.auth-shell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Fill the viewport below the ~72px header without forcing a scrollbar. */
+  min-height: calc(100vh - 72px);
+  padding: 3rem 1.25rem;
+  background-color: var(--home-hero-bg);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 2.25rem;
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  background-color: #fff;
+  /* Soft plum-tinted lift rather than a generic grey drop shadow. */
+  box-shadow: 0 18px 40px -24px rgba(138, 63, 92, 0.35);
+}
+
+.auth-card-loading {
+  text-align: center;
+  color: var(--color-muted);
+}
+
+.auth-head {
+  margin-bottom: 1.75rem;
+}
+
+.auth-brand {
+  display: block;
+  font-family: var(--font-brand);
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--site-plum);
+  margin-bottom: 1rem;
+}
+
+.auth-title {
+  font-family: var(--font-heading);
+  font-size: 1.7rem;
+  font-weight: 600;
+  color: var(--home-ink);
+  margin: 0 0 0.4rem;
+}
+
+.auth-subtitle {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--home-ink-soft);
+  margin: 0;
+}
+
+.auth-field {
+  margin-bottom: 1.15rem;
+}
+
+.auth-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.auth-label {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--card-ink);
+  margin-bottom: 0.4rem;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.98rem;
+  color: var(--color-dark);
+  background-color: var(--card-chip-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.auth-input:focus {
+  outline: none;
+  background-color: #fff;
+  border-color: var(--site-plum);
+  /* Plum focus ring, matching the accent used across the redesigned pages. */
+  box-shadow: 0 0 0 3px rgba(138, 63, 92, 0.16);
+}
+
+.auth-submit {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-top: 0.35rem;
+  font-family: var(--font-heading);
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #fff;
+  background-color: var(--site-plum);
+  border: 1px solid var(--site-plum);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.auth-submit:hover:not(:disabled),
+.auth-submit:focus-visible:not(:disabled) {
+  background-color: var(--site-plum-hover);
+  border-color: var(--site-plum-hover);
+}
+
+.auth-submit:focus-visible {
+  outline: 2px solid var(--site-plum);
+  outline-offset: 2px;
+}
+
+.auth-submit:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* The expired-token page has no form to submit -- its primary action is a link
+   to request a fresh link, so it borrows the submit button's look. The (0,2,0)
+   selector keeps it clear of the global `a:not(.btn):not(.nav-link)` brand-pink
+   rule without needing !important. */
+a.auth-submit.auth-submit-link {
+  display: block;
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+}
+
+a.auth-submit.auth-submit-link:hover,
+a.auth-submit.auth-submit-link:focus-visible {
+  color: #fff;
+  background-color: var(--site-plum-hover);
+  border-color: var(--site-plum-hover);
+}
+
+/* Success note handed over from create-account (?message=...). */
+.auth-notice {
+  padding: 0.7rem 0.85rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+  color: #2f6b3a;
+  background-color: #eef7ef;
+  border: 1px solid #cfe6d3;
+  border-radius: 10px;
+}
+
+.auth-error {
+  padding: 0.7rem 0.85rem;
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: #9a2b3f;
+  background-color: #fbeaee;
+  border: 1px solid #f3c9d3;
+  border-radius: 10px;
+}
+
+.auth-alt {
+  margin: 1.5rem 0 0;
+  font-size: 0.92rem;
+  color: var(--home-ink-soft);
+  text-align: center;
+}
+
+/* (0,3,1) to outrank the global `a:not(.btn):not(.nav-link)` brand-pink rule,
+   per the convention used elsewhere in this file. */
+.auth-shell a.auth-link:not(.nav-link) {
+  color: var(--site-plum);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-shell a.auth-link:not(.nav-link):hover,
+.auth-shell a.auth-link:not(.nav-link):focus-visible {
+  color: var(--site-plum-hover);
+  text-decoration: underline;
+}
+
+.auth-shell a.auth-forgot:not(.nav-link) {
+  font-size: 0.82rem;
+  font-weight: 500;
+}
