@@ -45,13 +45,26 @@ export async function POST(req: Request) {
     const origin = originHeader !== null ? originHeader : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
     const resetUrl = `${origin}/reset-password/${resetToken}`
 
-    // Send email with reset link
-    await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || "noreply@sewindie.com",
+    // Send email with reset link.
+    // The Resend SDK does NOT throw on API errors — it returns { data, error }.
+    // We must inspect `error` explicitly, otherwise a rejected send (e.g. an
+    // unverified sending domain) looks like a success and the user never gets
+    // an email while the UI reports that a link was sent.
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "noreply@sewindie.com"
+    const { error: resendError } = await resend.emails.send({
+      from: fromEmail,
       to: user.email,
       subject: "Reset your password",
       html: getPasswordResetEmailTemplate(resetUrl, user.name || undefined),
     })
+
+    if (resendError) {
+      console.error("[v0] Resend failed to send password reset email:", {
+        from: fromEmail,
+        error: resendError,
+      })
+      return NextResponse.json({ error: "Failed to send password reset email" }, { status: 500 })
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
