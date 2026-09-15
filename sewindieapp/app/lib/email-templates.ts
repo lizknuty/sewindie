@@ -57,7 +57,7 @@ export const getPasswordResetEmailTemplate = (resetUrl: string, userName = "ther
                     <tr>
                       <td align="center" style="border-radius:50px; background-color:${primary};">
                         <a href="${resetUrl}" target="_blank" style="display:inline-block; padding:14px 40px; color:#ffffff; font-size:16px; font-weight:600; text-decoration:none; border-radius:50px; font-family:${headingFont};">Reset Password</a>
-                      </td>
+                       </td>
                     </tr>
                   </table>
                 </td>
