@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
+import Script from "next/script"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
@@ -15,13 +16,21 @@ export default function ForgotPasswordPage() {
     setIsSubmitting(true)
     setMessage(null)
 
+    const turnstileToken = (window as any).turnstile?.getResponse()
+
+    if (!turnstileToken) {
+      setMessage({ text: "Please complete the security check.", type: "error" })
+      setIsSubmitting(false)
+      return
+    }
+
     try {
       const response = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, turnstileToken }),
       })
 
       const data = await response.json()
@@ -32,17 +41,20 @@ export default function ForgotPasswordPage() {
           type: "success",
         })
         setEmail("")
+        ;(window as any).turnstile?.reset()
       } else {
         setMessage({
           text: data.error || "Something went wrong. Please try again.",
           type: "error",
         })
+        ;(window as any).turnstile?.reset()
       }
     } catch (error) {
       setMessage({
         text: "An unexpected error occurred. Please try again.",
         type: "error",
       })
+      ;(window as any).turnstile?.reset()
     } finally {
       setIsSubmitting(false)
     }
@@ -50,6 +62,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <main className="auth-shell">
+      <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="lazyOnload" />
       <div className="auth-card">
         <div className="auth-head">
           <span className="auth-brand">SewIndie</span>
@@ -82,6 +95,14 @@ export default function ForgotPasswordPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isSubmitting}
+            />
+          </div>
+
+          <div className="auth-field">
+            <div
+              className="cf-turnstile"
+              data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+              data-theme="light"
             />
           </div>
 
