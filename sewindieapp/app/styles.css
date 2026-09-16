@@ -1722,7 +1722,12 @@ a:not(.btn):not(.nav-link):focus {
 
 .account-empty-cta {
   margin-top: 0.6rem;
-}
+  color: #fff;
+  }
+  
+  .account-empty-cta:hover {
+  color: #fff;
+  }
 
 /* ---- Forms (change password) ---- */
 .account-form {
