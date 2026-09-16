@@ -1722,12 +1722,17 @@ a:not(.btn):not(.nav-link):focus {
 
 .account-empty-cta {
   margin-top: 0.6rem;
+}
+
+/* (0,3,1) to outrank the global `a:not(.btn):not(.nav-link)` brand-pink rule.
+   This CTA is a Link (anchor) but styled as a plum button, so it must keep the
+   white .account-btn text like the sibling <button> CTAs. */
+a.account-btn.account-empty-cta:not(.nav-link),
+a.account-btn.account-empty-cta:not(.nav-link):hover,
+a.account-btn.account-empty-cta:not(.nav-link):focus {
   color: #fff;
-  }
-  
-  .account-empty-cta:hover {
-  color: #fff;
-  }
+  text-decoration: none;
+}
 
 /* ---- Forms (change password) ---- */
 .account-form {
