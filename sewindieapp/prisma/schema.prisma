@@ -67,6 +67,7 @@ model Pattern {
   difficulty             String?                  @db.VarChar(25)
   release_date           DateTime?                @db.Date
   status                 PatternStatus            @default(PUBLISHED)
+  collections            CollectionPattern[]
   favorites              Favorite[]
   FeaturedPattern        FeaturedPattern?
   designer               Designer                 @relation(fields: [designer_id], references: [id])
@@ -162,6 +163,7 @@ model User {
   status            UserStatus        @default(ACTIVE)
   lastLogin         DateTime?
   BlogPost          BlogPost[]
+  collections       Collection[]
   favorites         Favorite[]
   ratings           Rating[]
   UserMeasurement   UserMeasurement[]
@@ -337,6 +339,38 @@ model FeaturedPattern {
   Pattern    Pattern  @relation(fields: [pattern_id], references: [id], onDelete: Cascade)
 
   @@index([position])
+}
+
+model Collection {
+  id          Int                  @id @default(autoincrement())
+  userId      Int
+  name        String               @db.VarChar(120)
+  description String?
+  visibility  CollectionVisibility  @default(PRIVATE)
+  createdAt   DateTime             @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime             @default(now()) @db.Timestamp(6)
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  patterns    CollectionPattern[]
+
+  @@index([userId])
+  @@index([visibility])
+}
+
+model CollectionPattern {
+  id           Int        @id @default(autoincrement())
+  collectionId Int
+  patternId    Int
+  addedAt      DateTime   @default(now()) @db.Timestamp(6)
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  pattern      Pattern    @relation(fields: [patternId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, patternId])
+  @@index([patternId])
+}
+
+enum CollectionVisibility {
+  PUBLIC
+  PRIVATE
 }
 
 enum MeasurementUnit {
