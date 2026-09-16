@@ -398,6 +398,7 @@ enum DesignerStatus {
 enum LinkKind {
   PATTERN_THUMBNAIL
   PATTERN_PAGE
+  DESIGNER_LOGO
 }
 
 enum LinkStatus {

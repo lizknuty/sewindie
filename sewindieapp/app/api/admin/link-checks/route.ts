@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
-import { collectProbes, probeAll, saveResults } from "@/lib/link-check"
+import { collectProbes, probeAll, saveResults, pruneOrphans } from "@/lib/link-check"
 
 /** Cap per request so this stays well inside the serverless execution budget. */
 const MAX_BATCH = 150
@@ -37,6 +37,10 @@ export async function POST(request: Request) {
     const results = await probeAll(probes, undefined, PROBE_BUDGET_MS)
     await saveResults(results)
 
+    // Drop rows for URLs the catalogue no longer references (e.g. thumbnails
+    // swapped out by pattern-sync) so they stop counting as broken.
+    const pruned = await pruneOrphans()
+
     const tally = results.reduce<Record<string, number>>((acc, r) => {
       acc[r.status] = (acc[r.status] ?? 0) + 1
       return acc
@@ -48,6 +52,7 @@ export async function POST(request: Request) {
       checked: results.length,
       // >0 when the time budget cut the run short; those URLs stay unchecked.
       skipped: probes.length - results.length,
+      pruned,
       tally,
       hasMore: remaining > 0,
     })

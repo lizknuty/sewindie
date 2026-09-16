@@ -104,6 +104,9 @@ async function main() {
        UNION
        SELECT DISTINCT url AS url, 'PATTERN_PAGE' AS kind
        FROM "Pattern" WHERE url IS NOT NULL AND url <> ''
+       UNION
+       SELECT DISTINCT logo_url AS url, 'DESIGNER_LOGO' AS kind
+       FROM "Designer" WHERE logo_url IS NOT NULL AND logo_url <> ''
      )
      SELECT c.url, c.kind
      FROM candidates c
@@ -188,11 +191,22 @@ async function main() {
   console.log("\nThis run:", tally)
   console.log("Stored totals:", totals)
 
+  // Drop rows for URLs the catalogue no longer references (e.g. thumbnails
+  // swapped out by pattern-sync) so they stop counting as broken.
+  const { rowCount: pruned } = await client.query(
+    `DELETE FROM "LinkCheck" lc
+     WHERE NOT EXISTS (SELECT 1 FROM "Pattern" p WHERE p.thumbnail_url = lc.url OR p.url = lc.url)
+       AND NOT EXISTS (SELECT 1 FROM "Designer" d WHERE d.logo_url = lc.url)`,
+  )
+  console.log(`Pruned ${pruned} orphaned LinkCheck row(s).`)
+
   const { rows: remaining } = await client.query(
     `WITH candidates AS (
        SELECT DISTINCT thumbnail_url AS url FROM "Pattern" WHERE thumbnail_url IS NOT NULL AND thumbnail_url <> ''
        UNION
        SELECT DISTINCT url FROM "Pattern" WHERE url IS NOT NULL AND url <> ''
+       UNION
+       SELECT DISTINCT logo_url FROM "Designer" WHERE logo_url IS NOT NULL AND logo_url <> ''
      )
      SELECT COUNT(*)::int n FROM candidates c LEFT JOIN "LinkCheck" lc ON lc.url = c.url WHERE lc.id IS NULL`,
   )

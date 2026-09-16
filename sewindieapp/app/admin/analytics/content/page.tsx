@@ -45,6 +45,7 @@ type FieldKey = (typeof FIELDS)[number]["key"]
 const KIND_LABEL: Record<string, string> = {
   PATTERN_THUMBNAIL: "Image",
   PATTERN_PAGE: "Pattern page",
+  DESIGNER_LOGO: "Designer logo",
 }
 
 function findField(key: string | undefined) {
@@ -146,6 +147,8 @@ async function getContentAudit(activeKey: FieldKey | null) {
         WHERE thumbnail_url IS NOT NULL AND thumbnail_url <> ''
         UNION
         SELECT DISTINCT url FROM "Pattern" WHERE url IS NOT NULL AND url <> ''
+        UNION
+        SELECT DISTINCT logo_url FROM "Designer" WHERE logo_url IS NOT NULL AND logo_url <> ''
       )
       SELECT COUNT(*)::bigint AS n
       FROM candidates c LEFT JOIN "LinkCheck" lc ON lc.url = c.url
@@ -171,23 +174,37 @@ async function getContentAudit(activeKey: FieldKey | null) {
     return { pattern: p, missing }
   })
 
-  // Map each broken URL back to the patterns using it, so a fix is one click away.
+  // Map each broken URL back to whatever references it — a pattern (thumbnail or
+  // page) or a designer (logo) — so a fix is one click away. A URL with no
+  // referrer is a stale orphan (pruned on the next re-check) and shows "—".
   const brokenUrls = brokenLinks.map((l) => l.url)
-  const referencing = brokenUrls.length
-    ? await prisma.pattern.findMany({
-        where: { OR: [{ thumbnail_url: { in: brokenUrls } }, { url: { in: brokenUrls } }] },
-        select: { id: true, name: true, thumbnail_url: true, url: true },
-      })
-    : []
+  const [referencingPatterns, referencingDesigners] = brokenUrls.length
+    ? await Promise.all([
+        prisma.pattern.findMany({
+          where: { OR: [{ thumbnail_url: { in: brokenUrls } }, { url: { in: brokenUrls } }] },
+          select: { id: true, name: true, thumbnail_url: true, url: true },
+        }),
+        prisma.designer.findMany({
+          where: { logo_url: { in: brokenUrls } },
+          select: { id: true, name: true, logo_url: true },
+        }),
+      ])
+    : [[], []]
 
-  const byUrl = new Map<string, { id: number; name: string }[]>()
-  for (const p of referencing) {
-    for (const u of [p.thumbnail_url, p.url]) {
-      if (!u) continue
-      const list = byUrl.get(u)
-      if (list) list.push({ id: p.id, name: p.name })
-      else if (brokenUrls.includes(u)) byUrl.set(u, [{ id: p.id, name: p.name }])
-    }
+  const brokenSet = new Set(brokenUrls)
+  const byUrl = new Map<string, { href: string; name: string }[]>()
+  const attribute = (url: string | null, entry: { href: string; name: string }) => {
+    if (!url || !brokenSet.has(url)) return
+    const list = byUrl.get(url)
+    if (!list) byUrl.set(url, [entry])
+    else if (!list.some((e) => e.href === entry.href)) list.push(entry)
+  }
+  for (const p of referencingPatterns) {
+    attribute(p.thumbnail_url, { href: `/admin/patterns/${p.id}/edit`, name: p.name })
+    attribute(p.url, { href: `/admin/patterns/${p.id}/edit`, name: p.name })
+  }
+  for (const d of referencingDesigners) {
+    attribute(d.logo_url, { href: `/admin/designers/${d.id}/edit`, name: d.name })
   }
 
   const tally = new Map(linkStatus.map((s) => [s.status, s._count._all]))
@@ -205,7 +222,7 @@ async function getContentAudit(activeKey: FieldKey | null) {
     designerRollup,
     designersMissingLogo,
     designersNoPatterns,
-    brokenLinks: brokenLinks.map((l) => ({ ...l, patterns: byUrl.get(l.url) ?? [] })),
+    brokenLinks: brokenLinks.map((l) => ({ ...l, usedBy: byUrl.get(l.url) ?? [] })),
     linkStats: {
       broken: tally.get("BROKEN") ?? 0,
       unreachable: tally.get("UNREACHABLE") ?? 0,
@@ -431,17 +448,17 @@ export default async function ContentAnalyticsPage({
                     <p className="admin-row-sub">{l.host}</p>
                   </td>
                   <td>
-                    {l.patterns.length === 0 ? (
+                    {l.usedBy.length === 0 ? (
                       <span className="admin-row-sub">—</span>
                     ) : (
                       <div className="admin-gap-tags">
-                        {l.patterns.slice(0, 2).map((p) => (
-                          <Link key={p.id} href={`/admin/patterns/${p.id}/edit`} className="admin-row-sub">
-                            {p.name}
+                        {l.usedBy.slice(0, 2).map((u) => (
+                          <Link key={u.href} href={u.href} className="admin-row-sub">
+                            {u.name}
                           </Link>
                         ))}
-                        {l.patterns.length > 2 && (
-                          <span className="admin-row-sub">{`+${l.patterns.length - 2} more`}</span>
+                        {l.usedBy.length > 2 && (
+                          <span className="admin-row-sub">{`+${l.usedBy.length - 2} more`}</span>
                         )}
                       </div>
                     )}

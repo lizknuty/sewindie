@@ -230,6 +230,10 @@ export async function collectProbes(limit: number, staleHours = 24): Promise<Pro
       SELECT DISTINCT url AS url, 'PATTERN_PAGE' AS kind
       FROM "Pattern"
       WHERE url IS NOT NULL AND url <> ''
+      UNION
+      SELECT DISTINCT logo_url AS url, 'DESIGNER_LOGO' AS kind
+      FROM "Designer"
+      WHERE logo_url IS NOT NULL AND logo_url <> ''
     )
     SELECT c.url, c.kind
     FROM candidates c
@@ -243,4 +247,25 @@ export async function collectProbes(limit: number, staleHours = 24): Promise<Pro
     url: r.url,
     kind: r.kind as LinkKind,
   }))
+}
+
+/**
+ * Delete LinkCheck rows whose URL is no longer referenced anywhere in the
+ * catalogue — not a pattern thumbnail, a pattern page, or a designer logo.
+ *
+ * Pattern-sync swaps thumbnails on re-import, which strands the previous URL's
+ * LinkCheck row: nothing points at it, so it can never be attributed under
+ * "Used by" and only inflates the broken count. Run after a re-check so the
+ * report reflects only links something actually uses. Returns the row count.
+ */
+export async function pruneOrphans(): Promise<number> {
+  return prisma.$executeRaw`
+    DELETE FROM "LinkCheck" lc
+    WHERE NOT EXISTS (
+      SELECT 1 FROM "Pattern" p WHERE p.thumbnail_url = lc.url OR p.url = lc.url
+    )
+    AND NOT EXISTS (
+      SELECT 1 FROM "Designer" d WHERE d.logo_url = lc.url
+    )
+  `
 }
