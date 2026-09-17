@@ -283,10 +283,6 @@ const SUGGESTED_FABRIC_SYNONYMS: Record<string, string> = {
   shirting: "Broadcloth",
   "nylon spandex": "Nylon",
   "rayon challis blends": "Rayon Challis",
-  twill: "Twill",
-  corduroy: "Corduroy",
-  velvet: "Velvet",
-  velour: "Velour",
 }
 
 // Filler words that surround real fabric names in prose; stripped before match.
