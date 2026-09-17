@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { RefreshCw, ExternalLink, DownloadCloud } from "lucide-react"
 import { KIND_LABELS, type ProductKind } from "@/lib/pattern-sync/types"
+import type { ExtractedMetadata } from "@/lib/pattern-sync/metadata/types"
 
 type RunSummary = {
   ranAt: string
@@ -30,6 +31,7 @@ type Row = {
   sourceId: string
   status: "NEW" | "POSSIBLE_MATCH"
   matchedPattern: { id: number; name: string } | null
+  metadata?: ExtractedMetadata
 }
 
 type CheckResult = {
@@ -162,7 +164,13 @@ export default function PatternSyncRunner({ designers }: { designers: DesignerOp
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           designerId: Number(designerId),
-          patterns: selectedRows.map(({ name, url, imageUrl, releaseDate }) => ({ name, url, imageUrl, releaseDate })),
+          patterns: selectedRows.map(({ name, url, imageUrl, releaseDate, metadata }) => ({
+            name,
+            url,
+            imageUrl,
+            releaseDate,
+            metadata,
+          })),
         }),
       })
       if (!res.ok) {

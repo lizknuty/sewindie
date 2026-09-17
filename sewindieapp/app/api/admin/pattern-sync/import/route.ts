@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma"
 import { checkAdminAccess } from "@/lib/admin-middleware"
 import { getAdapterForDesigner } from "@/lib/pattern-sync/registry"
 import { normalizeUrl } from "@/lib/pattern-sync/compare"
+import { applyMetadata, loadVocab } from "@/lib/pattern-sync/metadata/writer"
+import { emptyMetadata, type ExtractedMetadata } from "@/lib/pattern-sync/metadata/types"
 
 // The only endpoint in this feature that writes to the catalogue. Every row it
 // inserts was explicitly selected by an admin, and each one is re-validated and
@@ -21,6 +23,34 @@ type IncomingRow = {
   url?: unknown
   imageUrl?: unknown
   releaseDate?: unknown
+  metadata?: unknown
+}
+
+/**
+ * Coerces an untrusted `metadata` payload into an ExtractedMetadata. The client
+ * echoes back what the adapter produced, so we accept only string arrays and
+ * drop anything malformed rather than trusting the shape.
+ */
+function parseMetadata(value: unknown): ExtractedMetadata | null {
+  if (!value || typeof value !== "object") return null
+  const src = value as Record<string, unknown>
+  const arr = (v: unknown): string[] =>
+    Array.isArray(v) ? v.filter((x): x is string => typeof x === "string" && x.trim().length > 0) : []
+
+  const meta = emptyMetadata()
+  meta.audiences = arr(src.audiences)
+  meta.categories = arr(src.categories)
+  meta.fabricTypes = arr(src.fabricTypes)
+  meta.attributes = arr(src.attributes)
+  meta.suggestedFabrics = arr(src.suggestedFabrics)
+
+  const hasAny =
+    meta.audiences.length ||
+    meta.categories.length ||
+    meta.fabricTypes.length ||
+    meta.attributes.length ||
+    meta.suggestedFabrics.length
+  return hasAny ? meta : null
 }
 
 /** Parses an ISO date into a Date, or null when absent/invalid. */
@@ -94,6 +124,9 @@ export async function POST(request: Request) {
   )
 
   const toCreate: { name: string; designer_id: number; url: string; thumbnail_url: string | null; release_date: Date | null }[] = []
+  // Metadata keyed by normalized URL so we can attach it after createMany (which
+  // does not return ids) by looking the freshly-created rows back up.
+  const metadataByUrl = new Map<string, ExtractedMetadata>()
   const rejected: { name: string; reason: string }[] = []
 
   for (const row of incoming) {
@@ -145,6 +178,9 @@ export async function POST(request: Request) {
 
     const imageUrl = typeof row.imageUrl === "string" && row.imageUrl.trim() ? row.imageUrl.trim() : null
 
+    const meta = parseMetadata(row.metadata)
+    if (meta) metadataByUrl.set(normalized, meta)
+
     toCreate.push({
       name,
       designer_id: designer.id,
@@ -155,13 +191,43 @@ export async function POST(request: Request) {
   }
 
   let imported = 0
+  let metadataApplied = 0
+  const vocabMissing = new Map<string, { dimension: string; name: string }>()
   if (toCreate.length > 0) {
     const result = await prisma.pattern.createMany({ data: toCreate })
     imported = result.count
+
+    // Attach metadata to the rows we just created. createMany returns no ids,
+    // so re-read this designer's patterns and match by normalized URL.
+    if (metadataByUrl.size > 0) {
+      const vocab = await loadVocab(prisma)
+      const created = await prisma.pattern.findMany({
+        where: { designer_id: designer.id },
+        select: { id: true, url: true },
+      })
+      for (const p of created) {
+        const key = normalizeUrl(p.url)
+        const meta = key ? metadataByUrl.get(key) : undefined
+        if (!meta) continue
+        const plan = await applyMetadata(prisma, p.id, meta, vocab, true)
+        const added =
+          plan.toAdd.audience.length +
+          plan.toAdd.category.length +
+          plan.toAdd.fabricType.length +
+          plan.toAdd.attribute.length +
+          plan.toAdd.suggestedFabric.length
+        if (added > 0) metadataApplied++
+        for (const miss of plan.vocabMissing) {
+          vocabMissing.set(`${miss.dimension}:${miss.name}`, miss)
+        }
+      }
+    }
   }
 
   return NextResponse.json({
     imported,
+    metadataApplied,
+    vocabMissing: [...vocabMissing.values()].slice(0, 50),
     skipped: rejected.length,
     rejected: rejected.slice(0, 20),
     designer: { id: designer.id, name: designer.name },
