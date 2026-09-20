@@ -43,13 +43,18 @@ function parseMetadata(value: unknown): ExtractedMetadata | null {
   meta.fabricTypes = arr(src.fabricTypes)
   meta.attributes = arr(src.attributes)
   meta.suggestedFabrics = arr(src.suggestedFabrics)
+  // Difficulty is a scalar; the writer applies it additively (only when the
+  // pattern has none yet). Accept a non-empty string, drop anything else.
+  meta.difficulty =
+    typeof src.difficulty === "string" && src.difficulty.trim().length > 0 ? src.difficulty.trim() : null
 
   const hasAny =
     meta.audiences.length ||
     meta.categories.length ||
     meta.fabricTypes.length ||
     meta.attributes.length ||
-    meta.suggestedFabrics.length
+    meta.suggestedFabrics.length ||
+    meta.difficulty
   return hasAny ? meta : null
 }
 

@@ -1,4 +1,5 @@
 import type { DesignerAdapter, ProductKind, ScrapedPattern } from "../types"
+import { extractGrasserMetadata } from "../metadata/grasser"
 
 // Grasser runs Bitrix, which exposes no JSON feed, no WooCommerce/Shopify API
 // and no YML export -- so this adapter reads the HTML listing pages. Everything
@@ -246,14 +247,30 @@ export const grasserAdapter: DesignerAdapter = {
       throw new Error("Grasser returned no products -- the listing markup may have changed")
     }
 
-    return [...bySlug.values()].map((card) => ({
-      name: card.name,
-      url: card.url,
-      imageUrl: card.imageUrl,
-      // Not exposed anywhere in the store; see the note at the top of the file.
-      releaseDate: null,
-      kind: classify(card.name, card.slug),
-      sourceId: card.sourceId,
-    }))
+    return [...bySlug.values()].map((card) => {
+      const kind = classify(card.name, card.slug)
+      // Category + audience come from the pattern NAME, which every listing card
+      // carries -- so they enrich the whole catalogue within the route's budget
+      // with no extra requests. Difficulty is deliberately NOT fetched here: it
+      // lives only on per-product detail pages (~1000 extra fetches), which
+      // cannot fit the 60s route cap, so it is backfilled out-of-band and
+      // reaches the writer as a scalar (see metadata/grasser.ts). Only real
+      // patterns are enriched; stencils etc. (kind:"other") are left untouched.
+      const metadata =
+        kind === "pattern"
+          ? extractGrasserMetadata({ name: card.name, categoryPath: null, difficulty: null })
+          : undefined
+
+      return {
+        name: card.name,
+        url: card.url,
+        imageUrl: card.imageUrl,
+        // Not exposed anywhere in the store; see the note at the top of the file.
+        releaseDate: null,
+        kind,
+        sourceId: card.sourceId,
+        metadata,
+      }
+    })
   },
 }
