@@ -28,6 +28,13 @@ export type ExtractedMetadata = {
   fabricTypes: string[]
   attributes: string[]
   suggestedFabrics: string[]
+  /**
+   * A single skill-level name (e.g. "Beginner"). Unlike the array dimensions,
+   * difficulty is a scalar column on Pattern, so the writer applies it as an
+   * additive scalar: set it only when the pattern has no difficulty yet, and
+   * never overwrite an existing value.
+   */
+  difficulty: string | null
   /** Store terms that mapped to nothing -- candidates for new vocab/mappings. */
   unmatched: UnmatchedTerm[]
 }

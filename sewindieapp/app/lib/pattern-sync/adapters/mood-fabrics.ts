@@ -1,4 +1,5 @@
 import type { DesignerAdapter, ProductKind, ScrapedPattern } from "../types"
+import { extractMoodMetadata } from "../metadata/mood-fabrics"
 
 // Mood Fabrics publishes its free patterns as blog posts on a WordPress site
 // (blog.moodfabrics.com), which exposes a public, unauthenticated WP REST API.
@@ -138,6 +139,32 @@ async function fetchCategoryId(slug: string): Promise<number | null> {
   return terms.find((t) => t.slug?.toLowerCase() === slug)?.id ?? null
 }
 
+/**
+ * Load the full category taxonomy as an id -> slug map. Posts only carry
+ * category term *ids*, so metadata extraction needs this to recover the stable
+ * slugs it maps from. ~30 terms today; paginate defensively.
+ */
+async function fetchCategorySlugs(): Promise<Map<number, string>> {
+  const map = new Map<number, string>()
+
+  for (let page = 1; page <= 3; page++) {
+    const { body, headers } = await getJson(
+      `${BASE}/categories?per_page=${PER_PAGE}&page=${page}&_fields=id,slug`,
+    )
+    const terms = (Array.isArray(body) ? body : []) as WpTerm[]
+    for (const t of terms) {
+      if (typeof t.id === "number" && t.slug) map.set(t.id, t.slug.toLowerCase())
+    }
+
+    const reported = Number(headers.get("x-wp-totalpages") ?? "1")
+    const totalPages = Number.isFinite(reported) && reported > 0 ? reported : 1
+    if (page >= totalPages || terms.length === 0) break
+    await sleep(PAGE_DELAY_MS)
+  }
+
+  return map
+}
+
 async function fetchPosts(categoryId: number): Promise<WpPost[]> {
   const all: WpPost[] = []
   let totalPages = 1
@@ -195,8 +222,9 @@ export const moodFabricsAdapter: DesignerAdapter = {
       throw new Error(`Mood Fabrics: could not resolve the "${PATTERNS_CATEGORY_SLUG}" category`)
     }
 
-    const [roundupCategoryId, posts] = await Promise.all([
+    const [roundupCategoryId, categorySlugs, posts] = await Promise.all([
       fetchCategoryId(ROUNDUP_CATEGORY_SLUG),
+      fetchCategorySlugs(),
       fetchPosts(patternsCategoryId),
     ])
 
@@ -208,14 +236,21 @@ export const moodFabricsAdapter: DesignerAdapter = {
 
       const categories = post.categories ?? []
       const releaseDate = post.date_gmt ? `${post.date_gmt}Z` : (post.date ?? null)
+      const kind = classify(name, categories, roundupCategoryId)
+
+      // Only single-pattern posts carry meaningful metadata; round-ups and
+      // tutorials (kind:"other") are left untouched.
+      const slugs = categories.map((id) => categorySlugs.get(id)).filter((s): s is string => Boolean(s))
+      const metadata = kind === "pattern" ? extractMoodMetadata(slugs) : undefined
 
       results.push({
         name,
         url: post.link,
         imageUrl: post._embedded?.["wp:featuredmedia"]?.[0]?.source_url ?? null,
         releaseDate,
-        kind: classify(name, categories, roundupCategoryId),
+        kind,
         sourceId: String(post.id),
+        metadata,
       })
     }
 

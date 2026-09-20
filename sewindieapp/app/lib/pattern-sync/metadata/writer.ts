@@ -52,6 +52,12 @@ export type ApplyPlan = {
   toAdd: Record<MetadataDimension, string[]>
   /** Mapped names with no vocabulary row -- neither linked nor created. */
   vocabMissing: VocabMiss[]
+  /**
+   * The difficulty value that would be (or was) written, or null when the
+   * pattern already has a difficulty or the extractor produced none. Difficulty
+   * is a scalar column, applied additively: an existing value is never touched.
+   */
+  difficultySet: string | null
 }
 
 type DimensionConfig = {
@@ -93,7 +99,7 @@ export async function applyMetadata(
   vocab: Vocab,
   execute: boolean,
 ): Promise<ApplyPlan> {
-  const [pa, pau, pc, pft, psf] = await Promise.all([
+  const [pa, pau, pc, pft, psf, pat] = await Promise.all([
     prisma.patternAttribute.findMany({ where: { pattern_id: patternId }, select: { attribute_id: true } }),
     prisma.patternAudience.findMany({ where: { pattern_id: patternId }, select: { audience_id: true } }),
     prisma.patternCategory.findMany({ where: { pattern_id: patternId }, select: { category_id: true } }),
@@ -102,6 +108,7 @@ export async function applyMetadata(
       where: { pattern_id: patternId },
       select: { suggestedfabric_id: true },
     }),
+    prisma.pattern.findUnique({ where: { id: patternId }, select: { difficulty: true } }),
   ])
 
   const existing = {
@@ -122,6 +129,12 @@ export async function applyMetadata(
     vocab: vocab.suggestedFabric,
   })
 
+  // Difficulty is a scalar column, applied additively: set it only when the
+  // pattern currently has none, and never overwrite an existing value.
+  const wantDifficulty = meta.difficulty?.trim() || null
+  const currentDifficulty = pat?.difficulty?.trim() || null
+  const difficultySet = wantDifficulty && !currentDifficulty ? wantDifficulty : null
+
   const plan: ApplyPlan = {
     patternId,
     toAdd: {
@@ -138,11 +151,15 @@ export async function applyMetadata(
       ...attribute.missing,
       ...suggestedFabric.missing,
     ],
+    difficultySet,
   }
 
   if (!execute) return plan
 
   await prisma.$transaction([
+    ...(difficultySet
+      ? [prisma.pattern.update({ where: { id: patternId }, data: { difficulty: difficultySet } })]
+      : []),
     ...(audience.add.length
       ? [prisma.patternAudience.createMany({
           data: audience.add.map((a) => ({ pattern_id: patternId, audience_id: a.id })),
