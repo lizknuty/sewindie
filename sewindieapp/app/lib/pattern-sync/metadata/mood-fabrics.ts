@@ -17,23 +17,34 @@ import { type ExtractedMetadata, type UnmatchedTerm, emptyMetadata } from "./typ
 // marketing prose whose "recommended fabrics" are Mood's own shop product
 // names, not generic vocabulary), so any mapping would be guesswork.
 //
-// Combined/ambiguous garment buckets (e.g. "Pants & Shorts", "Shawl & Cardigan",
-// "Activewear & Athleisure", "Suiting", "Outfit & Ensemble") have no clean
-// single-category target, so they are reported as `unmatched` for a human to
-// decide rather than guessed onto a possibly-wrong row.
+// Combined garment buckets are handled per owner decision: "Pants & Shorts"
+// fans out to Pants / Jeans + Short, "Shawl & Cardigan" maps to Sweater /
+// Sweatshirt, and "Adaptive" / "Activewear & Athleisure" / "Suiting" map to
+// dedicated category rows created for Mood. "Outfit & Ensemble" is ignored.
+// Any other unrecognized bucket is still reported as `unmatched` for review.
 
 // --- Category (garment) ----------------------------------------------------
-// Only slugs that map cleanly to exactly one SewIndie category row.
-const CATEGORY_MAP: Record<string, string> = {
-  "dress-patterns": "Dress",
-  "shirt-patterns": "Tops",
-  "outerwear-patterns": "Coat / Jacket",
-  "skirt-patterns": "Skirt",
-  "lingerie-patterns": "Intimate Apparel",
-  "swimwear-patterns": "Swimwear",
-  "accessory-patterns": "Accessories",
-  "sleepwear-patterns": "Sleepwear / Pajama",
-  "cosplay-patterns": "Costume",
+// Slugs mapped to one or more SewIndie category rows. Most map to a single
+// garment; a few combined Mood buckets fan out to multiple rows, and three
+// buckets (adaptive / activewear / suiting) map to categories created
+// specifically for Mood -- all owner-approved.
+const CATEGORY_MAP: Record<string, string[]> = {
+  "dress-patterns": ["Dress"],
+  "shirt-patterns": ["Tops"],
+  "outerwear-patterns": ["Coat / Jacket"],
+  "skirt-patterns": ["Skirt"],
+  "lingerie-patterns": ["Intimate Apparel"],
+  "swimwear-patterns": ["Swimwear"],
+  "accessory-patterns": ["Accessories"],
+  "sleepwear-patterns": ["Sleepwear / Pajama"],
+  "cosplay-patterns": ["Costume"],
+  // Combined buckets fanned out to their constituent garment rows.
+  "pants-shorts-patterns": ["Pants / Jeans", "Short"],
+  "shawl-cardigan-patterns": ["Sweater / Sweatshirt"],
+  // Categories created for Mood (owner-approved).
+  "adaptive-patterns": ["Adaptive"],
+  "active-wear-athleisure-patterns": ["Activewear"],
+  "suiting-patterns": ["Suiting"],
 }
 
 // --- Audience --------------------------------------------------------------
@@ -54,14 +65,11 @@ const DIFFICULTY_MAP: Record<string, string> = {
   "basic-sewing-patterns": "Beginner",
 }
 
-// "Adaptive" is orthogonal to gender (an adaptive dress is still women's) and
-// has no audience vocabulary row yet. Report it as a candidate, but do NOT let
-// it suppress the Women default.
-const ADAPTIVE_SLUG = "adaptive-patterns"
-
-// Seasonal / marketing / structural buckets that are not metadata. Dropped
-// silently so the `unmatched` report stays focused on real candidates.
+// Seasonal / marketing / structural buckets that are not metadata, plus the
+// outfit/ensemble bucket the owner opted to skip. Dropped silently so the
+// `unmatched` report stays focused on real candidates.
 const IGNORE = new Set<string>([
+  "outfit-ensemble-patterns",
   "free-sewing-patterns",
   "fall-sewing-patterns",
   "spring-sewing-patterns",
@@ -98,7 +106,7 @@ export function extractMoodMetadata(categorySlugs: string[]): ExtractedMetadata 
     if (!slug || IGNORE.has(slug)) continue
 
     if (CATEGORY_MAP[slug]) {
-      categories.add(CATEGORY_MAP[slug])
+      for (const name of CATEGORY_MAP[slug]) categories.add(name)
       continue
     }
     if (AUDIENCE_MAP[slug]) {
@@ -107,10 +115,6 @@ export function extractMoodMetadata(categorySlugs: string[]): ExtractedMetadata 
     }
     if (DIFFICULTY_MAP[slug]) {
       difficulty = DIFFICULTY_MAP[slug]
-      continue
-    }
-    if (slug === ADAPTIVE_SLUG) {
-      unmatched.push({ dimension: "audience", term: slug })
       continue
     }
     // Any other pattern-post category is a combined/ambiguous garment bucket
