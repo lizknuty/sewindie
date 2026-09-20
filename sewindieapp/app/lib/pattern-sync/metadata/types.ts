@@ -47,6 +47,7 @@ export function emptyMetadata(): ExtractedMetadata {
     fabricTypes: [],
     attributes: [],
     suggestedFabrics: [],
+    difficulty: null,
     unmatched: [],
   }
 }
