@@ -29,7 +29,8 @@ import { type ExtractedMetadata, type UnmatchedTerm, emptyMetadata } from "./typ
 // Tops). "sweatshirt" MUST precede "shirt" (it contains it). The first rule
 // whose keyword appears as a whole word in the name wins -- one primary garment
 // per pattern, mirroring the leading-noun analysis. Unmatched names are reported.
-const CATEGORY_RULES: Array<[keyword: string, category: string]> = [
+// Exported because other name-driven extractors (Seamwork) reuse the same table.
+export const CATEGORY_RULES: Array<[keyword: string, category: string]> = [
   // One-piece / suits (before the garment nouns they may contain).
   ["swimsuit", "Swimwear"],
   ["swimwear", "Swimwear"],
@@ -137,7 +138,7 @@ const NAME_AUDIENCE_RULES: Array<[re: RegExp, audience: string]> = [
   [/\b(?:kid'?s?|child(?:ren)?|toddler)\b/, "Children"],
 ]
 
-function matchWord(haystack: string, keyword: string): boolean {
+export function matchWord(haystack: string, keyword: string): boolean {
   // Whole-word / whole-token match. Escapes regex metachars in the keyword and
   // treats hyphens as internal so "t-shirt" matches correctly.
   const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")

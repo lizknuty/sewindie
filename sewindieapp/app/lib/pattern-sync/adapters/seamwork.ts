@@ -1,3 +1,8 @@
+import {
+  SEAMWORK_GARMENT_FILTERS,
+  SEAMWORK_SKILL_FILTERS,
+  extractSeamworkMetadata,
+} from "../metadata/seamwork"
 import type { DesignerAdapter, ProductKind, ScrapedPattern } from "../types"
 
 // Seamwork is the first designer here with no product feed at all. The site is a
@@ -127,8 +132,8 @@ function absoluteUrl(value: string): string {
   return `${STORE_ORIGIN}${value.startsWith("/") ? "" : "/"}${value}`
 }
 
-async function fetchPage(page: number): Promise<string> {
-  const url = `${STORE_ORIGIN}${CATALOGUE_PATH}?page=${page}`
+async function fetchPage(page: number, path: string = CATALOGUE_PATH): Promise<string> {
+  const url = `${STORE_ORIGIN}${path}?page=${page}`
   const response = await fetch(url, {
     headers: { "User-Agent": USER_AGENT, Accept: "text/html" },
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
@@ -140,14 +145,16 @@ async function fetchPage(page: number): Promise<string> {
   return response.text()
 }
 
-async function fetchCatalogue(): Promise<ScrapedPattern[]> {
-  // Keyed by slug: Rails pagination serves the last page again for an
-  // out-of-range page number, so "no new slugs" is the reliable stop signal
-  // rather than trusting a page to come back empty.
+/**
+ * Every slug in one paginated listing. Rails pagination serves the last page
+ * again for an out-of-range page number, so "no new slugs" is the reliable stop
+ * signal rather than trusting a page to come back empty.
+ */
+async function crawlListing(path: string, deadline: number): Promise<Map<string, Card>> {
   const bySlug = new Map<string, Card>()
-
   for (let page = 1; page <= MAX_PAGES; page++) {
-    const cards = parseCards(await fetchPage(page))
+    if (Date.now() > deadline) throw new Error(`Seamwork listing ${path} exceeded its time budget`)
+    const cards = parseCards(await fetchPage(page, path))
     if (cards.length === 0) break
 
     let added = 0
@@ -160,6 +167,61 @@ async function fetchCatalogue(): Promise<ScrapedPattern[]> {
 
     await sleep(PAGE_DELAY_MS)
   }
+  return bySlug
+}
+
+type FilterMembership = Map<string, { garments: string[]; skills: string[] }>
+
+// The filter listings (~47 pages in total) are crawled alongside the main
+// catalogue, three at a time, inside their own budget so they can never push
+// the sync past the route's 60s cap.
+const FILTER_CONCURRENCY = 3
+const FILTER_BUDGET_MS = 35_000
+
+/**
+ * Which garment and skill filters each slug appears in. Returns null if any
+ * filter listing fails or runs out of time: the signals are only trustworthy
+ * when complete (a pattern missing from a half-crawled "gender-neutral" list
+ * would otherwise be tagged Women), so a partial result is discarded and the
+ * sync falls back to name-only enrichment.
+ */
+async function fetchFilterMembership(): Promise<FilterMembership | null> {
+  const deadline = Date.now() + FILTER_BUDGET_MS
+  const jobs = [
+    ...SEAMWORK_GARMENT_FILTERS.map((filter) => ({ filter, kind: "garments" as const })),
+    ...SEAMWORK_SKILL_FILTERS.map((filter) => ({ filter, kind: "skills" as const })),
+  ]
+  const membership: FilterMembership = new Map()
+
+  try {
+    let next = 0
+    const worker = async () => {
+      while (next < jobs.length) {
+        const job = jobs[next++]
+        const slugs = await crawlListing(`${CATALOGUE_PATH}/filters/${job.filter}`, deadline)
+        for (const slug of slugs.keys()) {
+          let entry = membership.get(slug)
+          if (!entry) {
+            entry = { garments: [], skills: [] }
+            membership.set(slug, entry)
+          }
+          entry[job.kind].push(job.filter)
+        }
+      }
+    }
+    await Promise.all(Array.from({ length: FILTER_CONCURRENCY }, worker))
+    return membership
+  } catch (error) {
+    console.warn("[pattern-sync] Seamwork filter crawl skipped:", (error as Error).message)
+    return null
+  }
+}
+
+async function fetchCatalogue(): Promise<ScrapedPattern[]> {
+  const [bySlug, membership] = await Promise.all([
+    crawlListing(CATALOGUE_PATH, Number.POSITIVE_INFINITY),
+    fetchFilterMembership(),
+  ])
 
   const cards = [...bySlug.values()]
 
@@ -168,15 +230,29 @@ async function fetchCatalogue(): Promise<ScrapedPattern[]> {
   const patternCards = cards.filter((card) => card.isPatternCard)
   const selected = patternCards.length > 0 ? patternCards : cards
 
-  return selected.map((card) => ({
-    name: card.name,
-    url: `${STORE_ORIGIN}${CATALOGUE_PATH}/${card.slug}`,
-    imageUrl: card.imageUrl,
-    // Not exposed anywhere on the site -- see note 3 at the top of this file.
-    releaseDate: null,
-    kind: classify(card.slug, card.name),
-    sourceId: card.sourceId,
-  }))
+  return selected.map((card) => {
+    const kind = classify(card.slug, card.name)
+    // With a complete filter crawl, a slug absent from every filter has no
+    // garments/skills (empty arrays -> Women default, no difficulty). Without
+    // one, null tells the extractor to stay name-only.
+    const filters = membership ? (membership.get(card.slug) ?? { garments: [], skills: [] }) : null
+    return {
+      name: card.name,
+      url: `${STORE_ORIGIN}${CATALOGUE_PATH}/${card.slug}`,
+      imageUrl: card.imageUrl,
+      // Not exposed anywhere on the site -- see note 3 at the top of this file.
+      releaseDate: null,
+      kind,
+      sourceId: card.sourceId,
+      // Bonuses are real sewing patterns listed in the same filters, so they
+      // carry metadata too (the catalogue now holds them).
+      metadata: extractSeamworkMetadata({
+        name: card.name,
+        garments: filters?.garments ?? null,
+        skills: filters?.skills ?? null,
+      }),
+    }
+  })
 }
 
 export const seamworkAdapter: DesignerAdapter = {
