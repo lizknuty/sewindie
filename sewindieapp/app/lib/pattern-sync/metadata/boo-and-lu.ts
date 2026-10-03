@@ -82,6 +82,93 @@ function audiencesFromName(name: string): string[] {
   return [...out]
 }
 
+// Owner-approved garment cues the shared Grasser rules don't cover. There is no
+// Loungewear category, so lounge sets go to the closest existing one.
+const BOO_NAME_RULES: Array<[pattern: RegExp, category: string]> = [
+  [/\b(swim\s?suit|swim|bikini|tankini|cover-?up)\b/, "Swimwear"],
+  [/\btees?\b/, "Tops"],
+  [/\bhoodies?\b/, "Hoodie"],
+  [/\bpants\b/, "Pants / Jeans"],
+  [/\bpettiskirts?\b/, "Skirt"],
+  [/\b(storm|zip-?up)\b/, "Coat / Jacket"],
+  [/\b(lounge|ember)\b/, "Sleepwear / Pajama"],
+]
+
+const ACCESSORY_SLUGS = new Set([
+  "accessories-sewing-patterns",
+  "hair-accessories",
+  "bags",
+  "hats",
+  "play",
+  "applique",
+  "home",
+])
+
+/**
+ * Owner-approved defaults when neither the tree nor the title names an
+ * audience: "Complete" bundles span every size range (Women + Girls); kids'
+ * accessories are Girls + Boys, except hair bows and scrunchies (Girls).
+ */
+function audienceDefaults(name: string, slugs: Set<string>): string[] {
+  if (/\bcomplete\b/.test(name)) return ["Women", "Girls"]
+  if ([...slugs].some((s) => ACCESSORY_SLUGS.has(s))) {
+    return /\b(bows?|scrunchies?)\b/.test(name) ? ["Girls"] : ["Girls", "Boys"]
+  }
+  return []
+}
+
+const NON_DESIGN_WORDS = new Set([
+  "baby", "babys", "child", "childs", "children", "childrens", "adult", "adults", "women", "womens",
+  "girl", "girls", "boy", "boys", "kid", "kids", "toddler", "tween", "junior", "juniors", "b", "l",
+  "basics", "complete", "the", "and", "sewing", "pattern", "patterns", "digital", "pdf", "bundle",
+  "bundles", "set", "sizes", "top", "tops", "dress", "dresses", "tee", "swim", "suit",
+])
+
+function designWords(name: string): string[] {
+  return name
+    .toLowerCase()
+    .replace(/[’']s\b/g, "")
+    .split(/[^a-z]+/)
+    .filter((w) => w.length > 1 && !NON_DESIGN_WORDS.has(w))
+}
+
+type Enrichable = { name: string; kind: string; metadata?: ExtractedMetadata }
+
+/**
+ * Bundles whose only store category is "Bundles" say nothing about garment
+ * type, but they are named after the single patterns they contain ("Baby &
+ * Child Fawn Bundle" -> the Fawn single). Owner decision: such bundles take
+ * the categories of their component singles, and when they still have no
+ * audience, Girls (+ Boys if a component is a boys' pattern). Mutates in place
+ * and only fills dimensions that are empty.
+ */
+export function inheritBundleMetadata(products: Enrichable[]): void {
+  const byDesign = new Map<string, ExtractedMetadata[]>()
+  for (const p of products) {
+    if (p.kind !== "pattern" || !p.metadata) continue
+    const key = designWords(p.name)[0]
+    if (!key) continue
+    byDesign.set(key, [...(byDesign.get(key) ?? []), p.metadata])
+  }
+
+  for (const p of products) {
+    const meta = p.metadata
+    if (p.kind !== "bundle" || !meta) continue
+    const components = [...new Set(designWords(p.name))].flatMap((w) => byDesign.get(w) ?? [])
+
+    if (meta.categories.length === 0 && components.length > 0) {
+      meta.categories = [...new Set(components.flatMap((c) => c.categories))]
+    }
+    if (meta.audiences.length === 0) {
+      const boys = components.some((c) => c.audiences.includes("Boys"))
+      meta.audiences = boys ? ["Girls", "Boys"] : ["Girls"]
+    }
+    meta.unmatched = meta.unmatched.filter(
+      (u) => !(u.dimension === "category" && meta.categories.length > 0) && !(u.dimension === "audience"),
+    )
+  }
+}
+
 /**
  * Translate one Boo and Lu product into canonical SewIndie vocabulary names.
  * Pure and DB-free.
@@ -106,12 +193,16 @@ export function extractBooAndLuMetadata(input: { name: string; slugs: string[] }
     for (const [keyword, cat] of CATEGORY_RULES) {
       if (matchWord(name, keyword)) categories.add(cat)
     }
+    for (const [pattern, cat] of BOO_NAME_RULES) {
+      if (pattern.test(name)) categories.add(cat)
+    }
   }
   meta.categories = [...categories]
   if (categories.size === 0 && name) unmatched.push({ dimension: "category", term: name })
 
   meta.audiences = audiencesFor(slugs)
   if (meta.audiences.length === 0) meta.audiences = audiencesFromName(name)
+  if (meta.audiences.length === 0) meta.audiences = audienceDefaults(name, slugs)
   if (meta.audiences.length === 0 && name) unmatched.push({ dimension: "audience", term: name })
 
   meta.unmatched = unmatched
