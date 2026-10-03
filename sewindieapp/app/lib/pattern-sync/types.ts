@@ -5,6 +5,8 @@
 // is the seam that keeps that mess contained: the API routes and the admin UI
 // only ever talk to `DesignerAdapter`, never to a specific store.
 
+import type { ExtractedMetadata } from "./metadata/types"
+
 /**
  * What kind of product a listing actually is. Anything other than "pattern" is
  * flagged in the UI rather than filtered out, so an admin decides case by case:
@@ -35,6 +37,12 @@ export type ScrapedPattern = {
   kind: ProductKind
   /** Upstream product id. Kept for stable React keys and debugging. */
   sourceId: string
+  /**
+   * Structured metadata scraped from the listing (audience, garment category,
+   * fabric type, attributes, suggested fabrics), when the adapter supports it.
+   * Absent for adapters that only surface the basic catalogue fields.
+   */
+  metadata?: ExtractedMetadata
 }
 
 export type DesignerAdapter = {

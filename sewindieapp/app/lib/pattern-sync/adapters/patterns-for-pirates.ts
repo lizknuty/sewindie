@@ -1,4 +1,5 @@
 import type { DesignerAdapter, ScrapedPattern } from "../types"
+import { extractP4PMetadata, fetchP4PStoreProducts } from "../metadata/patterns-for-pirates"
 
 // Patterns for Pirates runs WordPress + WooCommerce, which exposes a public,
 // unauthenticated WP REST API. That means no HTML scraping: the JSON already
@@ -129,7 +130,14 @@ export const patternsForPiratesAdapter: DesignerAdapter = {
   matchHosts: ["patternsforpirates.com", "www.patternsforpirates.com"],
 
   async fetchCatalogue(): Promise<ScrapedPattern[]> {
-    const [categories, products] = await Promise.all([fetchCategoryIds(), fetchProducts()])
+    // The WP API drives the catalogue; the Store API (joined by product id)
+    // adds the category/tag names and description that metadata extraction
+    // needs. A Store API failure must not break the sync, so it's best-effort.
+    const [categories, products, storeById] = await Promise.all([
+      fetchCategoryIds(),
+      fetchProducts(),
+      fetchP4PStoreProducts().catch(() => new Map<string, never>()),
+    ])
 
     const results: ScrapedPattern[] = []
 
@@ -147,6 +155,9 @@ export const patternsForPiratesAdapter: DesignerAdapter = {
       const name = decodeEntities(product.title?.rendered ?? "")
       if (!name || !product.link) continue
 
+      const store = storeById.get(String(product.id))
+      const metadata = store ? extractP4PMetadata(store) : undefined
+
       results.push({
         name,
         url: product.link,
@@ -154,6 +165,7 @@ export const patternsForPiratesAdapter: DesignerAdapter = {
         releaseDate: product.date ?? null,
         kind: terms.some((id) => categories.bundles.has(id)) ? "bundle" : "pattern",
         sourceId: String(product.id),
+        metadata,
       })
     }
 
