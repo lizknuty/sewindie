@@ -44,7 +44,8 @@ export default function CreateAccountForm({ formToken }: { formToken: string }) 
       })
 
       if (response.ok) {
-        router.push('/login?message=Account created successfully. Please log in.')
+        const message = `Almost done! We sent a confirmation link to ${email}. Click it to activate your account, then log in.`
+        router.push(`/login?message=${encodeURIComponent(message)}`)
       } else {
         const data = await response.json()
         setError(data.message || 'An error occurred. Please try again.')

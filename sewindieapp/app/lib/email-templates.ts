@@ -5,7 +5,28 @@
 // (--font-heading), Inter (--font-body). Email clients are unreliable with web fonts,
 // so we link Google Fonts for clients that honor it (e.g. Apple Mail) and pair every
 // family with a web-safe fallback stack that degrades gracefully everywhere else.
-export const getPasswordResetEmailTemplate = (resetUrl: string, userName = "there") => {
+
+type BrandedEmail = {
+  title: string
+  preheader: string
+  heading: string
+  userName: string
+  paragraphs: string[]
+  ctaLabel: string
+  ctaUrl: string
+  notice: string
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+}
+
+function renderBrandedEmail({ title, preheader, heading, userName, paragraphs, ctaLabel, ctaUrl, notice }: BrandedEmail) {
   const plum = "#8a3f5c"
   const primary = "#ea4e76"
   const blush = "#f7e6e6"
@@ -17,6 +38,13 @@ export const getPasswordResetEmailTemplate = (resetUrl: string, userName = "ther
   const headingFont = "'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif"
   const bodyFont = "'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif"
 
+  const paragraphHtml = paragraphs
+    .map(
+      (text, index) =>
+        `<p style="margin:0 0 ${index === paragraphs.length - 1 ? 28 : 16}px; color:${ink}; font-size:15px; line-height:1.6;">${text}</p>`,
+    )
+    .join("\n                  ")
+
   return `
     <!DOCTYPE html>
     <html lang="en">
@@ -24,13 +52,13 @@ export const getPasswordResetEmailTemplate = (resetUrl: string, userName = "ther
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="color-scheme" content="light">
-      <title>Reset Your Password</title>
+      <title>${title}</title>
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Open+Sans:wght@400;700&family=Poiret+One&display=swap" rel="stylesheet">
     </head>
     <body style="margin:0; padding:0; background-color:${pageBg}; font-family:${bodyFont};">
-      <span style="display:none !important; visibility:hidden; opacity:0; height:0; width:0; overflow:hidden; mso-hide:all;">Reset your SewIndie password — this link expires in 1 hour.</span>
+      <span style="display:none !important; visibility:hidden; opacity:0; height:0; width:0; overflow:hidden; mso-hide:all;">${preheader}</span>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${pageBg};">
         <tr>
           <td align="center" style="padding:32px 16px;">
@@ -44,10 +72,9 @@ export const getPasswordResetEmailTemplate = (resetUrl: string, userName = "ther
               <!-- Body -->
               <tr>
                 <td style="padding:36px 40px 8px;">
-                  <h1 style="margin:0 0 20px; color:${ink}; font-size:22px; font-weight:700; font-family:${headingFont};">Reset your password</h1>
-                  <p style="margin:0 0 16px; color:${ink}; font-size:15px; line-height:1.6;">Hi ${userName},</p>
-                  <p style="margin:0 0 16px; color:${ink}; font-size:15px; line-height:1.6;">We received a request to reset the password for your SewIndie account. If you didn&apos;t make this request, you can safely ignore this email.</p>
-                  <p style="margin:0 0 28px; color:${ink}; font-size:15px; line-height:1.6;">Click the button below to choose a new password:</p>
+                  <h1 style="margin:0 0 20px; color:${ink}; font-size:22px; font-weight:700; font-family:${headingFont};">${heading}</h1>
+                  <p style="margin:0 0 16px; color:${ink}; font-size:15px; line-height:1.6;">Hi ${escapeHtml(userName)},</p>
+                  ${paragraphHtml}
                 </td>
               </tr>
               <!-- CTA button -->
@@ -56,7 +83,7 @@ export const getPasswordResetEmailTemplate = (resetUrl: string, userName = "ther
                   <table role="presentation" cellpadding="0" cellspacing="0">
                     <tr>
                       <td align="center" style="border-radius:50px; background-color:${primary};">
-                        <a href="${resetUrl}" target="_blank" style="display:inline-block; padding:14px 40px; color:#ffffff; font-size:16px; font-weight:600; text-decoration:none; border-radius:50px; font-family:${headingFont};">Reset Password</a>
+                        <a href="${ctaUrl}" target="_blank" style="display:inline-block; padding:14px 40px; color:#ffffff; font-size:16px; font-weight:600; text-decoration:none; border-radius:50px; font-family:${headingFont};">${ctaLabel}</a>
                       </td>
                     </tr>
                   </table>
@@ -66,7 +93,7 @@ export const getPasswordResetEmailTemplate = (resetUrl: string, userName = "ther
               <tr>
                 <td style="padding:0 40px 32px;">
                   <p style="margin:0 0 8px; color:${muted}; font-size:13px; line-height:1.6;">Or copy and paste this link into your browser:</p>
-                  <p style="margin:0; font-size:13px; line-height:1.6; word-break:break-all;"><a href="${resetUrl}" target="_blank" style="color:${primary}; text-decoration:underline;">${resetUrl}</a></p>
+                  <p style="margin:0; font-size:13px; line-height:1.6; word-break:break-all;"><a href="${ctaUrl}" target="_blank" style="color:${primary}; text-decoration:underline;">${ctaUrl}</a></p>
                 </td>
               </tr>
               <!-- Notice strip -->
@@ -74,7 +101,7 @@ export const getPasswordResetEmailTemplate = (resetUrl: string, userName = "ther
                 <td style="padding:0 40px 36px;">
                   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${blush}; border-radius:10px;">
                     <tr>
-                      <td style="padding:14px 18px; color:${ink}; font-size:13px; line-height:1.6;">For your security, this link will expire in <strong>1 hour</strong>.</td>
+                      <td style="padding:14px 18px; color:${ink}; font-size:13px; line-height:1.6;">${notice}</td>
                     </tr>
                   </table>
                 </td>
@@ -96,3 +123,33 @@ export const getPasswordResetEmailTemplate = (resetUrl: string, userName = "ther
     </html>
   `
 }
+
+export const getPasswordResetEmailTemplate = (resetUrl: string, userName = "there") =>
+  renderBrandedEmail({
+    title: "Reset Your Password",
+    preheader: "Reset your SewIndie password — this link expires in 1 hour.",
+    heading: "Reset your password",
+    userName,
+    paragraphs: [
+      "We received a request to reset the password for your SewIndie account. If you didn&apos;t make this request, you can safely ignore this email.",
+      "Click the button below to choose a new password:",
+    ],
+    ctaLabel: "Reset Password",
+    ctaUrl: resetUrl,
+    notice: "For your security, this link will expire in <strong>1 hour</strong>.",
+  })
+
+export const getVerifyEmailTemplate = (verifyUrl: string, userName = "there") =>
+  renderBrandedEmail({
+    title: "Confirm Your Email",
+    preheader: "Confirm your email to finish setting up your SewIndie account.",
+    heading: "Confirm your email",
+    userName,
+    paragraphs: [
+      "Thanks for joining SewIndie! Please confirm this is your email address so you can log in and start saving favorites and collections.",
+      "If you didn&apos;t create an account, you can safely ignore this email.",
+    ],
+    ctaLabel: "Confirm Email",
+    ctaUrl: verifyUrl,
+    notice: "This link will expire in <strong>24 hours</strong>. You can request a new one from the login page.",
+  })

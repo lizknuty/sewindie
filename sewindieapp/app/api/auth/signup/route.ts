@@ -8,6 +8,7 @@ import {
   validateSignupInput,
   verifySignupTurnstile,
 } from "@/lib/signup-guard"
+import { issueVerificationEmail } from "@/lib/email-verification"
 
 // Looks identical to a real success so bots that trip a silent trap get no
 // signal to adapt against.
@@ -76,14 +77,18 @@ export async function POST(req: Request) {
 
     const hashedPassword = await bcryptjs.hash(password, 10)
 
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
         role: "USER",
       },
+      select: { id: true, email: true, name: true, emailVerificationExpires: true },
     })
+
+    // A failed send isn't fatal: the user can request a new link from the login page.
+    await issueVerificationEmail(user, req)
 
     return NextResponse.json({ message: "User created successfully" }, { status: 201 })
   } catch (error) {
