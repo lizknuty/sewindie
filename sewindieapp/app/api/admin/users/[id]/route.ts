@@ -2,8 +2,6 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import { prisma } from "@/lib/prisma"
-import bcryptjs from "bcryptjs"
-import { validateNewPassword } from "@/lib/password-policy"
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -70,7 +68,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // Get request body
-    const { name, email, password, role, status } = await request.json()
+    const { name, email, role, status } = await request.json()
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
@@ -94,21 +92,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
 
-    if (password) {
-      const passwordCheck = await validateNewPassword(password, {
-        email: email || existingUser.email,
-        name: name || existingUser.name,
-      })
-      if (!passwordCheck.ok) {
-        return NextResponse.json({ error: passwordCheck.message }, { status: 400 })
-      }
-    }
-
     // Prepare update data
     const updateData: any = {}
     if (name) updateData.name = name
     if (email) updateData.email = email
-    if (password) updateData.password = await bcryptjs.hash(password, 12)
     if (role) updateData.role = role
     if (status) updateData.status = status
 

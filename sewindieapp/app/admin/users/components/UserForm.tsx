@@ -15,11 +15,9 @@ interface UserFormProps {
   }
 }
 
-// Define a type for the form data with password as optional
 interface UserFormData {
   name: string
   email: string
-  password?: string // Mark password as optional
   role: string
 }
 
@@ -29,7 +27,6 @@ export default function UserForm({ user }: UserFormProps) {
   const [formData, setFormData] = useState<UserFormData>({
     name: user?.name || "",
     email: user?.email || "",
-    password: "", // This is now optional in the type
     role: user?.role || "USER",
   })
 
@@ -46,20 +43,12 @@ export default function UserForm({ user }: UserFormProps) {
       const url = user ? `/api/admin/users/${user.id}` : "/api/admin/users"
       const method = user ? "PUT" : "POST"
 
-      // Create a copy of the form data for submission
-      const dataToSubmit = { ...formData }
-
-      // If editing and password is empty, remove it from the data
-      if (user && dataToSubmit.password === "") {
-        delete dataToSubmit.password // Now this is valid because password is optional
-      }
-
       const response = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(dataToSubmit),
+        body: JSON.stringify(formData),
       })
 
       if (!response.ok) {
@@ -109,20 +98,11 @@ export default function UserForm({ user }: UserFormProps) {
         />
       </div>
 
-      <div className="mb-3">
-        <label htmlFor="password" className="form-label">
-          {user ? "Password (leave blank to keep current)" : "Password *"}
-        </label>
-        <input
-          type="password"
-          className="form-control"
-          id="password"
-          name="password"
-          value={formData.password || ""}
-          onChange={handleChange}
-          required={!user}
-        />
-      </div>
+      {!user && (
+        <p className="form-text mb-3">
+          The user can set their password using &quot;Forgot password&quot; on the login page.
+        </p>
+      )}
 
       <div className="mb-3">
         <label htmlFor="role" className="form-label">
