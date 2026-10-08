@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import bcryptjs from "bcryptjs"
+import { validateNewPassword } from "@/lib/password-policy"
 
 export async function POST(req: Request) {
   try {
@@ -24,8 +25,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid or expired token" }, { status: 400 })
     }
 
-    // Hash the new password
-    const hashedPassword = await bcryptjs.hash(password, 10)
+    const passwordCheck = await validateNewPassword(password, { email: user.email, name: user.name })
+    if (!passwordCheck.ok) {
+      return NextResponse.json({ error: passwordCheck.message }, { status: 400 })
+    }
+
+    const hashedPassword = await bcryptjs.hash(password, 12)
 
     // Update user's password and clear reset token
     await prisma.user.update({

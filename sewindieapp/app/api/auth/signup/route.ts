@@ -9,6 +9,7 @@ import {
   verifySignupTurnstile,
 } from "@/lib/signup-guard"
 import { issueVerificationEmail } from "@/lib/email-verification"
+import { isBreachedPassword } from "@/lib/password-policy"
 
 // Looks identical to a real success so bots that trip a silent trap get no
 // signal to adapt against.
@@ -66,6 +67,13 @@ export async function POST(req: Request) {
     }
     const { name, email, password } = input.value
 
+    if (await isBreachedPassword(password)) {
+      return NextResponse.json(
+        { message: "This password has appeared in a known data breach. Please choose a different one." },
+        { status: 400 },
+      )
+    }
+
     const existingUser = await prisma.user.findFirst({
       where: { email: { equals: email, mode: "insensitive" } },
       select: { id: true },
@@ -75,7 +83,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "User already exists" }, { status: 400 })
     }
 
-    const hashedPassword = await bcryptjs.hash(password, 10)
+    const hashedPassword = await bcryptjs.hash(password, 12)
 
     const user = await prisma.user.create({
       data: {

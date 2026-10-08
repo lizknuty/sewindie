@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import bcryptjs from "bcryptjs"
 import { checkAdminAccess } from "@/lib/admin-middleware"
+import { validateNewPassword } from "@/lib/password-policy"
 
 export async function GET() {
   try {
@@ -54,8 +55,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User with this email already exists" }, { status: 400 })
     }
 
-    // Hash password
-    const hashedPassword = await bcryptjs.hash(password, 10)
+    const passwordCheck = await validateNewPassword(password, { email, name })
+    if (!passwordCheck.ok) {
+      return NextResponse.json({ error: passwordCheck.message }, { status: 400 })
+    }
+
+    const hashedPassword = await bcryptjs.hash(password, 12)
 
     // Create user
     const user = await prisma.user.create({

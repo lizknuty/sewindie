@@ -114,12 +114,16 @@ export default function CreateAccountForm({ formToken }: { formToken: string }) 
                 className="auth-input"
                 id="password"
                 autoComplete="new-password"
-                minLength={8}
+                minLength={10}
                 maxLength={128}
+                aria-describedby="passwordHelp"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+              <span id="passwordHelp" className="account-help">
+                At least 10 characters. A short phrase of a few words works well.
+              </span>
             </div>
 
             {/* Honeypot: hidden from people and assistive tech; bots that fill every field reveal themselves. */}

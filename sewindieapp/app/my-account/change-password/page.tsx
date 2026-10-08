@@ -26,9 +26,9 @@ export default function ChangePasswordPage() {
     }
 
     // Validate password length
-    if (newPassword.length < 8) {
+    if (newPassword.length < 10) {
       setMessage({
-        text: "Password must be at least 8 characters long.",
+        text: "Password must be at least 10 characters long.",
         type: "error",
       })
       return
@@ -130,10 +130,11 @@ export default function ChangePasswordPage() {
               onChange={(e) => setNewPassword(e.target.value)}
               required
               disabled={isSubmitting}
-              minLength={8}
+              minLength={10}
+              maxLength={128}
             />
             <span id="newPasswordHelp" className="account-help">
-              Must be at least 8 characters long.
+              At least 10 characters. A short phrase of a few words works well.
             </span>
           </div>
 
@@ -150,7 +151,8 @@ export default function ChangePasswordPage() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               disabled={isSubmitting}
-              minLength={8}
+              minLength={10}
+              maxLength={128}
             />
           </div>
 

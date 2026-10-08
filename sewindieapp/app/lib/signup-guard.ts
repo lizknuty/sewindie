@@ -1,4 +1,5 @@
 import crypto from "crypto"
+import { checkPasswordRules } from "@/lib/password-policy"
 
 export const TURNSTILE_SIGNUP_ACTION = "signup"
 
@@ -183,8 +184,9 @@ export function validateSignupInput(body: Record<string, unknown>):
     return { ok: false, message: "Please use a permanent email address, not a temporary one." }
   }
 
-  if (password.length < 8 || password.length > 128) {
-    return { ok: false, message: "Password must be between 8 and 128 characters." }
+  const passwordRules = checkPasswordRules(password, { email, name })
+  if (!passwordRules.ok) {
+    return passwordRules
   }
 
   return { ok: true, value: { name, email, password } }
