@@ -158,7 +158,8 @@ export default function ResetPasswordPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={isSubmitting}
-              minLength={8}
+              minLength={10}
+              maxLength={128}
             />
           </div>
 
@@ -175,7 +176,8 @@ export default function ResetPasswordPage() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               disabled={isSubmitting}
-              minLength={8}
+              minLength={10}
+              maxLength={128}
             />
           </div>
 

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/api/auth/[...nextauth]/options"
 import { prisma } from "@/lib/prisma"
 import bcryptjs from "bcryptjs"
+import { validateNewPassword } from "@/lib/password-policy"
 
 export async function POST(req: Request) {
   try {
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
     // Get user from database
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { id: true, password: true },
+      select: { id: true, password: true, email: true, name: true },
     })
 
     if (!user) {
@@ -36,8 +37,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Current password is incorrect" }, { status: 400 })
     }
 
-    // Hash new password
-    const hashedPassword = await bcryptjs.hash(newPassword, 10)
+    if (newPassword === currentPassword) {
+      return NextResponse.json({ error: "New password must be different from your current one" }, { status: 400 })
+    }
+
+    const passwordCheck = await validateNewPassword(newPassword, { email: user.email, name: user.name })
+    if (!passwordCheck.ok) {
+      return NextResponse.json({ error: passwordCheck.message }, { status: 400 })
+    }
+
+    const hashedPassword = await bcryptjs.hash(newPassword, 12)
 
     // Update user's password
     await prisma.user.update({

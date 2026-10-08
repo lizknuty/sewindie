@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import bcryptjs from "bcryptjs"
+import crypto from "crypto"
 import { checkAdminAccess } from "@/lib/admin-middleware"
 
 export async function GET() {
@@ -38,11 +39,11 @@ export async function POST(request: NextRequest) {
     if (!authorized) return response
 
     // Get request body
-    const { name, email, password, role } = await request.json()
+    const { name, email, role } = await request.json()
 
     // Validate required fields
-    if (!name || !email || !password) {
-      return NextResponse.json({ error: "Name, email, and password are required" }, { status: 400 })
+    if (!name || !email) {
+      return NextResponse.json({ error: "Name and email are required" }, { status: 400 })
     }
 
     // Check if user already exists
@@ -54,8 +55,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User with this email already exists" }, { status: 400 })
     }
 
-    // Hash password
-    const hashedPassword = await bcryptjs.hash(password, 10)
+    // The password column is required, so store a hash of a random secret nobody knows.
+    // The user sets a real password through the "Forgot password" flow.
+    const hashedPassword = await bcryptjs.hash(crypto.randomBytes(32).toString("hex"), 12)
 
     // Create user
     const user = await prisma.user.create({
