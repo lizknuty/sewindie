@@ -5,12 +5,35 @@ import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
+// Mirrors EMAIL_NOT_VERIFIED_ERROR in lib/email-verification (a server-only module).
+const EMAIL_NOT_VERIFIED_ERROR = 'EMAIL_NOT_VERIFIED'
+
 function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [needsVerification, setNeedsVerification] = useState(false)
+  const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent'>('idle')
+  const [resendMessage, setResendMessage] = useState('')
   const router = useRouter()
+
+  const handleResend = async () => {
+    setResendStatus('sending')
+    try {
+      const response = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const data = await response.json()
+      setResendMessage(data.message || 'Request sent.')
+    } catch {
+      setResendMessage('Something went wrong. Please try again.')
+    } finally {
+      setResendStatus('sent')
+    }
+  }
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') || '/'
   // create-account redirects here with ?message=... on success; surfacing it
@@ -28,7 +51,10 @@ function LoginForm() {
         password,
       })
 
-      if (result?.error) {
+      if (result?.error === EMAIL_NOT_VERIFIED_ERROR) {
+        setNeedsVerification(true)
+        setError('Please confirm your email before logging in. Check your inbox for the link we sent.')
+      } else if (result?.error) {
         setError('Invalid email or password')
       } else {
         router.push(callbackUrl)
@@ -97,6 +123,26 @@ function LoginForm() {
             <p className="auth-error" role="alert">
               {error}
             </p>
+          )}
+
+          {needsVerification && (
+            <div className="auth-field">
+              {resendStatus === 'sent' ? (
+                <p className="auth-notice" role="status">
+                  {resendMessage}
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  className="auth-link"
+                  style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer' }}
+                  onClick={handleResend}
+                  disabled={resendStatus === 'sending'}
+                >
+                  {resendStatus === 'sending' ? 'Sending\u2026' : 'Resend confirmation email'}
+                </button>
+              )}
+            </div>
           )}
 
           <button type="submit" className="auth-submit" disabled={isSubmitting}>

@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import bcryptjs from "bcryptjs"
+import { EMAIL_NOT_VERIFIED_ERROR } from "@/lib/email-verification"
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -26,6 +27,7 @@ export const authOptions: AuthOptions = {
             name: true,
             password: true,
             role: true,
+            emailVerified: true,
           },
         })
 
@@ -37,6 +39,11 @@ export const authOptions: AuthOptions = {
 
         if (!isPasswordValid) {
           return null
+        }
+
+        // Checked only after the password matches, so this can't be used to probe which emails exist.
+        if (!user.emailVerified) {
+          throw new Error(EMAIL_NOT_VERIFIED_ERROR)
         }
 
         return {

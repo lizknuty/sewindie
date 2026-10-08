@@ -1,3 +1,4 @@
+import { extractBooAndLuMetadata } from "../metadata/boo-and-lu"
 import type { DesignerAdapter, ProductKind, ScrapedPattern } from "../types"
 
 // ---------------------------------------------------------------------------
@@ -73,7 +74,7 @@ const BUNDLE_SLUGS = ["bundles"]
 // Title fallback for bundles the store forgot to categorise -- see note 2.
 const BUNDLE_TITLE = /\bbundles?\b/i
 
-type WpTerm = { id: number; slug: string; name: string; count: number }
+type WpTerm = { id: number; slug: string; name: string; count: number; parent: number }
 
 type WpProduct = {
   id: number
@@ -127,11 +128,24 @@ async function getJson(url: string): Promise<{ body: unknown; headers: Headers }
   return { body: await res.json(), headers: res.headers }
 }
 
-/** Resolves the `bundles` product_cat term id. See note 2. */
-async function fetchBundleCategoryIds(): Promise<Set<number>> {
+async function fetchTerms(): Promise<Map<number, WpTerm>> {
   const { body } = await getJson(`${BASE}/product_cat?per_page=100`)
   const terms = (Array.isArray(body) ? body : []) as WpTerm[]
-  return new Set(terms.filter((t) => BUNDLE_SLUGS.includes(t.slug?.toLowerCase() ?? "")).map((t) => t.id))
+  return new Map(terms.map((t) => [t.id, t]))
+}
+
+/** Every slug on the product plus its ancestors -- the metadata input. */
+function slugsWithAncestors(ids: number[], terms: Map<number, WpTerm>): string[] {
+  const out = new Set<string>()
+  for (const id of ids) {
+    let term = terms.get(id)
+    let guard = 0
+    while (term && guard++ < 10) {
+      out.add(term.slug)
+      term = term.parent ? terms.get(term.parent) : undefined
+    }
+  }
+  return [...out]
 }
 
 async function fetchProducts(): Promise<WpProduct[]> {
@@ -163,7 +177,12 @@ export const booAndLuAdapter: DesignerAdapter = {
   matchHosts: ["booandlu.com", "www.booandlu.com"],
 
   async fetchCatalogue(): Promise<ScrapedPattern[]> {
-    const [bundleCategoryIds, products] = await Promise.all([fetchBundleCategoryIds(), fetchProducts()])
+    const [termMap, products] = await Promise.all([fetchTerms(), fetchProducts()])
+    // Resolved by slug so a renamed/re-ordered taxonomy can't break bundle
+    // detection. See note 2.
+    const bundleCategoryIds = new Set(
+      [...termMap.values()].filter((t) => BUNDLE_SLUGS.includes(t.slug?.toLowerCase() ?? "")).map((t) => t.id),
+    )
 
     const results: ScrapedPattern[] = []
     const seen = new Set<string>()
@@ -190,6 +209,8 @@ export const booAndLuAdapter: DesignerAdapter = {
         releaseDate: product.date ?? null,
         kind,
         sourceId: String(product.id),
+        // Bundles carry the category tree too and are enriched (owner decision).
+        metadata: extractBooAndLuMetadata({ name, slugs: slugsWithAncestors(terms, termMap) }),
       })
     }
 

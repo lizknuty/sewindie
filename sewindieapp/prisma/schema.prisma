@@ -162,6 +162,9 @@ model User {
   resetTokenExpires DateTime?         @db.Timestamp(6)
   status            UserStatus        @default(ACTIVE)
   lastLogin         DateTime?
+  emailVerified            DateTime?         @db.Timestamp(6)
+  emailVerificationToken   String?
+  emailVerificationExpires DateTime?         @db.Timestamp(6)
   BlogPost          BlogPost[]
   collections       Collection[]
   favorites         Favorite[]
@@ -169,6 +172,7 @@ model User {
   UserMeasurement   UserMeasurement[]
 
   @@index([resetToken])
+  @@index([emailVerificationToken])
 }
 
 model Favorite {
