@@ -15,10 +15,23 @@ async function verifyTurnstileToken(token: string, ip?: string): Promise<boolean
       response: token,
       ...(ip ? { remoteip: ip } : {}),
     }),
+    signal: AbortSignal.timeout(8_000),
   })
 
   const data = await response.json()
   return data.success === true
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) => setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)),
+  ])
+}
+
+// Stage markers so a stalled request in production shows where it stopped.
+function logStage(stage: string, startedAt: number) {
+  console.log(`[forgot-password] ${stage} (+${Date.now() - startedAt}ms)`)
 }
 
 // Lightweight in-memory rate limit as defense-in-depth alongside the CAPTCHA.
@@ -74,7 +87,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Please complete the security check." }, { status: 400 })
     }
 
+    const startedAt = Date.now()
+    logStage("start", startedAt)
+
     const isValidToken = await verifyTurnstileToken(turnstileToken, clientIp)
+    logStage(`turnstile ${isValidToken ? "ok" : "rejected"}`, startedAt)
     if (!isValidToken) {
       return NextResponse.json({ error: "Security verification failed. Please try again." }, { status: 400 })
     }
@@ -83,6 +100,7 @@ export async function POST(req: Request) {
     const user = await prisma.user.findUnique({
       where: { email },
     })
+    logStage(`user lookup ${user ? "found" : "not found"}`, startedAt)
 
     // Don't reveal if user exists or not for security
     if (!user) {
@@ -116,12 +134,18 @@ export async function POST(req: Request) {
     // unverified sending domain) looks like a success and the user never gets
     // an email while the UI reports that a link was sent.
     const fromEmail = process.env.RESEND_FROM_EMAIL || "noreply@sewindie.com"
-    const { error: resendError } = await resend.emails.send({
-      from: fromEmail,
-      to: user.email,
-      subject: "Reset your password",
-      html: getPasswordResetEmailTemplate(resetUrl, user.name || undefined),
-    })
+    logStage("token saved", startedAt)
+    const { error: resendError } = await withTimeout(
+      resend.emails.send({
+        from: fromEmail,
+        to: user.email,
+        subject: "Reset your password",
+        html: getPasswordResetEmailTemplate(resetUrl, user.name || undefined),
+      }),
+      10_000,
+      "Resend send",
+    )
+    logStage(`email ${resendError ? "rejected" : "sent"}`, startedAt)
 
     if (resendError) {
       console.error("[v0] Resend failed to send password reset email:", {

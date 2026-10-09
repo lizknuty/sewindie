@@ -4,8 +4,11 @@ import pg from "pg";
 
 const connectionString = process.env.POSTGRES_PRISMA_URL!;
 
+// Without a connection timeout, pg waits forever for a free/new connection,
+// which turns a DB hiccup into a request that never responds.
 const pool = new pg.Pool({
   connectionString,
+  connectionTimeoutMillis: 10_000,
 });
 
 const adapter = new PrismaPg(pool);

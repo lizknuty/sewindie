@@ -31,6 +31,7 @@ export default function ForgotPasswordPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, turnstileToken }),
+        signal: AbortSignal.timeout(30_000),
       })
 
       const data = await response.json()
@@ -50,8 +51,11 @@ export default function ForgotPasswordPage() {
         ;(window as any).turnstile?.reset()
       }
     } catch (error) {
+      const timedOut = error instanceof DOMException && error.name === "TimeoutError"
       setMessage({
-        text: "An unexpected error occurred. Please try again.",
+        text: timedOut
+          ? "The request took too long. Please try again in a moment."
+          : "An unexpected error occurred. Please try again.",
         type: "error",
       })
       ;(window as any).turnstile?.reset()
