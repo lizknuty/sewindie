@@ -2,33 +2,42 @@ import { type ExtractedMetadata, emptyMetadata } from "./types"
 
 // Patterns for Pirates metadata extraction.
 //
-// The sync adapter reads the WordPress REST API (`wp/v2/product`), which only
-// exposes category term *ids*. The richer WooCommerce Store API
-// (`wc/store/v1/products`) exposes category NAMES, tag NAMES and an HTML
-// `short_description` -- and shares the same product id -- so we join on id.
+// P4P moved from WooCommerce to Shopify (Oct 2026). The migration carried the
+// old WooCommerce folksonomy over as plain Shopify tags ("Womens", "Dress",
+// "Knit/Stretch Fabric", "Pockets"...) and added namespaced tags
+// ("audience:girls", "garment:dresses", "fabric:knit", "type:bundle"...).
+// Both are read here from the public products.json feed, together with
+// `body_html` (the old short description) for the fabric-suggestion prose.
 //
-// P4P's categories + tags are a single flat folksonomy that mixes every
-// SewIndie dimension together (audience, garment, fabric type, construction
-// features). The mapping tables below translate the store's terms into the
-// exact SewIndie vocabulary names. Anything not in a table and not in the
-// IGNORE set is surfaced as `unmatched` for review rather than silently
-// dropped or guessed.
+// The plain tags are a single flat folksonomy that mixes every SewIndie
+// dimension together (audience, garment, fabric type, construction features).
+// The mapping tables below translate them into exact SewIndie vocabulary
+// names. Anything not in a table and not in the IGNORE set is surfaced as
+// `unmatched` for review rather than silently dropped or guessed.
 
-export type P4PStoreProduct = {
-  id: number
-  name: string
-  permalink: string
-  short_description: string
-  categories: Array<{ name: string; slug: string }>
-  tags: Array<{ name: string; slug: string }>
+export type P4PProductSource = {
+  tags: string[]
+  /** Product description HTML (Shopify `body_html`). */
+  description: string
 }
 
-const STORE_BASE = "https://www.patternsforpirates.com/wp-json/wc/store/v1"
-const USER_AGENT =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
-const PER_PAGE = 100
-const MAX_PAGES = 10
-const REQUEST_TIMEOUT_MS = 20_000
+// Namespaced tags added by the Shopify migration. Only the unambiguous ones map;
+// coarse groupings (garment:bottoms, garment:one-pieces, audience:adult) are
+// covered more precisely by the plain folksonomy tags. Unlisted namespaces
+// (format:, fit:, shelf:, type:, migrated:) are commerce/file metadata.
+const NAMESPACED_MAP: Record<string, { dimension: "audience" | "category" | "fabricType"; value: string }> = {
+  "audience:women": { dimension: "audience", value: "Women" },
+  "audience:girls": { dimension: "audience", value: "Girls" },
+  "audience:boys": { dimension: "audience", value: "Boys" },
+  "audience:kids": { dimension: "audience", value: "Children" },
+  "garment:dresses": { dimension: "category", value: "Dress" },
+  "garment:tops": { dimension: "category", value: "Tops" },
+  "garment:jackets": { dimension: "category", value: "Coat / Jacket" },
+  "garment:pajamas": { dimension: "category", value: "Sleepwear / Pajama" },
+  "garment:swim": { dimension: "category", value: "Swimwear" },
+  "fabric:knit": { dimension: "fabricType", value: "Knit" },
+  "fabric:woven": { dimension: "fabricType", value: "Woven" },
+}
 
 /** Normalize a store term for table lookups: lowercase, collapse whitespace. */
 function norm(s: string): string {
@@ -368,12 +377,12 @@ function matchFabrics(phrases: string[]): { matched: string[]; unmatched: string
 }
 
 /**
- * Translate a P4P Store API product into canonical SewIndie vocabulary names.
+ * Translate a P4P Shopify product into canonical SewIndie vocabulary names.
  * Requires no DB access: audience/category/fabric-type/attribute use static
  * mapping tables, and fabrics use the synonym map. The writer resolves the
  * produced names against the live vocabulary and reports any that are missing.
  */
-export function extractP4PMetadata(product: P4PStoreProduct): ExtractedMetadata {
+export function extractP4PMetadata(product: P4PProductSource): ExtractedMetadata {
   const meta = emptyMetadata()
   const audiences = new Set<string>()
   const categories = new Set<string>()
@@ -381,14 +390,17 @@ export function extractP4PMetadata(product: P4PStoreProduct): ExtractedMetadata 
   const attributes = new Set<string>()
   const unmatched: ExtractedMetadata["unmatched"] = []
 
-  const terms = [
-    ...(product.categories ?? []),
-    ...(product.tags ?? []),
-  ].map((t) => t.name)
-
-  for (const raw of terms) {
+  for (const raw of product.tags ?? []) {
     const key = norm(raw)
     if (!key || IGNORE.has(key)) continue
+
+    if (key.includes(":")) {
+      const hit = NAMESPACED_MAP[key]
+      if (hit?.dimension === "audience") audiences.add(hit.value)
+      if (hit?.dimension === "category") categories.add(hit.value)
+      if (hit?.dimension === "fabricType") fabricTypes.add(hit.value)
+      continue
+    }
 
     let mapped = false
     if (FABRIC_TYPE_MAP[key]) {
@@ -412,12 +424,12 @@ export function extractP4PMetadata(product: P4PStoreProduct): ExtractedMetadata 
 
   // Fabric type also lives in the "designed/drafted for ... knit/woven" prose,
   // which catches products that lack a Knit/Woven category tag.
-  const descText = stripHtml(product.short_description).toLowerCase()
+  const descText = stripHtml(product.description).toLowerCase()
   const designedFor = descText.match(/(?:designed|drafted) for[^.]*/)?.[0] ?? ""
   if (/\bknit/.test(designedFor)) fabricTypes.add("Knit")
   if (/\bwoven/.test(designedFor)) fabricTypes.add("Woven")
 
-  const fabrics = matchFabrics(extractFabricPhrases(product.short_description))
+  const fabrics = matchFabrics(extractFabricPhrases(product.description))
   for (const f of fabrics.unmatched) unmatched.push({ dimension: "suggestedFabric", term: f })
 
   meta.audiences = [...audiences]
@@ -427,29 +439,4 @@ export function extractP4PMetadata(product: P4PStoreProduct): ExtractedMetadata 
   meta.suggestedFabrics = fabrics.matched
   meta.unmatched = unmatched
   return meta
-}
-
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
-
-/** Fetch every P4P Store API product, keyed by string product id. */
-export async function fetchP4PStoreProducts(): Promise<Map<string, P4PStoreProduct>> {
-  const byId = new Map<string, P4PStoreProduct>()
-
-  for (let page = 1; page <= MAX_PAGES; page++) {
-    const url = `${STORE_BASE}/products?per_page=${PER_PAGE}&page=${page}`
-    const res = await fetch(url, {
-      headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      cache: "no-store",
-    })
-    if (!res.ok) throw new Error(`P4P Store API returned ${res.status} for ${url}`)
-
-    const batch = (await res.json()) as P4PStoreProduct[]
-    if (!Array.isArray(batch) || batch.length === 0) break
-    for (const p of batch) byId.set(String(p.id), p)
-    if (batch.length < PER_PAGE) break
-    await sleep(250)
-  }
-
-  return byId
 }
