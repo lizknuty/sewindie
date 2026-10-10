@@ -153,12 +153,12 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    // Delete user
-    await prisma.user.delete({
-      where: {
-        id: userId,
-      },
-    })
+    // Favorite and Rating FKs are ON DELETE NO ACTION in the DB, so clear them first
+    await prisma.$transaction([
+      prisma.favorite.deleteMany({ where: { userId } }),
+      prisma.rating.deleteMany({ where: { userId } }),
+      prisma.user.delete({ where: { id: userId } }),
+    ])
 
     return NextResponse.json({ success: true })
   } catch (error) {

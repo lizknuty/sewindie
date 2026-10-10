@@ -111,12 +111,12 @@ export async function DELETE(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Delete users in bulk
-    const result = await prisma.user.deleteMany({
-      where: {
-        id: { in: validUserIds }
-      }
-    })
+    // Favorite and Rating FKs are ON DELETE NO ACTION in the DB, so clear them first
+    const [, , result] = await prisma.$transaction([
+      prisma.favorite.deleteMany({ where: { userId: { in: validUserIds } } }),
+      prisma.rating.deleteMany({ where: { userId: { in: validUserIds } } }),
+      prisma.user.deleteMany({ where: { id: { in: validUserIds } } }),
+    ])
 
     return NextResponse.json({ 
       success: true, 
