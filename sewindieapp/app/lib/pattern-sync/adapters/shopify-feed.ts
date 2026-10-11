@@ -18,6 +18,7 @@ export type ShopifyProduct = {
   created_at?: string | null
   vendor?: string
   tags?: string[]
+  body_html?: string | null
   images?: Array<{ src?: string }>
 }
 
