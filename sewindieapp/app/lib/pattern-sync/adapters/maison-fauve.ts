@@ -1,3 +1,4 @@
+import { extractShopifyStoreMetadata } from "../metadata/shopify-stores"
 import type { DesignerAdapter, ScrapedPattern } from "../types"
 
 // ---------------------------------------------------------------------------
@@ -58,6 +59,7 @@ type ShopifyProduct = {
   handle?: string
   product_type?: string
   published_at?: string
+  tags?: string[]
   images?: Array<{ src?: string }>
 }
 
@@ -146,6 +148,12 @@ export const maisonFauveAdapter: DesignerAdapter = {
         releaseDate: product.published_at ?? null,
         kind: "pattern",
         sourceId: String(product.id),
+        metadata: extractShopifyStoreMetadata("maison-fauve", {
+          name,
+          handle: product.handle ?? "",
+          productType: product.product_type,
+          tags: product.tags,
+        }),
       })
     }
     return results

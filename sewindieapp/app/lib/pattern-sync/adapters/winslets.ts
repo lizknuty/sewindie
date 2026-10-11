@@ -1,4 +1,5 @@
 import type { DesignerAdapter, ScrapedPattern } from "../types"
+import { extractShopifyStoreMetadata } from "../metadata/shopify-stores"
 import { fetchShopifyProducts, shopifyProductUrl, type ShopifyProduct } from "./shopify-feed"
 
 // ---------------------------------------------------------------------------
@@ -52,6 +53,13 @@ export const winsletsAdapter: DesignerAdapter = {
         releaseDate: product.published_at ?? null,
         kind: "pattern",
         sourceId: String(product.id),
+        metadata: extractShopifyStoreMetadata("winslets", {
+          name,
+          handle: product.handle,
+          productType: product.product_type,
+          tags: product.tags,
+          bodyHtml: product.body_html,
+        }),
       })
     }
 

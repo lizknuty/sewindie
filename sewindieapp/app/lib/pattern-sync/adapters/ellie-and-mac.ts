@@ -1,3 +1,4 @@
+import { extractShopifyStoreMetadata } from "../metadata/shopify-stores"
 import type { DesignerAdapter, ProductKind, ScrapedPattern } from "../types"
 
 // Ellie and Mac runs on Shopify, so `/products.json` works the same way it does
@@ -61,6 +62,7 @@ type ShopifyProduct = {
   title?: string
   handle?: string
   product_type?: string
+  tags?: string[]
   images?: Array<{ src?: string }>
 }
 
@@ -149,6 +151,12 @@ export const ellieAndMacAdapter: DesignerAdapter = {
         releaseDate: null,
         kind: classify(name),
         sourceId: String(product.id ?? handle),
+        metadata: extractShopifyStoreMetadata("ellie-and-mac", {
+          name,
+          handle,
+          productType: product.product_type,
+          tags: product.tags,
+        }),
       })
     }
 

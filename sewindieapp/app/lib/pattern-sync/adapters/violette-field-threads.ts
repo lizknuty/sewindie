@@ -1,3 +1,4 @@
+import { extractShopifyStoreMetadata } from "../metadata/shopify-stores"
 import type { DesignerAdapter, ProductKind, ScrapedPattern } from "../types"
 
 // Violette Field Threads runs on Shopify, so `/products.json` works the same way
@@ -209,6 +210,12 @@ export const violetteFieldThreadsAdapter: DesignerAdapter = {
         releaseDate: releaseDates.get(product) ?? null,
         kind: classify(product, name),
         sourceId: String(product.id ?? handle),
+        metadata: extractShopifyStoreMetadata("violette-field-threads", {
+          name,
+          handle,
+          productType: product.product_type,
+          tags: product.tags,
+        }),
       })
     }
 

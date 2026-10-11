@@ -1,3 +1,4 @@
+import { extractShopifyStoreMetadata } from "../metadata/shopify-stores"
 import type { DesignerAdapter, ProductKind, ScrapedPattern } from "../types"
 
 // Jalie runs on Shopify, which exposes a public `/products.json` feed. No auth,
@@ -189,6 +190,12 @@ export const jalieAdapter: DesignerAdapter = {
         releaseDate: product.published_at ?? null,
         kind: classify(product, title),
         sourceId: String(product.id),
+        metadata: extractShopifyStoreMetadata("jalie", {
+          name,
+          handle,
+          productType: product.product_type,
+          tags: product.tags,
+        }),
       })
     }
 

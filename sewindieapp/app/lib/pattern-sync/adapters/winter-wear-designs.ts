@@ -1,4 +1,5 @@
 import type { DesignerAdapter, ScrapedPattern } from "../types"
+import { extractShopifyStoreMetadata } from "../metadata/shopify-stores"
 import { fetchShopifyProducts, shopifyProductUrl, type ShopifyProduct } from "./shopify-feed"
 
 // ---------------------------------------------------------------------------
@@ -81,6 +82,13 @@ export const winterWearDesignsAdapter: DesignerAdapter = {
         releaseDate: product.published_at ?? null,
         kind: classify(product.title),
         sourceId: String(product.id),
+        metadata: extractShopifyStoreMetadata("winter-wear-designs", {
+          name,
+          handle: product.handle,
+          productType: product.product_type,
+          tags: product.tags,
+          bodyHtml: product.body_html,
+        }),
       })
     }
 
