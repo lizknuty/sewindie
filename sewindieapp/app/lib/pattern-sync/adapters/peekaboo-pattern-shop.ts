@@ -1,3 +1,4 @@
+import { PEEKABOO_SIGNAL_CATEGORIES, extractPeekabooMetadata } from "../metadata/peekaboo-pattern-shop"
 import type { DesignerAdapter, ProductKind, ScrapedPattern } from "../types"
 
 // Peek-a-Boo Pattern Shop runs on BigCommerce (Stencil), so there is no
@@ -175,8 +176,8 @@ function parseCards(html: string): Card[] {
   return cards
 }
 
-async function fetchPage(page: number): Promise<Card[]> {
-  const url = `${STORE}${CATEGORY_PATH}?limit=${PER_PAGE}&page=${page}`
+async function fetchPage(page: number, categoryPath = CATEGORY_PATH): Promise<Card[]> {
+  const url = `${STORE}${categoryPath}?limit=${PER_PAGE}&page=${page}`
   const res = await fetch(url, {
     headers: { "User-Agent": USER_AGENT, Accept: "text/html" },
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
@@ -190,35 +191,89 @@ async function fetchPage(page: number): Promise<Card[]> {
   return parseCards(await res.text())
 }
 
+const pathKey = (url: string) => new URL(url).pathname.replace(/\/+$/, "")
+
+// The signal categories (~28, mostly one page each) are crawled alongside the
+// main catalogue, a few at a time, inside their own budget so they can never
+// push the sync past the route's 60s cap.
+const SIGNAL_CONCURRENCY = 4
+const SIGNAL_BUDGET_MS = 40_000
+
+/**
+ * Which signal categories each product path belongs to. Returns null if any
+ * category fails or runs out of time: membership is only trustworthy when
+ * complete, so a partial crawl falls back to name-only enrichment.
+ */
+async function fetchCategoryMembership(): Promise<Map<string, string[]> | null> {
+  const deadline = Date.now() + SIGNAL_BUDGET_MS
+  const membership = new Map<string, string[]>()
+  const jobs = [...PEEKABOO_SIGNAL_CATEGORIES]
+
+  try {
+    let next = 0
+    const worker = async () => {
+      while (next < jobs.length) {
+        const slug = jobs[next++]
+        const paths = new Set<string>()
+        for (let page = 1; page <= MAX_PAGES; page++) {
+          if (Date.now() > deadline) throw new Error(`category ${slug} exceeded its time budget`)
+          const cards = await fetchPage(page, `/${slug}/`)
+          const before = paths.size
+          for (const card of cards) paths.add(pathKey(card.url))
+          if (cards.length < PER_PAGE || paths.size === before) break
+          await sleep(PAGE_DELAY_MS)
+        }
+        for (const path of paths) {
+          const list = membership.get(path) ?? []
+          list.push(slug)
+          membership.set(path, list)
+        }
+        await sleep(PAGE_DELAY_MS)
+      }
+    }
+    await Promise.all(Array.from({ length: SIGNAL_CONCURRENCY }, worker))
+    return membership
+  } catch (error) {
+    console.warn("[pattern-sync] Peek-a-Boo category crawl skipped:", (error as Error).message)
+    return null
+  }
+}
+
+async function fetchAllCards(): Promise<Card[]> {
+  // Keyed by URL so a product appearing on two pages can't be emitted twice.
+  const seen = new Map<string, Card>()
+
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const cards = await fetchPage(page)
+    if (cards.length === 0) break
+
+    const before = seen.size
+    for (const card of cards) {
+      if (!seen.has(card.url)) seen.set(card.url, card)
+    }
+
+    // Page 6 comes back empty today, so the check above is what normally ends
+    // the loop. This second guard is for the failure mode Grasser actually
+    // exhibits -- an out-of-range page silently re-serving page 1 -- which
+    // would otherwise spin until MAX_PAGES on every sync.
+    if (seen.size === before) break
+    if (cards.length < PER_PAGE) break
+
+    await sleep(PAGE_DELAY_MS)
+  }
+
+  return [...seen.values()]
+}
+
 export const peekabooPatternShopAdapter: DesignerAdapter = {
   slug: "peekaboo-pattern-shop",
   label: "Peek-A-Boo Patterns",
   matchHosts: ["peekaboopatternshop.com", "www.peekaboopatternshop.com"],
 
   async fetchCatalogue(): Promise<ScrapedPattern[]> {
-    // Keyed by URL so a product appearing on two pages can't be emitted twice.
-    const seen = new Map<string, Card>()
+    const [cards, membership] = await Promise.all([fetchAllCards(), fetchCategoryMembership()])
 
-    for (let page = 1; page <= MAX_PAGES; page++) {
-      const cards = await fetchPage(page)
-      if (cards.length === 0) break
-
-      const before = seen.size
-      for (const card of cards) {
-        if (!seen.has(card.url)) seen.set(card.url, card)
-      }
-
-      // Page 6 comes back empty today, so the check above is what normally ends
-      // the loop. This second guard is for the failure mode Grasser actually
-      // exhibits -- an out-of-range page silently re-serving page 1 -- which
-      // would otherwise spin until MAX_PAGES on every sync.
-      if (seen.size === before) break
-      if (cards.length < PER_PAGE) break
-
-      await sleep(PAGE_DELAY_MS)
-    }
-
-    return [...seen.values()].map((card) => ({
+    return cards.map((card) => ({
       name: card.title,
       url: card.url,
       imageUrl: card.imageUrl,
@@ -226,6 +281,10 @@ export const peekabooPatternShopAdapter: DesignerAdapter = {
       releaseDate: null,
       kind: classify(card.title),
       sourceId: card.productId ?? card.url.split("/").filter(Boolean).pop() ?? card.url,
+      metadata: extractPeekabooMetadata({
+        name: card.title,
+        storeCategories: membership ? (membership.get(pathKey(card.url)) ?? []) : null,
+      }),
     }))
   },
 }
