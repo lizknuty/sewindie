@@ -1,4 +1,4 @@
-import { extractBooAndLuMetadata } from "../metadata/boo-and-lu"
+import { extractBooAndLuMetadata, inheritBundleMetadata } from "../metadata/boo-and-lu"
 import type { DesignerAdapter, ProductKind, ScrapedPattern } from "../types"
 
 // ---------------------------------------------------------------------------
@@ -214,6 +214,7 @@ export const booAndLuAdapter: DesignerAdapter = {
       })
     }
 
+    inheritBundleMetadata(results)
     return results
   },
 }
